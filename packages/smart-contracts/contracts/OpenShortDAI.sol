@@ -15,9 +15,9 @@ import "./curve/ICurveFiCurve.sol";
 
 import "./constants.sol";
 
-contract LeveragedShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
+contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
     // LeveragedShortDAI Params
-    struct LSDParams {
+    struct OSDParams {
         address sender;
         uint256 repayAmount; // Amount of USDC needed to repay flashloan
         uint256 cdpId; // CDP Id to leverage
@@ -32,10 +32,10 @@ contract LeveragedShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
         Account.Info memory account,
         bytes memory data
     ) public override {
-        LSDParams memory lsdp = abi.decode(data, (LSDParams));
+        OSDParams memory osdp = abi.decode(data, (OSDParams));
 
         // Amount of USDC to locked up
-        uint256 lockUpAmount = lsdp.initialMargin.add(lsdp.flashloanAmount);
+        uint256 lockUpAmount = osdp.initialMargin.add(osdp.flashloanAmount);
 
         // Approves vault to access USDC funds
         require(
@@ -47,29 +47,29 @@ contract LeveragedShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
         );
 
         // Locks up USDC and borrows DAI
-        _lockGemAndDraw(lsdp.cdpId, lockUpAmount, lsdp.borrowAmount);
+        _lockGemAndDraw(osdp.cdpId, lockUpAmount, osdp.borrowAmount);
 
         // Converts DAI to USDC on CurveFi
-        // DAI = 0 index, USDC = 1 idex
+        // DAI = 0 index, USDC = 1 index
         require(
-            IERC20(Constants.DAI).approve(lsdp.curvePool, lsdp.borrowAmount),
+            IERC20(Constants.DAI).approve(osdp.curvePool, osdp.borrowAmount),
             "erc20-approve-curvepool-failed"
         );
 
-        uint256 swappedUsdcAmount = ICurveFiCurve(lsdp.curvePool)
-            .get_dy_underlying(int128(0), int128(1), lsdp.borrowAmount);
+        uint256 swappedUsdcAmount = ICurveFiCurve(osdp.curvePool)
+            .get_dy_underlying(int128(0), int128(1), osdp.borrowAmount);
         swappedUsdcAmount = swappedUsdcAmount.sub(1); // Not sure why but w/e
-        ICurveFiCurve(lsdp.curvePool).exchange_underlying(
+        ICurveFiCurve(osdp.curvePool).exchange_underlying(
             int128(0),
             int128(1),
-            lsdp.borrowAmount,
+            osdp.borrowAmount,
             swappedUsdcAmount
         );
 
         // Refunds msg sender
-        uint256 senderRefundAmount = swappedUsdcAmount.sub(lsdp.repayAmount);
+        uint256 senderRefundAmount = swappedUsdcAmount.sub(osdp.repayAmount);
         require(
-            IERC20(Constants.USDC).transfer(lsdp.sender, senderRefundAmount),
+            IERC20(Constants.USDC).transfer(osdp.sender, senderRefundAmount),
             "refund-sender-failed"
         );
     }
@@ -102,9 +102,9 @@ contract LeveragedShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
 
         operations[0] = _getWithdrawAction(marketId, _flashloanAmount);
         operations[1] = _getCallAction(
-            // Encode LSDParams for callFunction
+            // Encode OSDParams for callFunction
             abi.encode(
-                LSDParams({
+                OSDParams({
                     borrowAmount: _borrowAmount,
                     initialMargin: _initialMargin,
                     flashloanAmount: _flashloanAmount,
@@ -124,7 +124,7 @@ contract LeveragedShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
     }
 }
 
-contract LeveragedShortDAIActions {
+contract OpenShortDAIActions {
     using SafeMath for uint256;
 
     function _openUSDCACdp() internal returns (uint256) {
@@ -171,7 +171,7 @@ contract LeveragedShortDAIActions {
             "initial-margin-transfer-failed"
         );
         // Flashloan and shorts DAI
-        LeveragedShortDAI(_lsd).flashloanAndShort(
+        OpenShortDAI(_lsd).flashloanAndShort(
             msg.sender,
             _solo,
             _curvePool,

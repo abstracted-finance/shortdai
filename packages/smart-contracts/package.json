@@ -1,5 +1,5 @@
 {
-  "name": "@abstracted-maker/smart-contracts",
+  "name": "@shortdai/smart-contracts",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
@@ -7,7 +7,7 @@
     "compile": "buidler compile",
     "clean": "buidler clean",
     "deploy:localhost": "node cli/index.js deploy -b artifacts -d deployment/localhost",
-    "test": "yarn compile && jest tests"
+    "test": "yarn compile && jest"
   },
   "dependencies": {
     "@nomiclabs/buidler": "^1.4.3",

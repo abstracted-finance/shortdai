@@ -11,36 +11,37 @@ const { setupContract, setupIDSProxy } = require("../cli/utils/setup");
 
 const { swapOnOneSplit, wallets } = require("./common");
 
-let IDssCdpManager;
-let LeveragedShortDAIActions;
-let LeveragedShortDAI;
+let OpenShortDAIActions;
+let OpenShortDAI;
 let IDSProxy;
 let USDC;
+let DAI;
 
 const user = wallets[2];
 
 beforeAll(async function () {
   try {
-    LeveragedShortDAIActions = await setupContract({
+    OpenShortDAIActions = await setupContract({
       signer: user,
       wallets,
-      name: "LeveragedShortDAIActions",
+      name: "OpenShortDAIActions",
     });
-    LeveragedShortDAI = await setupContract({
+    OpenShortDAI = await setupContract({
       signer: user,
       wallets,
-      name: "LeveragedShortDAI",
+      name: "OpenShortDAI",
+    });
+    DAI = await setupContract({
+      signer: user,
+      wallets,
+      name: "IERC20",
+      address: ERC20_ADDRESSES.DAI,
     });
     USDC = await setupContract({
       signer: user,
       wallets,
       name: "IERC20",
       address: ERC20_ADDRESSES.USDC,
-    });
-    IDssCdpManager = await setupContract({
-      signer: user,
-      wallets,
-      name: "IDssCdpManager",
     });
     IDSProxy = await setupIDSProxy({ user });
   } catch (e) {
@@ -60,10 +61,10 @@ test("leveraged short dai", async function () {
   });
   await USDC.approve(IDSProxy.address, initialMargin);
 
-  const calldata = LeveragedShortDAIActions.interface.encodeFunctionData(
+  const calldata = OpenShortDAIActions.interface.encodeFunctionData(
     "flashloanAndShort",
     [
-      LeveragedShortDAI.address,
+      OpenShortDAI.address,
       CONTRACT_ADDRESSES.ISoloMargin,
       CONTRACT_ADDRESSES.CurveFiSUSDv2,
       initialMargin,
@@ -75,6 +76,8 @@ test("leveraged short dai", async function () {
 
   const tx = await IDSProxy[
     "execute(address,bytes)"
-  ](LeveragedShortDAIActions.address, calldata, { gasLimit: 5000000 });
+  ](OpenShortDAIActions.address, calldata, { gasLimit: 5000000 });
   await tx.wait();
+
+  // TODO: Write USDC Tests
 });
