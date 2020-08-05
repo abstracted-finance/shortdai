@@ -56,8 +56,8 @@ contract LeveragedShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
     }
 
     function flashloanAndShort(
-        address _solo,
         address _sender,
+        address _solo,
         uint256 _flashloanAmount,
         uint256 _cdpId,
         uint256 _initialMargin,
@@ -116,8 +116,8 @@ contract LeveragedShortDAIActions {
 
     // Entry point for proxy contracts
     function flashloanAndShort(
-        address _solo,
         address _lsd,
+        address _solo,
         uint256 _initialMargin, // Initial amount of USDC
         uint256 _flashloanAmount, // Amount of USDC to flashloan
         uint256 _borrowAmount, // Amount of DAI to Borrow
@@ -150,8 +150,8 @@ contract LeveragedShortDAIActions {
         );
         // Flashloan and shorts DAI
         LeveragedShortDAI(_lsd).flashloanAndShort(
-            _solo,
             msg.sender,
+            _solo,
             _flashloanAmount,
             cdpId,
             _initialMargin,

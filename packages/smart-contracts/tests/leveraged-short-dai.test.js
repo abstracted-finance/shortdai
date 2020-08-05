@@ -69,8 +69,8 @@ test("leverage short dai", async function () {
   const calldata = LeveragedShortDAIActions.interface.encodeFunctionData(
     "flashloanAndShort",
     [
-      CONTRACT_ADDRESSES.ISoloMargin,
       LeveragedShortDAI.address,
+      CONTRACT_ADDRESSES.ISoloMargin,
       initialMargin,
       flashloanAmount,
       borrowAmount,
