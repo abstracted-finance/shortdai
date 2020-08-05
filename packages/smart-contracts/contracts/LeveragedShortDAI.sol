@@ -96,7 +96,6 @@ contract LeveragedShortDAIActions {
         uint256 _cdpId // Set 0 for new vault
     ) external {
         LeveragedShortDAI(_lsd).flashloanAndShort(
-            _lsd,
             _solo,
             _token,
             _amount,

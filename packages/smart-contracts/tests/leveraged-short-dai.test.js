@@ -10,6 +10,7 @@ const { setupContract, setupIDSProxy } = require("../cli/utils/setup");
 
 const { swapOnOneSplit, wallets } = require("./common");
 
+let LeveragedShortDAIActions;
 let LeveragedShortDAI;
 let IDSProxy;
 let DAI;
@@ -18,6 +19,11 @@ const user = wallets[2];
 
 beforeAll(async function () {
   try {
+    LeveragedShortDAIActions = await setupContract({
+      signer: user,
+      wallets,
+      name: "LeveragedShortDAIActions",
+    });
     LeveragedShortDAI = await setupContract({
       signer: user,
       wallets,
@@ -44,29 +50,22 @@ test("leverage short dai", async function () {
     toToken: token,
     amountWei: ethers.utils.parseEther("1"),
   });
+
   await DAI.transfer(LeveragedShortDAI.address, 10);
 
-  await LeveragedShortDAI.flashloanAndShort(
-    CONTRACT_ADDRESSES.ISoloMargin,
-    token,
-    amount,
-    0,
-    { gasLimit: 5000000 }
+  const calldata = LeveragedShortDAIActions.interface.encodeFunctionData(
+    "flashloanAndShort",
+    [
+      LeveragedShortDAI.address,
+      CONTRACT_ADDRESSES.ISoloMargin,
+      token,
+      amount,
+      0,
+    ]
   );
 
-  // const calldata = LeveragedShortDAIActions.interface.encodeFunctionData(
-  //   "flashloanAndShort",
-  //   [
-  //     CONTRACT_ADDRESSES.ISoloMargin,
-  //     LeveragedShortDAI.address,
-  //     token,
-  //     amount,
-  //     0,
-  //   ]
-  // );
-
-  // const tx = await IDSProxy[
-  //   "execute(address,bytes)"
-  // ](LeveragedShortDAIActions.address, calldata, { gasLimit: 5000000 });
-  // await tx.wait();
+  const tx = await IDSProxy[
+    "execute(address,bytes)"
+  ](LeveragedShortDAIActions.address, calldata, { gasLimit: 5000000 });
+  await tx.wait();
 });
