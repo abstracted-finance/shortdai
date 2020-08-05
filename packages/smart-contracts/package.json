@@ -29,7 +29,7 @@
     "uuid": "^8.3.0"
   },
   "jest": {
-    "testTimeout": 60000,
+    "testTimeout": 180000,
     "runner": "jest-serial-runner"
   }
 }

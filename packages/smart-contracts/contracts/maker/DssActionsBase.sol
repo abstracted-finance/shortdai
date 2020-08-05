@@ -3,7 +3,7 @@ pragma solidity >=0.6.0 <0.7.0;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-import "../constants.sol";
+import "../Constants.sol";
 import "./IDssCdpManager.sol";
 
 interface GemLike {
@@ -122,6 +122,20 @@ contract DssActionsBase {
         GemJoinLike(apt).join(urn, wad);
     }
 
+    function _daiJoin_join(
+        address apt,
+        address urn,
+        uint256 wad
+    ) internal {
+        // Contract already has tokens
+        // Gets DAI from the user's wallet
+        // DaiJoinLike(apt).dai().transferFrom(msg.sender, address(this), wad);
+        // Approves adapter to take the DAI amount
+        DaiJoinLike(apt).dai().approve(apt, wad);
+        // Joins DAI into the vat
+        DaiJoinLike(apt).join(urn, wad);
+    }
+
     function _getDrawDart(
         address vat,
         address jug,
@@ -142,6 +156,23 @@ contract DssActionsBase {
             // This is neeeded due lack of precision. It might need to sum an extra dart wei (for the given DAI wad amount)
             dart = uint256(dart).mul(rate) < wad.mul(RAY) ? dart + 1 : dart;
         }
+    }
+
+    function _getWipeDart(
+        address vat,
+        uint256 dai,
+        address urn,
+        bytes32 ilk
+    ) internal view returns (int256 dart) {
+        // Gets actual rate from the vat
+        (, uint256 rate, , , ) = VatLike(vat).ilks(ilk);
+        // Gets actual art value of the urn
+        (, uint256 art) = VatLike(vat).urns(ilk, urn);
+
+        // Uses the whole dai balance in the vat to reduce the debt
+        dart = _toInt(dai / rate);
+        // Checks the calculated dart is not higher than urn.art (total debt), otherwise uses its value
+        dart = uint256(dart) <= art ? -dart : -_toInt(art);
     }
 
     function _lockGemAndDraw(
@@ -175,5 +206,37 @@ contract DssActionsBase {
 
         // Exits DAI to the user's wallet as a token
         DaiJoinLike(Constants.MCD_JOIN_DAI).exit(address(this), wadD);
+    }
+
+    function _wipeAndFreeGem(
+        uint256 cdp,
+        uint256 amtC,
+        uint256 wadD
+    ) internal {
+        IDssCdpManager manager = IDssCdpManager(Constants.CDP_MANAGER);
+
+        address urn = manager.urns(cdp);
+
+        // Joins DAI into vat
+        _daiJoin_join(Constants.MCD_JOIN_DAI, urn, wadD);
+        uint256 wadC = _convertTo18(Constants.MCD_JOIN_USDC_A, amtC);
+
+        // Paybacks debt to the CDP and unlocks token amount from it
+        manager.frob(
+            cdp,
+            -_toInt(wadC),
+            _getWipeDart(
+                manager.vat(),
+                VatLike(manager.vat()).dai(urn),
+                urn,
+                manager.ilks(cdp)
+            )
+        );
+
+        // Moves amount from CDP urn to the proxy's address
+        manager.flux(cdp, address(this), wadC);
+
+        // Exits token amount to user's wallet
+        GemJoinLike(Constants.MCD_JOIN_USDC_A).exit(address(this), amtC);
     }
 }

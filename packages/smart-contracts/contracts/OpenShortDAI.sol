@@ -13,7 +13,7 @@ import "./maker/DssActionsBase.sol";
 
 import "./curve/ICurveFiCurve.sol";
 
-import "./constants.sol";
+import "./Constants.sol";
 
 contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
     // LeveragedShortDAI Params
@@ -36,15 +36,6 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
 
         // Amount of USDC to locked up
         uint256 lockUpAmount = osdp.initialMargin.add(osdp.flashloanAmount);
-
-        // Approves vault to access USDC funds
-        require(
-            IERC20(Constants.USDC).approve(
-                Constants.PROXY_ACTIONS,
-                lockUpAmount
-            ),
-            "erc20-approve-lockgemandraw-failed"
-        );
 
         // Locks up USDC and borrows DAI
         _lockGemAndDraw(osdp.cdpId, lockUpAmount, osdp.borrowAmount);

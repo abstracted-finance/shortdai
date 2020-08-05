@@ -11,6 +11,9 @@ const { setupContract, setupIDSProxy } = require("../cli/utils/setup");
 
 const { swapOnOneSplit, wallets } = require("./common");
 
+let IDssCdpManager;
+let CloseShortDAIActions;
+let CloseShortDAI;
 let OpenShortDAIActions;
 let OpenShortDAI;
 let IDSProxy;
@@ -31,6 +34,22 @@ beforeAll(async function () {
       wallets,
       name: "OpenShortDAI",
     });
+    CloseShortDAIActions = await setupContract({
+      signer: user,
+      wallets,
+      name: "CloseShortDAIActions",
+    });
+    CloseShortDAI = await setupContract({
+      signer: user,
+      wallets,
+      name: "CloseShortDAI",
+    });
+    IDssCdpManager = await setupContract({
+      signer: user,
+      wallets,
+      name: "IDssCdpManager",
+      address: CONTRACT_ADDRESSES.IDssCdpManager,
+    });
     DAI = await setupContract({
       signer: user,
       wallets,
@@ -49,7 +68,7 @@ beforeAll(async function () {
   }
 });
 
-test("leveraged short dai", async function () {
+test("open and close short dai position", async function () {
   const flashloanAmount = ethers.utils.parseUnits("1", ERC20_DECIMALS.USDC);
   const initialMargin = ethers.utils.parseUnits("50", ERC20_DECIMALS.USDC);
   const borrowAmount = ethers.utils.parseEther("20", ERC20_DECIMALS.DAI);
@@ -57,11 +76,11 @@ test("leveraged short dai", async function () {
   await swapOnOneSplit(user, {
     fromToken: ETH_ADDRESS,
     toToken: ERC20_ADDRESSES.USDC,
-    amountWei: ethers.utils.parseUnits("10"),
+    amountWei: ethers.utils.parseUnits("1"),
   });
   await USDC.approve(IDSProxy.address, initialMargin);
 
-  const calldata = OpenShortDAIActions.interface.encodeFunctionData(
+  const openCalldata = OpenShortDAIActions.interface.encodeFunctionData(
     "flashloanAndShort",
     [
       OpenShortDAI.address,
@@ -74,10 +93,38 @@ test("leveraged short dai", async function () {
     ]
   );
 
-  const tx = await IDSProxy[
+  const openTx = await IDSProxy[
     "execute(address,bytes)"
-  ](OpenShortDAIActions.address, calldata, { gasLimit: 5000000 });
-  await tx.wait();
+  ](OpenShortDAIActions.address, openCalldata, { gasLimit: 5000000 });
+  await openTx.wait();
 
-  // TODO: Write USDC Tests
+  // Gets cdpId
+  const cdpId = await IDssCdpManager.last(IDSProxy.address);
+
+  // Close CDP
+  const flashloanAmountDAI = ethers.utils.parseUnits("20", ERC20_DECIMALS.DAI);
+  const withdrawAmountUSDC = ethers.utils.parseUnits("50", ERC20_DECIMALS.USDC);
+
+  await swapOnOneSplit(user, {
+    fromToken: ETH_ADDRESS,
+    toToken: ERC20_ADDRESSES.DAI,
+    amountWei: flashloanAmountDAI.add(ethers.BigNumber.from(2)),
+  });
+
+  const closeCalldata = CloseShortDAIActions.interface.encodeFunctionData(
+    "flashloanAndClose",
+    [
+      CloseShortDAI.address,
+      CONTRACT_ADDRESSES.ISoloMargin,
+      CONTRACT_ADDRESSES.CurveFiSUSDv2,
+      flashloanAmountDAI,
+      withdrawAmountUSDC,
+      cdpId,
+    ]
+  );
+
+  const closeTx = await IDSProxy[
+    "execute(address,bytes)"
+  ](CloseShortDAIActions.address, closeCalldata, { gasLimit: 5000000 });
+  await closeTx.wait();
 });
