@@ -2,7 +2,7 @@
 // Address: 0x82ecD135Dce65Fbc6DbdD0e4237E0AF93FFD5038
 pragma solidity >=0.6.0 <0.7.0;
 
-interface IDSProxyActions {
+interface IDssProxyActions {
     function cdpAllow(
         address manager,
         uint256 cdp,

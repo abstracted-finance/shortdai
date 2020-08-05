@@ -2,24 +2,26 @@
 pragma solidity >=0.6.0 <0.7.0;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts/math/SafeMath.sol";
+
 import "./dydx/DydxFlashloanBase.sol";
 import "./dydx/IDydx.sol";
 
-// Note: Only allows USDC Leveraging (Short DAI)
-//       USDC leveraging on existing vaults OR on create new vaults and leverage them
+import "./maker/IDssCdpManager.sol";
+import "./maker/IDssProxyActions.sol";
+import "./maker/DssActionsBase.sol";
 
-// New vault
-// 2. Store USDC into vault
-// 3. Borrow DAI from vault
-// 4. Convert DAI to USDC on Curve
+import "./constants.sol";
 
-contract LeveragedShortDAI is ICallee, DydxFlashloanBase {
+contract LeveragedShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
     // LeveragedShortDAI Params
     struct LSDParams {
-        address msgSender;
-        address token;
-        uint256 repayAmount;
-        uint256 cdpId;
+        address sender;
+        uint256 repayAmount; // Amount of USDC needed to repay flashloan
+        uint256 cdpId; // CDP Id to leverage
+        uint256 initialMargin; // Initial amount of USD
+        uint256 flashloanAmount; // Amount of USDC flashloaned
+        uint256 borrowAmount; // Amount of DAI to borrow
     }
 
     function callFunction(
@@ -29,52 +31,66 @@ contract LeveragedShortDAI is ICallee, DydxFlashloanBase {
     ) public override {
         LSDParams memory lsdp = abi.decode(data, (LSDParams));
 
-        uint256 balOfLoanedToken = IERC20(lsdp.token).balanceOf(address(this));
+        // Amount of USDC to locked up
+        uint256 lockUpAmount = lsdp.initialMargin.add(lsdp.flashloanAmount);
 
-        // Note that you can ignore the line below
-        // if your dydx account (this contract in this case)
-        // has deposited at least ~2 Wei of assets into the account
-        // to balance out the collaterization ratio
+        // Approves vault to access USDC funds
         require(
-            balOfLoanedToken >= lsdp.repayAmount,
-            "Not enough funds to repay dydx loan!"
+            IERC20(Constants.USDC).approve(
+                Constants.PROXY_ACTIONS,
+                lockUpAmount
+            ),
+            "erc20-approve-lockgemandraw-failed"
         );
 
-        // TODO: Encode your logic here
-        // E.g. arbitrage, liquidate accounts, etc
-        // revert("Hello, you haven't encoded your logic");
+        // Locks up USDC and borrows DAI
+        _lockGemAndDraw(lsdp.cdpId, lockUpAmount, lsdp.borrowAmount);
+
+        // require(
+        //     IERC20(Constants.DAI).transfer(lsdp.sender, lsdp.borrowAmount),
+        //     "erc20-approve-lockgemandraw-failed"
+        // );
+
+        // TODO: Convert DAI Into USDC and transfer
+        // balanceOf(address(this)) - lsdp.repayAmount
     }
 
     function flashloanAndShort(
         address _solo,
-        address _token,
-        uint256 _amount,
-        uint256 _cdpId // Set 0 for new vault
+        address _sender,
+        uint256 _flashloanAmount,
+        uint256 _cdpId,
+        uint256 _initialMargin,
+        uint256 _borrowAmount
     ) external {
         ISoloMargin solo = ISoloMargin(_solo);
 
         // Get marketId from token address
-        uint256 marketId = _getMarketIdFromTokenAddress(_solo, _token);
+        uint256 marketId = _getMarketIdFromTokenAddress(_solo, Constants.USDC);
 
-        // Calculate repay amount (_amount + (2 wei))
+        // Calculate repay amount (_flashloanAmount + (2 wei))
         // Approve transfer from
-        uint256 repayAmount = _amount.add(_getRepaymentAmount(_amount));
-        IERC20(_token).approve(_solo, repayAmount);
+        uint256 repayAmount = _flashloanAmount.add(
+            _getRepaymentAmount(_flashloanAmount)
+        );
+        IERC20(Constants.USDC).approve(_solo, repayAmount);
 
         // 1. Withdraw $
         // 2. Call callFunction(...)
         // 3. Deposit back $
         Actions.ActionArgs[] memory operations = new Actions.ActionArgs[](3);
 
-        operations[0] = _getWithdrawAction(marketId, _amount);
+        operations[0] = _getWithdrawAction(marketId, _flashloanAmount);
         operations[1] = _getCallAction(
             // Encode LSDParams for callFunction
             abi.encode(
                 LSDParams({
-                    msgSender: msg.sender,
-                    token: _token,
+                    borrowAmount: _borrowAmount,
+                    initialMargin: _initialMargin,
+                    flashloanAmount: _flashloanAmount,
                     repayAmount: repayAmount,
-                    cdpId: _cdpId
+                    cdpId: _cdpId,
+                    sender: _sender
                 })
             )
         );
@@ -88,18 +104,61 @@ contract LeveragedShortDAI is ICallee, DydxFlashloanBase {
 }
 
 contract LeveragedShortDAIActions {
+    using SafeMath for uint256;
+
+    function _openUSDCACdp() internal returns (uint256) {
+        return
+            IDssCdpManager(Constants.CDP_MANAGER).open(
+                bytes32("USDC-A"),
+                address(this)
+            );
+    }
+
+    // Entry point for proxy contracts
     function flashloanAndShort(
-        address _lsd,
         address _solo,
-        address _token,
-        uint256 _amount,
+        address _lsd,
+        uint256 _initialMargin, // Initial amount of USDC
+        uint256 _flashloanAmount, // Amount of USDC to flashloan
+        uint256 _borrowAmount, // Amount of DAI to Borrow
         uint256 _cdpId // Set 0 for new vault
     ) external {
+        // Tries and get USDC from msg.sender to proxy
+        require(
+            IERC20(Constants.USDC).transferFrom(
+                msg.sender,
+                address(this),
+                _initialMargin
+            ),
+            "initial-margin-transferFrom-failed"
+        );
+
+        uint256 cdpId = _cdpId;
+
+        // Opens a new USDC vault for the user if unspecified
+        if (cdpId == 0) {
+            cdpId = _openUSDCACdp();
+        }
+
+        // Allows LSD contract to manage vault on behalf of user
+        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(cdpId, _lsd, 1);
+
+        // Transfers the initial margin (in USDC) to lsd contract
+        require(
+            IERC20(Constants.USDC).transfer(_lsd, _initialMargin),
+            "initial-margin-transfer-failed"
+        );
+        // Flashloan and shorts DAI
         LeveragedShortDAI(_lsd).flashloanAndShort(
             _solo,
-            _token,
-            _amount,
-            _cdpId
+            msg.sender,
+            _flashloanAmount,
+            cdpId,
+            _initialMargin,
+            _borrowAmount
         );
+
+        // Forbids LSD contract to manage vault on behalf of user
+        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(cdpId, _lsd, 0);
     }
 }

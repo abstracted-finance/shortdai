@@ -4,16 +4,18 @@ const {
   ERC20_ADDRESSES,
   ETH_ADDRESS,
   CONTRACT_ADDRESSES,
+  ERC20_DECIMALS,
 } = require("../cli/utils/constants");
 
 const { setupContract, setupIDSProxy } = require("../cli/utils/setup");
 
 const { swapOnOneSplit, wallets } = require("./common");
 
+let IDssCdpManager;
 let LeveragedShortDAIActions;
 let LeveragedShortDAI;
 let IDSProxy;
-let DAI;
+let USDC;
 
 const user = wallets[2];
 
@@ -29,11 +31,16 @@ beforeAll(async function () {
       wallets,
       name: "LeveragedShortDAI",
     });
-    DAI = await setupContract({
+    USDC = await setupContract({
       signer: user,
       wallets,
       name: "IERC20",
-      address: ERC20_ADDRESSES.DAI,
+      address: ERC20_ADDRESSES.USDC,
+    });
+    IDssCdpManager = await setupContract({
+      signer: user,
+      wallets,
+      name: "IDssCdpManager",
     });
     IDSProxy = await setupIDSProxy({ user });
   } catch (e) {
@@ -42,24 +49,31 @@ beforeAll(async function () {
 });
 
 test("leverage short dai", async function () {
-  const token = ERC20_ADDRESSES.DAI;
-  const amount = ethers.utils.parseEther("10");
+  const flashloanAmount = ethers.utils.parseUnits("1", ERC20_DECIMALS.USDC);
+  const initialMargin = ethers.utils.parseUnits("50", ERC20_DECIMALS.USDC);
+  const borrowAmount = ethers.utils.parseEther("20", ERC20_DECIMALS.DAI);
 
   await swapOnOneSplit(user, {
     fromToken: ETH_ADDRESS,
-    toToken: token,
-    amountWei: ethers.utils.parseEther("1"),
+    toToken: ERC20_ADDRESSES.USDC,
+    amountWei: ethers.utils.parseUnits("10"),
   });
+  await USDC.approve(IDSProxy.address, initialMargin);
 
-  await DAI.transfer(LeveragedShortDAI.address, 10);
+  // Just so contract has funds to repay lol
+  await USDC.transfer(
+    LeveragedShortDAI.address,
+    flashloanAmount.add(ethers.BigNumber.from(2))
+  );
 
   const calldata = LeveragedShortDAIActions.interface.encodeFunctionData(
     "flashloanAndShort",
     [
-      LeveragedShortDAI.address,
       CONTRACT_ADDRESSES.ISoloMargin,
-      token,
-      amount,
+      LeveragedShortDAI.address,
+      initialMargin,
+      flashloanAmount,
+      borrowAmount,
       0,
     ]
   );
