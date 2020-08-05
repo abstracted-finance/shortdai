@@ -11,6 +11,8 @@ import "./maker/IDssCdpManager.sol";
 import "./maker/IDssProxyActions.sol";
 import "./maker/DssActionsBase.sol";
 
+import "./curve/ICurveFiCurve.sol";
+
 import "./constants.sol";
 
 contract LeveragedShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
@@ -22,6 +24,7 @@ contract LeveragedShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
         uint256 initialMargin; // Initial amount of USD
         uint256 flashloanAmount; // Amount of USDC flashloaned
         uint256 borrowAmount; // Amount of DAI to borrow
+        address curvePool;
     }
 
     function callFunction(
@@ -46,18 +49,35 @@ contract LeveragedShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
         // Locks up USDC and borrows DAI
         _lockGemAndDraw(lsdp.cdpId, lockUpAmount, lsdp.borrowAmount);
 
-        // require(
-        //     IERC20(Constants.DAI).transfer(lsdp.sender, lsdp.borrowAmount),
-        //     "erc20-approve-lockgemandraw-failed"
-        // );
+        // Converts DAI to USDC on CurveFi
+        // DAI = 0 index, USDC = 1 idex
+        require(
+            IERC20(Constants.DAI).approve(lsdp.curvePool, lsdp.borrowAmount),
+            "erc20-approve-curvepool-failed"
+        );
 
-        // TODO: Convert DAI Into USDC and transfer
-        // balanceOf(address(this)) - lsdp.repayAmount
+        uint256 swappedUsdcAmount = ICurveFiCurve(lsdp.curvePool)
+            .get_dy_underlying(int128(0), int128(1), lsdp.borrowAmount);
+        swappedUsdcAmount = swappedUsdcAmount.sub(1); // Not sure why but w/e
+        ICurveFiCurve(lsdp.curvePool).exchange_underlying(
+            int128(0),
+            int128(1),
+            lsdp.borrowAmount,
+            swappedUsdcAmount
+        );
+
+        // Refunds msg sender
+        uint256 senderRefundAmount = swappedUsdcAmount.sub(lsdp.repayAmount);
+        require(
+            IERC20(Constants.USDC).transfer(lsdp.sender, senderRefundAmount),
+            "refund-sender-failed"
+        );
     }
 
     function flashloanAndShort(
         address _sender,
         address _solo,
+        address _curvePool,
         uint256 _flashloanAmount,
         uint256 _cdpId,
         uint256 _initialMargin,
@@ -90,7 +110,8 @@ contract LeveragedShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
                     flashloanAmount: _flashloanAmount,
                     repayAmount: repayAmount,
                     cdpId: _cdpId,
-                    sender: _sender
+                    sender: _sender,
+                    curvePool: _curvePool
                 })
             )
         );
@@ -118,6 +139,7 @@ contract LeveragedShortDAIActions {
     function flashloanAndShort(
         address _lsd,
         address _solo,
+        address _curvePool,
         uint256 _initialMargin, // Initial amount of USDC
         uint256 _flashloanAmount, // Amount of USDC to flashloan
         uint256 _borrowAmount, // Amount of DAI to Borrow
@@ -152,6 +174,7 @@ contract LeveragedShortDAIActions {
         LeveragedShortDAI(_lsd).flashloanAndShort(
             msg.sender,
             _solo,
+            _curvePool,
             _flashloanAmount,
             cdpId,
             _initialMargin,

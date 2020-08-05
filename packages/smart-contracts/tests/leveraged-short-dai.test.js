@@ -48,7 +48,7 @@ beforeAll(async function () {
   }
 });
 
-test("leverage short dai", async function () {
+test("leveraged short dai", async function () {
   const flashloanAmount = ethers.utils.parseUnits("1", ERC20_DECIMALS.USDC);
   const initialMargin = ethers.utils.parseUnits("50", ERC20_DECIMALS.USDC);
   const borrowAmount = ethers.utils.parseEther("20", ERC20_DECIMALS.DAI);
@@ -60,17 +60,12 @@ test("leverage short dai", async function () {
   });
   await USDC.approve(IDSProxy.address, initialMargin);
 
-  // Just so contract has funds to repay lol
-  await USDC.transfer(
-    LeveragedShortDAI.address,
-    flashloanAmount.add(ethers.BigNumber.from(2))
-  );
-
   const calldata = LeveragedShortDAIActions.interface.encodeFunctionData(
     "flashloanAndShort",
     [
       LeveragedShortDAI.address,
       CONTRACT_ADDRESSES.ISoloMargin,
+      CONTRACT_ADDRESSES.CurveFiSUSDv2,
       initialMargin,
       flashloanAmount,
       borrowAmount,
