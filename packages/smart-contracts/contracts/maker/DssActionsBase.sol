@@ -70,6 +70,7 @@ interface VatLike {
 
 interface JugLike {
     function drip(bytes32) external returns (uint256);
+    function ilks(bytes32) external view returns (uint256, uint256);
 }
 
 interface DaiJoinLike {
