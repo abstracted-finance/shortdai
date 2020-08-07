@@ -1,9 +1,6 @@
 {
   "extends": ["eslint:recommended"],
-  "plugins": ["prettier", "jest"],
-  "rules": {
-    "prettier/prettier": "error"
-  },
+  "plugins": ["jest"],
   "parserOptions": {
     "ecmaVersion": 2018
   },

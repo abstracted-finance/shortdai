@@ -1,0 +1,8 @@
+{
+  "OpenShortDAI": {
+    "deploy": true
+  },
+  "CloseShortDAI": {
+    "deploy": true
+  }
+}

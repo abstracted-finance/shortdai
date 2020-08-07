@@ -6,7 +6,7 @@
   "scripts": {
     "compile": "buidler compile",
     "clean": "buidler clean",
-    "deploy:localhost": "node cli/index.js deploy -b artifacts -d deployment/localhost",
+    "deploy:localhost": "node cli/index.js deploy -d deployed/localhost",
     "test": "yarn compile && jest"
   },
   "dependencies": {
@@ -15,18 +15,17 @@
     "bluebird": "^3.7.2",
     "chalk": "^4.1.0",
     "commander": "^6.0.0",
-    "ethers": "^5.0.7",
     "ora": "^4.0.5"
   },
   "devDependencies": {
     "eslint": "^7.6.0",
     "eslint-plugin-jest": "^23.20.0",
     "eslint-plugin-prettier": "^3.1.4",
+    "ethers": "^5.0.7",
     "ganache-cli": "^6.9.1",
     "jest": "^26.2.2",
     "jest-serial-runner": "^1.1.0",
-    "prettier": "^2.0.5",
-    "uuid": "^8.3.0"
+    "prettier": "^2.0.5"
   },
   "jest": {
     "testTimeout": 180000,

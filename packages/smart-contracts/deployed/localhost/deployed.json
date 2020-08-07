@@ -1,0 +1,144 @@
+{
+    "OpenShortDAI": {
+        "address": "0xC89Ce4735882C9F0f0FE26686c53074E09B0D550",
+        "abi": [
+            {
+                "type": "function",
+                "name": "callFunction",
+                "constant": false,
+                "payble": false,
+                "inputs": [
+                    {
+                        "type": "address",
+                        "name": "sender"
+                    },
+                    {
+                        "type": "tuple",
+                        "name": "account",
+                        "components": [
+                            {
+                                "type": "address",
+                                "name": "owner"
+                            },
+                            {
+                                "type": "uint256",
+                                "name": "number"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "bytes",
+                        "name": "data"
+                    }
+                ],
+                "ouputs": []
+            },
+            {
+                "type": "function",
+                "name": "flashloanAndShort",
+                "constant": false,
+                "payble": false,
+                "inputs": [
+                    {
+                        "type": "address",
+                        "name": "_sender"
+                    },
+                    {
+                        "type": "address",
+                        "name": "_solo"
+                    },
+                    {
+                        "type": "address",
+                        "name": "_curvePool"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_flashloanAmount"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_cdpId"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_initialMargin"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_borrowAmount"
+                    }
+                ],
+                "ouputs": []
+            }
+        ]
+    },
+    "CloseShortDAI": {
+        "address": "0xD833215cBcc3f914bD1C9ece3EE7BF8B14f841bb",
+        "abi": [
+            {
+                "type": "function",
+                "name": "callFunction",
+                "constant": false,
+                "payble": false,
+                "inputs": [
+                    {
+                        "type": "address",
+                        "name": "sender"
+                    },
+                    {
+                        "type": "tuple",
+                        "name": "account",
+                        "components": [
+                            {
+                                "type": "address",
+                                "name": "owner"
+                            },
+                            {
+                                "type": "uint256",
+                                "name": "number"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "bytes",
+                        "name": "data"
+                    }
+                ],
+                "ouputs": []
+            },
+            {
+                "type": "function",
+                "name": "flashloanAndClose",
+                "constant": false,
+                "payble": false,
+                "inputs": [
+                    {
+                        "type": "address",
+                        "name": "_sender"
+                    },
+                    {
+                        "type": "address",
+                        "name": "_solo"
+                    },
+                    {
+                        "type": "address",
+                        "name": "_curvePool"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_flashloanAmount"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_withdrawAmount"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_cdpId"
+                    }
+                ],
+                "ouputs": []
+            }
+        ]
+    }
+}

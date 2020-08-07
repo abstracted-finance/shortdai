@@ -6,7 +6,7 @@ const chalk = require("chalk");
 
 const { setupContract } = require("../utils/setup");
 
-const deploymentFilename = "config.json";
+const deploymentConfigFilename = "config.json";
 const deployedFilename = "deployed.json";
 
 const bre = require("@nomiclabs/buidler");
@@ -16,12 +16,11 @@ async function deploy({
   runs,
   mnemonic,
   host,
-  deploymentDirectory,
+  deployedDirectory,
   toggleDeploy,
 }) {
   if (runs !== 0) {
     bre.config.solc.optimizer = { enabled: true, runs: parseInt(runs) };
-
     console.log(chalk.yellow(`Optimizer enabled with ${runs} runs`));
   }
 
@@ -39,17 +38,18 @@ async function deploy({
       )
     );
 
-  const absoluteDeploymentDirectory = path.join(
-    process.cwd(),
-    deploymentDirectory
-  );
+  const absoluteDeployedDirectory = path.join(process.cwd(), deployedDirectory);
+
+  // Deployed.json
   const deployedFilePath = path.resolve(
-    absoluteDeploymentDirectory,
+    absoluteDeployedDirectory,
     deployedFilename
   );
-  const deploymentFilePath = path.resolve(
-    absoluteDeploymentDirectory,
-    deploymentFilename
+
+  // Config.json
+  const deploymentConfigFilePath = path.resolve(
+    absoluteDeployedDirectory,
+    deploymentConfigFilename
   );
 
   // Create deployedFile if doesn't exists
@@ -59,9 +59,9 @@ async function deploy({
 
   // Get deployments needed
   const deploymentConfig = JSON.parse(
-    fs.readFileSync(deploymentFilePath, "utf8")
+    fs.readFileSync(deploymentConfigFilePath, "utf8")
   );
-  const updatedDeploymentConfig = Object.assign({}, deploymentConfig);
+  const updatedDeploymentConfig = { ...deploymentConfig };
 
   // Get deployed
   const deployedConfig = JSON.parse(fs.readFileSync(deployedFilePath, "utf8"));
@@ -87,13 +87,16 @@ async function deploy({
       if (toggleDeploy) {
         updatedDeploymentConfig[contractName].deploy = false;
         fs.writeFileSync(
-          deploymentFilePath,
+          deploymentConfigFilePath,
           JSON.stringify(updatedDeploymentConfig, null, 4)
         );
       }
 
       // Write to deployed.json
-      deployedConfig[contractName] = deployedContract.address;
+      deployedConfig[contractName] = {
+        address: deployedContract.address,
+        abi: JSON.parse(deployedContract.interface.format("json")),
+      };
       fs.writeFileSync(
         deployedFilePath,
         JSON.stringify(deployedConfig, null, 4)
@@ -126,8 +129,8 @@ module.exports = {
         "http://localhost:8545"
       )
       .requiredOption(
-        "-d, --deployment-directory <value>",
-        "Deployment directory with config.json"
+        "-d, --deployed-directory <value>",
+        "Deployed directory. Contains config.json."
       )
       .action(deploy),
 };
