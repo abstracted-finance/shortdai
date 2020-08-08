@@ -19,6 +19,8 @@ async function deploy({
   deployedDirectory,
   toggleDeploy,
 }) {
+  console.log(chalk.grey(`Deploying via host: ${host}`));
+
   if (runs !== 0) {
     bre.config.solc.optimizer = { enabled: true, runs: parseInt(runs) };
     console.log(chalk.yellow(`Optimizer enabled with ${runs} runs`));

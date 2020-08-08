@@ -1,6 +1,6 @@
 {
     "OpenShortDAI": {
-        "address": "0xC89Ce4735882C9F0f0FE26686c53074E09B0D550",
+        "address": "0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab",
         "abi": [
             {
                 "type": "function",
@@ -73,7 +73,7 @@
         ]
     },
     "CloseShortDAI": {
-        "address": "0xD833215cBcc3f914bD1C9ece3EE7BF8B14f841bb",
+        "address": "0x5b1869D9A4C187F2EAa108f3062412ecf0526b24",
         "abi": [
             {
                 "type": "function",
@@ -138,6 +138,145 @@
                     }
                 ],
                 "ouputs": []
+            }
+        ]
+    },
+    "OpenShortDAIActions": {
+        "address": "0xCfEB869F69431e42cdB54A4F4f105C19C080A601",
+        "abi": [
+            {
+                "type": "function",
+                "name": "flashloanAndShort",
+                "constant": false,
+                "payble": false,
+                "inputs": [
+                    {
+                        "type": "address",
+                        "name": "_lsd"
+                    },
+                    {
+                        "type": "address",
+                        "name": "_solo"
+                    },
+                    {
+                        "type": "address",
+                        "name": "_curvePool"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_initialMargin"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_flashloanAmount"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_borrowAmount"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_cdpId"
+                    }
+                ],
+                "ouputs": []
+            }
+        ]
+    },
+    "CloseShortDAIActions": {
+        "address": "0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B",
+        "abi": [
+            {
+                "type": "function",
+                "name": "flashloanAndClose",
+                "constant": false,
+                "payble": false,
+                "inputs": [
+                    {
+                        "type": "address",
+                        "name": "_csd"
+                    },
+                    {
+                        "type": "address",
+                        "name": "_solo"
+                    },
+                    {
+                        "type": "address",
+                        "name": "_curvePool"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_flashloanAmount"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_withdrawAmount"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_cdpId"
+                    }
+                ],
+                "ouputs": []
+            }
+        ]
+    },
+    "VaultPositionReader": {
+        "address": "0xC89Ce4735882C9F0f0FE26686c53074E09B0D550",
+        "abi": [
+            {
+                "type": "function",
+                "name": "getVaultStats",
+                "constant": true,
+                "stateMutability": "view",
+                "payble": false,
+                "inputs": [
+                    {
+                        "type": "uint256",
+                        "name": "cdp"
+                    }
+                ],
+                "ouputs": [
+                    {
+                        "type": "uint256",
+                        "name": "duty"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "debt"
+                    }
+                ]
+            },
+            {
+                "type": "function",
+                "name": "getWipeAllWad",
+                "constant": true,
+                "stateMutability": "view",
+                "payble": false,
+                "inputs": [
+                    {
+                        "type": "address",
+                        "name": "vat"
+                    },
+                    {
+                        "type": "address",
+                        "name": "usr"
+                    },
+                    {
+                        "type": "address",
+                        "name": "urn"
+                    },
+                    {
+                        "type": "bytes32",
+                        "name": "ilk"
+                    }
+                ],
+                "ouputs": [
+                    {
+                        "type": "uint256",
+                        "name": "wad"
+                    }
+                ]
             }
         ]
     }

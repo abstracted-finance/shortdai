@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "@shortdai/frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,10 +8,14 @@
     "start": "next start"
   },
   "dependencies": {
+    "@shortdai/smart-contracts": "^1.0.0",
     "@zeit-ui/react": "^1.8.0-canary.8",
+    "ethers": "^5.0.8",
     "next": "9.5.1",
     "react": "16.13.1",
-    "react-dom": "16.13.1"
+    "react-dom": "16.13.1",
+    "unstated-next": "^1.1.0",
+    "use-local-storage-state": "^4.0.0"
   },
   "devDependencies": {
     "@types/react": "^16.9.44",
