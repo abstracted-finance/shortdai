@@ -2,11 +2,13 @@ const CONSTANTS = require("./cli/utils/constants");
 
 const getContract = ({ network, name }) => {
   if (!network) {
-    const { abi } = require(`./artifacts/${name}.json`);
+    const { abi } = require(`${__dirname}/artifacts/${name}.json`);
     return { abi };
   }
 
-  const { abi, address } = require(`./deployed/${network}/${name}.json`);
+  const deployed = require(`${__dirname}/deployed/${network}/deployed.json`);
+  const { abi, address } = deployed[name];
+
   return {
     abi,
     address,

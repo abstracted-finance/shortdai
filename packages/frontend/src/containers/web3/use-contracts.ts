@@ -3,22 +3,9 @@ import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 
 import useWeb3 from "./use-web3";
-import { CONSTANTS } from "@shortdai/smart-contracts";
+import { getContract, CONSTANTS } from "@shortdai/smart-contracts";
 
-const getContract = ({ network, name }) => {
-  if (!network) {
-    const { abi } = require(`@shortdai/smart-contracts/artifacts/${name}.json`);
-    return { abi };
-  }
-
-  const deployed = require(`@shortdai/smart-contracts/deployed/${network}/deployed.json`);
-  const { abi, address } = deployed[name];
-
-  return {
-    abi,
-    address,
-  };
-};
+const { CONTRACT_ADDRESSES } = CONSTANTS;
 
 const network = "localhost";
 
@@ -37,10 +24,10 @@ const initialNoAddressContracts = initialNoAddressContractNames
 
 // Contracts with manual address
 const initialManualAddressContractsConfig = [
-  { name: "IOneSplit", address: CONSTANTS.CONTRACT_ADDRESSES.IOneSplit },
+  { name: "IOneSplit", address: CONTRACT_ADDRESSES.IOneSplit },
   {
     name: "IProxyRegistry",
-    address: CONSTANTS.CONTRACT_ADDRESSES.IProxyRegistry,
+    address: CONTRACT_ADDRESSES.IProxyRegistry,
   },
 ];
 const initialManualAddressContracts = initialManualAddressContractsConfig
