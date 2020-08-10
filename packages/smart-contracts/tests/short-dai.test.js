@@ -67,59 +67,6 @@ beforeAll(async function () {
   }
 });
 
-test("open short for existing vault", async function () {
-  const oldCdpIdRaw = await IDssCdpManager.last(IDSProxy.address);
-  const oldCdpId = parseInt(oldCdpIdRaw.toString(), 10);
-
-  await IDssCdpManager.open(
-    ethers.utils.formatBytes32String("USDC-A"),
-    IDSProxy.address
-  );
-
-  const newCdpIdRaw = await IDssCdpManager.last(IDSProxy.address);
-  const newCdpId = parseInt(newCdpIdRaw.toString(), 10);
-  expect(newCdpId).toBeGreaterThan(oldCdpId);
-
-  const initialVaultState = await VaultPositionReader.getVaultStats(newCdpId);
-  expect(parseInt(initialVaultState.debt.toString())).toBeCloseTo(0, 10);
-
-  // Leverage short
-  const flashloanUsdcAmount = ethers.utils.parseUnits("1", ERC20_DECIMALS.USDC);
-  const initialUsdcMargin = ethers.utils.parseUnits("50", ERC20_DECIMALS.USDC);
-  const borrowDaiAmount = ethers.utils.parseEther("20", ERC20_DECIMALS.DAI);
-
-  await swapOnOneSplit(user, {
-    fromToken: ETH_ADDRESS,
-    toToken: ERC20_ADDRESSES.USDC,
-    amountWei: ethers.utils.parseUnits("1"),
-  });
-  await USDC.approve(IDSProxy.address, initialUsdcMargin);
-
-  const openCalldata = OpenShortDAIActions.interface.encodeFunctionData(
-    "flashloanAndShort",
-    [
-      OpenShortDAI.address,
-      CONTRACT_ADDRESSES.ISoloMargin,
-      CONTRACT_ADDRESSES.CurveFiSUSDv2,
-      initialUsdcMargin,
-      flashloanUsdcAmount,
-      borrowDaiAmount,
-      newCdpId,
-    ]
-  );
-
-  const openTx = await IDSProxy[
-    "execute(address,bytes)"
-  ](OpenShortDAIActions.address, openCalldata, { gasLimit: 1000000 });
-  await openTx.wait();
-
-  const newVaultState = await VaultPositionReader.getVaultStats(newCdpId);
-  expect(parseInt(newVaultState.debt.toString())).toBeCloseTo(
-    parseInt(borrowDaiAmount.toString()),
-    10
-  );
-});
-
 test("open and close short (new) vault position", async function () {
   // Initial cdpId
   const initialCdpId = await IDssCdpManager.last(IDSProxy.address);
@@ -137,7 +84,7 @@ test("open and close short (new) vault position", async function () {
   await USDC.approve(IDSProxy.address, initialUsdcMargin);
 
   const openCalldata = OpenShortDAIActions.interface.encodeFunctionData(
-    "flashloanAndShort",
+    "flashloanAndOpen",
     [
       OpenShortDAI.address,
       CONTRACT_ADDRESSES.ISoloMargin,
@@ -203,4 +150,55 @@ test("open and close short (new) vault position", async function () {
   const closeVaultState = await VaultPositionReader.getVaultStats(newCdpId);
   // In Wei
   expect(parseInt(closeVaultState.debt.toString())).toBeCloseTo(0, 10);
+});
+
+test("open short for existing vault", async function () {
+  const oldCdpIdRaw = await IDssCdpManager.last(IDSProxy.address);
+  const oldCdpId = parseInt(oldCdpIdRaw.toString(), 10);
+
+  await IDssCdpManager.open(
+    ethers.utils.formatBytes32String("USDC-A"),
+    IDSProxy.address
+  );
+
+  const newCdpIdRaw = await IDssCdpManager.last(IDSProxy.address);
+  const newCdpId = parseInt(newCdpIdRaw.toString(), 10);
+  expect(newCdpId).toBeGreaterThan(oldCdpId);
+
+  const initialVaultState = await VaultPositionReader.getVaultStats(newCdpId);
+  expect(parseInt(initialVaultState.debt.toString())).toBeCloseTo(0, 10);
+
+  // Leverage short
+  const flashloanDaiAmount = ethers.utils.parseUnits("20", ERC20_DECIMALS.DAI);
+  const initialUsdcMargin = ethers.utils.parseUnits("50", ERC20_DECIMALS.USDC);
+
+  await swapOnOneSplit(user, {
+    fromToken: ETH_ADDRESS,
+    toToken: ERC20_ADDRESSES.USDC,
+    amountWei: ethers.utils.parseUnits("1"),
+  });
+  await USDC.approve(IDSProxy.address, initialUsdcMargin);
+
+  const openCalldata = OpenShortDAIActions.interface.encodeFunctionData(
+    "flashloanAndOpen",
+    [
+      OpenShortDAI.address,
+      CONTRACT_ADDRESSES.ISoloMargin,
+      CONTRACT_ADDRESSES.CurveFiSUSDv2,
+      newCdpId,
+      initialUsdcMargin,
+      flashloanDaiAmount,
+    ]
+  );
+
+  const openTx = await IDSProxy[
+    "execute(address,bytes)"
+  ](OpenShortDAIActions.address, openCalldata, { gasLimit: 1000000 });
+  await openTx.wait();
+
+  const newVaultState = await VaultPositionReader.getVaultStats(newCdpId);
+  expect(parseInt(newVaultState.debt.toString())).toBeCloseTo(
+    parseInt(flashloanDaiAmount.toString()),
+    10
+  );
 });

@@ -35,7 +35,7 @@
             },
             {
                 "type": "function",
-                "name": "flashloanAndShort",
+                "name": "flashloanAndOpen",
                 "constant": false,
                 "payble": false,
                 "inputs": [
@@ -146,7 +146,7 @@
         "abi": [
             {
                 "type": "function",
-                "name": "flashloanAndShort",
+                "name": "flashloanAndOpen",
                 "constant": false,
                 "payble": false,
                 "inputs": [

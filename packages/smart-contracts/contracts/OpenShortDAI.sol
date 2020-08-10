@@ -19,11 +19,9 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
     // LeveragedShortDAI Params
     struct OSDParams {
         address sender;
-        uint256 repayAmount; // Amount of USDC needed to repay flashloan
         uint256 cdpId; // CDP Id to leverage
-        uint256 initialMargin; // Initial amount of USD
-        uint256 flashloanAmount; // Amount of USDC flashloaned
-        uint256 borrowAmount; // Amount of DAI to borrow
+        uint256 initialMargin; // Initial amount of USDC
+        uint256 flashloanAmount; // Amount of DAI flashloaned
         address curvePool;
     }
 
@@ -34,57 +32,51 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
     ) public override {
         OSDParams memory osdp = abi.decode(data, (OSDParams));
 
-        // Amount of USDC to locked up
-        uint256 lockUpAmount = osdp.initialMargin.add(osdp.flashloanAmount);
-
-        // Locks up USDC and borrows DAI
-        _lockGemAndDraw(osdp.cdpId, lockUpAmount, osdp.borrowAmount);
-
-        // Converts DAI to USDC on CurveFi
+        // Step 1.
+        // Converts Flashloaned DAI to USDC on CurveFi
         // DAI = 0 index, USDC = 1 index
         require(
-            IERC20(Constants.DAI).approve(osdp.curvePool, osdp.borrowAmount),
+            IERC20(Constants.DAI).approve(osdp.curvePool, osdp.flashloanAmount),
             "erc20-approve-curvepool-failed"
         );
 
-        uint256 swappedUsdcAmount = ICurveFiCurve(osdp.curvePool)
-            .get_dy_underlying(int128(0), int128(1), osdp.borrowAmount);
-        swappedUsdcAmount = swappedUsdcAmount.sub(1); // Not sure why but w/e
         ICurveFiCurve(osdp.curvePool).exchange_underlying(
             int128(0),
             int128(1),
-            osdp.borrowAmount,
-            swappedUsdcAmount
+            osdp.flashloanAmount,
+            0
         );
 
-        // Refunds msg sender
-        uint256 senderRefundAmount = swappedUsdcAmount.sub(osdp.repayAmount);
-        require(
-            IERC20(Constants.USDC).transfer(osdp.sender, senderRefundAmount),
-            "refund-sender-failed"
+        // Lock up all USDC
+        uint256 supplyAmount = IERC20(Constants.USDC).balanceOf(address(this));
+
+        uint256 borrowAmount = osdp.flashloanAmount.add(
+            _getRepaymentAmount(osdp.flashloanAmount)
         );
+
+        // Locks up USDC and borrow just enough DAI to repay flashloan
+        _lockGemAndDraw(osdp.cdpId, supplyAmount, borrowAmount);
     }
 
-    function flashloanAndShort(
+    function flashloanAndOpen(
         address _sender,
         address _solo,
         address _curvePool,
-        uint256 _flashloanAmount,
         uint256 _cdpId,
         uint256 _initialMargin,
-        uint256 _borrowAmount
+        uint256 _flashloanAmount
     ) external {
         ISoloMargin solo = ISoloMargin(_solo);
 
         // Get marketId from token address
-        uint256 marketId = _getMarketIdFromTokenAddress(_solo, Constants.USDC);
+        uint256 marketId = _getMarketIdFromTokenAddress(_solo, Constants.DAI);
 
         // Calculate repay amount (_flashloanAmount + (2 wei))
         // Approve transfer from
         uint256 repayAmount = _flashloanAmount.add(
             _getRepaymentAmount(_flashloanAmount)
         );
-        IERC20(Constants.USDC).approve(_solo, repayAmount);
+        IERC20(Constants.DAI).approve(_solo, repayAmount);
 
         // 1. Withdraw $
         // 2. Call callFunction(...)
@@ -96,10 +88,8 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
             // Encode OSDParams for callFunction
             abi.encode(
                 OSDParams({
-                    borrowAmount: _borrowAmount,
                     initialMargin: _initialMargin,
                     flashloanAmount: _flashloanAmount,
-                    repayAmount: repayAmount,
                     cdpId: _cdpId,
                     sender: _sender,
                     curvePool: _curvePool
@@ -127,14 +117,13 @@ contract OpenShortDAIActions {
     }
 
     // Entry point for proxy contracts
-    function flashloanAndShort(
+    function flashloanAndOpen(
         address _lsd,
         address _solo,
         address _curvePool,
+        uint256 _cdpId, // Set 0 for new vault
         uint256 _initialMargin, // Initial amount of USDC
-        uint256 _flashloanAmount, // Amount of USDC to flashloan
-        uint256 _borrowAmount, // Amount of DAI to Borrow
-        uint256 _cdpId // Set 0 for new vault
+        uint256 _flashloanAmount // Amount of DAI to flashloan
     ) external {
         // Tries and get USDC from msg.sender to proxy
         require(
@@ -162,14 +151,13 @@ contract OpenShortDAIActions {
             "initial-margin-transfer-failed"
         );
         // Flashloan and shorts DAI
-        OpenShortDAI(_lsd).flashloanAndShort(
+        OpenShortDAI(_lsd).flashloanAndOpen(
             msg.sender,
             _solo,
             _curvePool,
-            _flashloanAmount,
             cdpId,
             _initialMargin,
-            _borrowAmount
+            _flashloanAmount
         );
 
         // Forbids LSD contract to manage vault on behalf of user
