@@ -113,8 +113,6 @@ test("open and close short (new) vault position", async function () {
   // Makes sure vault debt is equal to borrowedDaiAmount
   const openVaultState = await VaultPositionReader.getVaultStats(newCdpId);
 
-  console.log("openVaultState", openVaultState);
-
   // Example on calculating stability rates
   // https://docs.makerdao.com/smart-contract-modules/rates-module
   // const RAY = ethers.BigNumber.from("1000000000000000000000000000");
@@ -170,8 +168,8 @@ test("open short for existing vault", async function () {
   expect(parseInt(initialVaultState.borrowed.toString())).toBeCloseTo(0, 10);
 
   // Leverage short
-  const flashloanDaiAmount = ethers.utils.parseUnits("20", ERC20_DECIMALS.DAI);
-  const initialUsdcMargin = ethers.utils.parseUnits("50", ERC20_DECIMALS.USDC);
+  const flashloanDaiAmount = ethers.utils.parseUnits("30", ERC20_DECIMALS.DAI);
+  const initialUsdcMargin = ethers.utils.parseUnits("100", ERC20_DECIMALS.USDC);
 
   await swapOnOneSplit(user, {
     fromToken: ETH_ADDRESS,

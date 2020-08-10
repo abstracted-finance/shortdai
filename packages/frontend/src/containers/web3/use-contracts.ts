@@ -13,12 +13,12 @@ const network = "localhost";
 const initialNoAddressContractNames = ["IERC20", "IDSProxy"];
 const initialNoAddressContracts = initialNoAddressContractNames
   .map((name) => {
-    const { abi } = getContract({ name });
+    const { abi } = getContract({ name, network: null });
     const c = new ethers.Contract(ethers.constants.AddressZero, abi);
 
     return [name, c];
   })
-  .reduce((acc, [k, v]) => {
+  .reduce((acc, [k, v]: [string, ethers.Contract]) => {
     return { ...acc, [k]: v };
   }, {});
 
@@ -32,12 +32,12 @@ const initialManualAddressContractsConfig = [
 ];
 const initialManualAddressContracts = initialManualAddressContractsConfig
   .map(({ name, address }) => {
-    const { abi } = getContract({ name });
+    const { abi } = getContract({ name, network: null });
     const c = new ethers.Contract(address, abi);
 
     return [name, c];
   })
-  .reduce((acc, [k, v]) => {
+  .reduce((acc, [k, v]: [string, ethers.Contract]) => {
     return { ...acc, [k]: v };
   }, {});
 
@@ -59,7 +59,7 @@ const initialAddressedContracts = initialAddressedContractNames
 
     return [name, c];
   })
-  .reduce((acc, [k, v]) => {
+  .reduce((acc, [k, v]: [string, ethers.Contract]) => {
     return { ...acc, [k]: v };
   }, {});
 
