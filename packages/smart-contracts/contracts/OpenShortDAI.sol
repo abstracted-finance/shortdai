@@ -118,7 +118,7 @@ contract OpenShortDAIActions {
 
     // Entry point for proxy contracts
     function flashloanAndOpen(
-        address _lsd,
+        address _osd,
         address _solo,
         address _curvePool,
         uint256 _cdpId, // Set 0 for new vault
@@ -143,15 +143,15 @@ contract OpenShortDAIActions {
         }
 
         // Allows LSD contract to manage vault on behalf of user
-        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(cdpId, _lsd, 1);
+        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(cdpId, _osd, 1);
 
         // Transfers the initial margin (in USDC) to lsd contract
         require(
-            IERC20(Constants.USDC).transfer(_lsd, _initialMargin),
+            IERC20(Constants.USDC).transfer(_osd, _initialMargin),
             "initial-margin-transfer-failed"
         );
         // Flashloan and shorts DAI
-        OpenShortDAI(_lsd).flashloanAndOpen(
+        OpenShortDAI(_osd).flashloanAndOpen(
             msg.sender,
             _solo,
             _curvePool,
@@ -161,6 +161,6 @@ contract OpenShortDAIActions {
         );
 
         // Forbids LSD contract to manage vault on behalf of user
-        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(cdpId, _lsd, 0);
+        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(cdpId, _osd, 0);
     }
 }

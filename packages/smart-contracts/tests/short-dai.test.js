@@ -67,14 +67,13 @@ beforeAll(async function () {
   }
 });
 
-test("open and close short (new) vault position", async function () {
+test.only("open and close short (new) vault position", async function () {
   // Initial cdpId
   const initialCdpId = await IDssCdpManager.last(IDSProxy.address);
 
   // Open parameters
-  const flashloanUsdcAmount = ethers.utils.parseUnits("1", ERC20_DECIMALS.USDC);
+  const flashloanDaiAmount = ethers.utils.parseUnits("22", ERC20_DECIMALS.DAI);
   const initialUsdcMargin = ethers.utils.parseUnits("50", ERC20_DECIMALS.USDC);
-  const borrowDaiAmount = ethers.utils.parseEther("20", ERC20_DECIMALS.DAI);
 
   await swapOnOneSplit(user, {
     fromToken: ETH_ADDRESS,
@@ -89,10 +88,9 @@ test("open and close short (new) vault position", async function () {
       OpenShortDAI.address,
       CONTRACT_ADDRESSES.ISoloMargin,
       CONTRACT_ADDRESSES.CurveFiSUSDv2,
-      initialUsdcMargin,
-      flashloanUsdcAmount,
-      borrowDaiAmount,
       0,
+      initialUsdcMargin,
+      flashloanDaiAmount,
     ]
   );
 
@@ -116,13 +114,12 @@ test("open and close short (new) vault position", async function () {
 
   // In Wei
   expect(parseInt(openVaultState.debt.toString())).toBeCloseTo(
-    parseInt(borrowDaiAmount.toString()),
+    parseInt(flashloanDaiAmount.toString()),
     10
   );
 
   // Close CDP
-  const flashloanDaiAmount = ethers.utils.parseUnits("20", ERC20_DECIMALS.DAI);
-  const withdrawUsdcAmount = ethers.utils.parseUnits("50", ERC20_DECIMALS.USDC);
+  const withdrawUsdcAmount = ethers.utils.parseUnits("1", ERC20_DECIMALS.USDC);
 
   await swapOnOneSplit(user, {
     fromToken: ETH_ADDRESS,
@@ -136,7 +133,7 @@ test("open and close short (new) vault position", async function () {
       CloseShortDAI.address,
       CONTRACT_ADDRESSES.ISoloMargin,
       CONTRACT_ADDRESSES.CurveFiSUSDv2,
-      flashloanDaiAmount,
+      ethers.utils.parseUnits("0.1", ERC20_DECIMALS.DAI),
       withdrawUsdcAmount,
       newCdpId,
     ]
