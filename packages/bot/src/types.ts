@@ -14,7 +14,6 @@ export interface BotContracts {
   IProxyRegistry: ethers.Contract;
   OpenShortDAI: ethers.Contract;
   CloseShortDAI: ethers.Contract;
-  OpenShortDAIActions: ethers.Contract;
-  CloseShortDAIActions: ethers.Contract;
+  ShortDAIActions: ethers.Contract;
   VaultPositionReader: ethers.Contract;
 }

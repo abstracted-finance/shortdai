@@ -105,29 +105,3 @@ contract CloseShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
         );
     }
 }
-
-contract CloseShortDAIActions {
-    using SafeMath for uint256;
-
-    function flashloanAndClose(
-        address _csd,
-        address _solo,
-        address _curvePool,
-        uint256 _cdpId,
-        uint256 _flashloanAmount,
-        uint256 _withdrawAmount
-    ) external {
-        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(_cdpId, _csd, 1);
-
-        CloseShortDAI(_csd).flashloanAndClose(
-            msg.sender,
-            _solo,
-            _curvePool,
-            _cdpId,
-            _flashloanAmount,
-            _withdrawAmount
-        );
-
-        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(_cdpId, _csd, 0);
-    }
-}

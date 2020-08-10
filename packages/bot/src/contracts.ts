@@ -12,7 +12,7 @@ export const getContracts = (
 
   const initialNoAddressContracts = initialNoAddressContractNames
     .map((name) => {
-      const { abi } = getContract({ name });
+      const { abi } = getContract({ name, network: null });
       const c = new ethers.Contract(ethers.constants.AddressZero, abi);
 
       return [name, c];
@@ -31,7 +31,7 @@ export const getContracts = (
   ];
   const initialManualAddressContracts = initialManualAddressContractsConfig
     .map(({ name, address }) => {
-      const { abi } = getContract({ name });
+      const { abi } = getContract({ name, network: null });
       const c = new ethers.Contract(address, abi);
 
       return [name, c];
@@ -44,8 +44,7 @@ export const getContracts = (
   const initialAddressedContractNames = [
     "OpenShortDAI",
     "CloseShortDAI",
-    "OpenShortDAIActions",
-    "CloseShortDAIActions",
+    "ShortDAIActions",
     "VaultPositionReader",
   ];
   const initialAddressedContracts = initialAddressedContractNames

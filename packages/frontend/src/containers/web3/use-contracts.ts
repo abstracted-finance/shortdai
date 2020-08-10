@@ -45,8 +45,7 @@ const initialManualAddressContracts = initialManualAddressContractsConfig
 const initialAddressedContractNames = [
   "OpenShortDAI",
   "CloseShortDAI",
-  "OpenShortDAIActions",
-  "CloseShortDAIActions",
+  "ShortDAIActions",
   "VaultPositionReader",
 ];
 const initialAddressedContracts = initialAddressedContractNames

@@ -12,33 +12,26 @@ const { setupContract, setupIDSProxy } = require("../cli/utils/setup");
 const { swapOnOneSplit, wallets } = require("./common");
 
 let IDssCdpManager;
-let CloseShortDAIActions;
+let ShortDAIActions;
 let CloseShortDAI;
-let OpenShortDAIActions;
 let OpenShortDAI;
 let IDSProxy;
 let USDC;
-let DAI;
 let VaultPositionReader;
 
 const user = wallets[2];
 
 beforeAll(async function () {
   try {
-    OpenShortDAIActions = await setupContract({
+    ShortDAIActions = await setupContract({
       signer: user,
       wallets,
-      name: "OpenShortDAIActions",
+      name: "ShortDAIActions",
     });
     OpenShortDAI = await setupContract({
       signer: user,
       wallets,
       name: "OpenShortDAI",
-    });
-    CloseShortDAIActions = await setupContract({
-      signer: user,
-      wallets,
-      name: "CloseShortDAIActions",
     });
     CloseShortDAI = await setupContract({
       signer: user,
@@ -50,12 +43,6 @@ beforeAll(async function () {
       wallets,
       name: "IDssCdpManager",
       address: CONTRACT_ADDRESSES.IDssCdpManager,
-    });
-    DAI = await setupContract({
-      signer: user,
-      wallets,
-      name: "IERC20",
-      address: ERC20_ADDRESSES.DAI,
     });
     USDC = await setupContract({
       signer: user,
@@ -89,7 +76,7 @@ test("open and close short (new) vault position", async function () {
   });
   await USDC.approve(IDSProxy.address, initialUsdcMargin);
 
-  const openCalldata = OpenShortDAIActions.interface.encodeFunctionData(
+  const openCalldata = ShortDAIActions.interface.encodeFunctionData(
     "flashloanAndOpen",
     [
       OpenShortDAI.address,
@@ -103,7 +90,7 @@ test("open and close short (new) vault position", async function () {
 
   const openTx = await IDSProxy[
     "execute(address,bytes)"
-  ](OpenShortDAIActions.address, openCalldata, { gasLimit: 1000000 });
+  ](ShortDAIActions.address, openCalldata, { gasLimit: 1000000 });
   await openTx.wait();
 
   // Gets cdpId
@@ -126,7 +113,7 @@ test("open and close short (new) vault position", async function () {
   );
 
   // Close CDP
-  const closeCalldata = CloseShortDAIActions.interface.encodeFunctionData(
+  const closeCalldata = ShortDAIActions.interface.encodeFunctionData(
     "flashloanAndClose",
     [
       CloseShortDAI.address,
@@ -140,7 +127,7 @@ test("open and close short (new) vault position", async function () {
 
   const closeTx = await IDSProxy[
     "execute(address,bytes)"
-  ](CloseShortDAIActions.address, closeCalldata, { gasLimit: 1000000 });
+  ](ShortDAIActions.address, closeCalldata, { gasLimit: 1000000 });
   await closeTx.wait();
 
   const closeVaultState = await VaultPositionReader.getVaultStats(newCdpId);
@@ -178,7 +165,7 @@ test("open short for existing vault", async function () {
   });
   await USDC.approve(IDSProxy.address, initialUsdcMargin);
 
-  const openCalldata = OpenShortDAIActions.interface.encodeFunctionData(
+  const openCalldata = ShortDAIActions.interface.encodeFunctionData(
     "flashloanAndOpen",
     [
       OpenShortDAI.address,
@@ -192,7 +179,7 @@ test("open short for existing vault", async function () {
 
   const openTx = await IDSProxy[
     "execute(address,bytes)"
-  ](OpenShortDAIActions.address, openCalldata, { gasLimit: 1000000 });
+  ](ShortDAIActions.address, openCalldata, { gasLimit: 1000000 });
   await openTx.wait();
 
   const newVaultState = await VaultPositionReader.getVaultStats(newCdpId);
