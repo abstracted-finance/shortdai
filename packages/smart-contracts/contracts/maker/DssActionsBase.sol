@@ -70,6 +70,7 @@ interface VatLike {
 
 interface JugLike {
     function drip(bytes32) external returns (uint256);
+
     function ilks(bytes32) external view returns (uint256, uint256);
 }
 
@@ -174,6 +175,58 @@ contract DssActionsBase {
         dart = _toInt(dai / rate);
         // Checks the calculated dart is not higher than urn.art (total debt), otherwise uses its value
         dart = uint256(dart) <= art ? -dart : -_toInt(art);
+    }
+
+    function _getWipeAllWad(
+        address vat,
+        address usr,
+        address urn,
+        bytes32 ilk
+    ) internal view returns (uint256 wad) {
+        // Gets actual rate from the vat
+        (, uint256 rate, , , ) = VatLike(vat).ilks(ilk);
+        // Gets actual art value of the urn
+        (, uint256 art) = VatLike(vat).urns(ilk, urn);
+        // Gets actual dai amount in the urn
+        uint256 dai = VatLike(vat).dai(usr);
+
+        uint256 rad = art.mul(rate).sub(dai);
+        wad = rad / RAY;
+
+        // If the rad precision has some dust, it will need to request for 1 extra wad wei
+        wad = wad.mul(RAY) < rad ? wad + 1 : wad;
+    }
+
+    function _getSuppliedAndBorrow(uint256 cdp)
+        internal
+        returns (uint256, uint256)
+    {
+        IDssCdpManager manager = IDssCdpManager(Constants.CDP_MANAGER);
+
+        address vat = manager.vat();
+        address urn = manager.urns(cdp);
+        bytes32 ilk = manager.ilks(cdp);
+        address usr = manager.owns(cdp);
+
+        // Gets actual rate from the vat
+        (, uint256 rate, , , ) = VatLike(vat).ilks(ilk);
+        // Gets actual art value of the urn
+        (uint256 supplied, uint256 art) = VatLike(vat).urns(ilk, urn);
+        // Gets actual dai amount in the urn
+        uint256 dai = VatLike(vat).dai(usr);
+
+        uint256 rad = art.mul(rate).sub(dai);
+        uint256 wad = rad / RAY;
+
+        // If the rad precision has some dust, it will need to request for 1 extra wad wei
+        uint256 borrowed = wad.mul(RAY) < rad ? wad + 1 : wad;
+
+        // Convert back to native units (USDC has 6 decimals)
+        supplied = supplied.div(
+            10**(18 - GemJoinLike(Constants.MCD_JOIN_USDC_A).dec())
+        );
+
+        return (supplied, borrowed);
     }
 
     function _lockGemAndDraw(

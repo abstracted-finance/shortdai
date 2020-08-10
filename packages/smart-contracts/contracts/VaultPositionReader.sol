@@ -17,30 +17,39 @@ contract VaultPositionReader {
 
     uint256 constant RAY = 10**27;
 
-    function getWipeAllWad(
+    function _getSuppliedAndBorrowed(
         address vat,
         address usr,
         address urn,
         bytes32 ilk
-    ) public view returns (uint256 wad) {
+    ) internal view returns (uint256, uint256) {
         // Gets actual rate from the vat
         (, uint256 rate, , , ) = VatLike(vat).ilks(ilk);
         // Gets actual art value of the urn
-        (, uint256 art) = VatLike(vat).urns(ilk, urn);
+        (uint256 supplied, uint256 art) = VatLike(vat).urns(ilk, urn);
         // Gets actual dai amount in the urn
         uint256 dai = VatLike(vat).dai(usr);
 
         uint256 rad = art.mul(rate).sub(dai);
-        wad = rad / RAY;
+        uint256 wad = rad / RAY;
 
         // If the rad precision has some dust, it will need to request for 1 extra wad wei
-        wad = wad.mul(RAY) < rad ? wad + 1 : wad;
+        uint256 borrowed = wad.mul(RAY) < rad ? wad + 1 : wad;
+
+        // Note that supplied is in 18 decimals, so you'll need to convert it back
+        // i.e. supplied = supplied / 10 ** (18 - decimals)
+
+        return (supplied, borrowed);
     }
 
     function getVaultStats(uint256 cdp)
         public
         view
-        returns (uint256 duty, uint256 debt)
+        returns (
+            uint256 duty,
+            uint256 borrowed,
+            uint256 supplied
+        )
     {
         IDssCdpManager manager = IDssCdpManager(Constants.CDP_MANAGER);
 
@@ -52,6 +61,6 @@ contract VaultPositionReader {
         // Get global stability fee
         (duty, ) = JugLike(Constants.MCD_JUG).ilks(ilk);
 
-        debt = getWipeAllWad(vat, owner, urn, ilk);
+        (supplied, borrowed) = _getSuppliedAndBorrowed(vat, owner, urn, ilk);
     }
 }

@@ -18,7 +18,6 @@ import "./Constants.sol";
 contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
     // LeveragedShortDAI Params
     struct OSDParams {
-        address sender;
         uint256 cdpId; // CDP Id to leverage
         uint256 initialMargin; // Initial amount of USDC
         uint256 flashloanAmount; // Amount of DAI flashloaned
@@ -50,9 +49,7 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
         // Lock up all USDC
         uint256 supplyAmount = IERC20(Constants.USDC).balanceOf(address(this));
 
-        uint256 borrowAmount = osdp.flashloanAmount.add(
-            _getRepaymentAmount(osdp.flashloanAmount)
-        );
+        uint256 borrowAmount = osdp.flashloanAmount.add(_getRepaymentAmount());
 
         // Locks up USDC and borrow just enough DAI to repay flashloan
         _lockGemAndDraw(osdp.cdpId, supplyAmount, borrowAmount);
@@ -73,9 +70,7 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
 
         // Calculate repay amount (_flashloanAmount + (2 wei))
         // Approve transfer from
-        uint256 repayAmount = _flashloanAmount.add(
-            _getRepaymentAmount(_flashloanAmount)
-        );
+        uint256 repayAmount = _flashloanAmount.add(_getRepaymentAmount());
         IERC20(Constants.DAI).approve(_solo, repayAmount);
 
         // 1. Withdraw $
@@ -91,7 +86,6 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
                     initialMargin: _initialMargin,
                     flashloanAmount: _flashloanAmount,
                     cdpId: _cdpId,
-                    sender: _sender,
                     curvePool: _curvePool
                 })
             )
@@ -102,6 +96,16 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
         accountInfos[0] = _getAccountInfo();
 
         solo.operate(accountInfos, operations);
+
+        // Refund user any ERC20 leftover
+        IERC20(Constants.DAI).transfer(
+            _sender,
+            IERC20(Constants.DAI).balanceOf(address(this))
+        );
+        IERC20(Constants.USDC).transfer(
+            _sender,
+            IERC20(Constants.USDC).balanceOf(address(this))
+        );
     }
 }
 
