@@ -68,14 +68,16 @@ beforeAll(async function () {
 });
 
 test("open short for existing vault", async function () {
-  const oldCdpId = await IDssCdpManager.last(IDSProxy.address);
+  const oldCdpIdRaw = await IDssCdpManager.last(IDSProxy.address);
+  const oldCdpId = parseInt(oldCdpIdRaw.toString(), 10);
 
   await IDssCdpManager.open(
     ethers.utils.formatBytes32String("USDC-A"),
     IDSProxy.address
   );
 
-  const newCdpId = await IDssCdpManager.last(IDSProxy.address);
+  const newCdpIdRaw = await IDssCdpManager.last(IDSProxy.address);
+  const newCdpId = parseInt(newCdpIdRaw.toString(), 10);
   expect(newCdpId).toBeGreaterThan(oldCdpId);
 
   const initialVaultState = await VaultPositionReader.getVaultStats(newCdpId);
