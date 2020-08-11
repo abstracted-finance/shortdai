@@ -81,9 +81,7 @@ contract ShortDAIActions {
         address _csd,
         address _solo,
         address _curvePool,
-        uint256 _cdpId,
-        uint256 _flashloanAmount,
-        uint256 _withdrawAmount
+        uint256 _cdpId
     ) external {
         IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(_cdpId, _csd, 1);
 
@@ -91,9 +89,7 @@ contract ShortDAIActions {
             msg.sender,
             _solo,
             _curvePool,
-            _cdpId,
-            _flashloanAmount,
-            _withdrawAmount
+            _cdpId
         );
 
         IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(_cdpId, _csd, 0);

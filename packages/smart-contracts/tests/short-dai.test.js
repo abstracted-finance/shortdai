@@ -61,7 +61,7 @@ beforeAll(async function () {
   }
 });
 
-test("open and close short (new) vault position", async function () {
+test.only("open and close short (new) vault position", async function () {
   // Initial cdpId
   const initialCdpId = await IDssCdpManager.last(IDSProxy.address);
 
@@ -120,8 +120,6 @@ test("open and close short (new) vault position", async function () {
       CONTRACT_ADDRESSES.ISoloMargin,
       CONTRACT_ADDRESSES.CurveFiSUSDv2,
       newCdpId,
-      ethers.utils.parseUnits("1", ERC20_DECIMALS.DAI),
-      ethers.utils.parseUnits("5", ERC20_DECIMALS.USDC), // Withdraw amount must be able to repay flashloan
     ]
   );
 

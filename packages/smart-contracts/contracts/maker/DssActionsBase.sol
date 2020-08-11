@@ -262,6 +262,57 @@ contract DssActionsBase {
         DaiJoinLike(Constants.MCD_JOIN_DAI).exit(address(this), wadD);
     }
 
+    function _wipeAll(uint256 cdp) internal {
+        IDssCdpManager manager = IDssCdpManager(Constants.CDP_MANAGER);
+
+        address vat = manager.vat();
+        address urn = manager.urns(cdp);
+        bytes32 ilk = manager.ilks(cdp);
+        (, uint256 art) = VatLike(vat).urns(ilk, urn);
+
+        address own = manager.owns(cdp);
+        if (
+            own == address(this) || manager.cdpCan(own, cdp, address(this)) == 1
+        ) {
+            // Joins DAI amount into the vat
+            _daiJoin_join(
+                Constants.MCD_JOIN_DAI,
+                urn,
+                _getWipeAllWad(vat, urn, urn, ilk)
+            );
+            // Paybacks debt to the CDP
+            manager.frob(cdp, 0, -int256(art));
+        } else {
+            // Joins DAI amount into the vat
+            _daiJoin_join(
+                Constants.MCD_JOIN_DAI,
+                address(this),
+                _getWipeAllWad(vat, address(this), urn, ilk)
+            );
+            // Paybacks debt to the CDP
+            VatLike(vat).frob(
+                ilk,
+                urn,
+                address(this),
+                address(this),
+                0,
+                -int256(art)
+            );
+        }
+    }
+
+    function _freeGem(uint256 cdp, uint256 amt) internal {
+        IDssCdpManager manager = IDssCdpManager(Constants.CDP_MANAGER);
+
+        uint256 wad = _convertTo18(Constants.MCD_JOIN_USDC_A, amt);
+        // Unlocks token amount from the CDP
+        manager.frob(cdp, -_toInt(wad), 0);
+        // Moves the amount from the CDP urn to proxy's address
+        manager.flux(cdp, address(this), wad);
+        // Exits token amount to the user's wallet as a token
+        GemJoinLike(Constants.MCD_JOIN_USDC_A).exit(address(this), amt);
+    }
+
     function _wipeAndFreeGem(
         uint256 cdp,
         uint256 amtC,

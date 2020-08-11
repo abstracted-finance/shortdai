@@ -16,9 +16,8 @@ const {
   IOneSplit,
   ICurveFiCurve,
   OpenShortDAI,
-  OpenShortDAIActions,
   CloseShortDAI,
-  CloseShortDAIActions,
+  ShortDAIActions,
   VaultPositionReader,
 } = getContracts(wallet, network);
 const ICurveSUSD = ICurveFiCurve.attach(CONTRACT_ADDRESSES.CurveFiSUSDv2);

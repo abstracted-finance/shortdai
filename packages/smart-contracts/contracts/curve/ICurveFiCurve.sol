@@ -19,6 +19,12 @@ interface ICurveFiCurve {
         uint256 dx
     ) external returns (uint256 out);
 
+    function get_dx_underlying(
+        int128 i,
+        int128 j,
+        uint256 dy
+    ) external returns (uint256 out);
+
     function exchange(
         int128 i,
         int128 j,

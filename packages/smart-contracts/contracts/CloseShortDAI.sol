@@ -32,7 +32,8 @@ contract CloseShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
 
         // Step 1.
         // Use flashloaned DAI to repay entire vault and withdraw USDC
-        _wipeAndFreeGem(csdp.cdpId, csdp.withdrawAmount, csdp.flashloanAmount);
+        _wipeAll(csdp.cdpId);
+        _freeGem(csdp.cdpId, csdp.withdrawAmount);
 
         // Step 2.
         // Converts USDC to DAI on CurveFi (To repay loan)
@@ -53,25 +54,29 @@ contract CloseShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
         address _sender,
         address _solo,
         address _curvePool,
-        uint256 _cdpId,
-        uint256 _flashloanAmount,
-        uint256 _withdrawAmount
+        uint256 _cdpId
     ) external {
         ISoloMargin solo = ISoloMargin(_solo);
 
         uint256 marketId = _getMarketIdFromTokenAddress(_solo, Constants.DAI);
 
-        uint256 repayAmount = _flashloanAmount.add(_getRepaymentAmount());
+        //
+        (
+            uint256 withdrawAmount,
+            uint256 flashloanAmount
+        ) = _getSuppliedAndBorrow(_cdpId);
+
+        uint256 repayAmount = flashloanAmount.add(_getRepaymentAmount());
         IERC20(Constants.DAI).approve(_solo, repayAmount);
 
         Actions.ActionArgs[] memory operations = new Actions.ActionArgs[](3);
 
-        operations[0] = _getWithdrawAction(marketId, _flashloanAmount);
+        operations[0] = _getWithdrawAction(marketId, flashloanAmount);
         operations[1] = _getCallAction(
             abi.encode(
                 CSDParams({
-                    flashloanAmount: _flashloanAmount,
-                    withdrawAmount: _withdrawAmount,
+                    flashloanAmount: flashloanAmount,
+                    withdrawAmount: withdrawAmount,
                     cdpId: _cdpId,
                     curvePool: _curvePool
                 })
@@ -84,21 +89,11 @@ contract CloseShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
 
         solo.operate(accountInfos, operations);
 
-        // Convert DAI back to USDC
-        require(
-            IERC20(Constants.DAI).approve(
-                _curvePool,
-                IERC20(Constants.DAI).balanceOf(address(this))
-            ),
-            "erc20-approve-curvepool-failed"
+        // Refund leftovers
+        IERC20(Constants.DAI).transfer(
+            _sender,
+            IERC20(Constants.DAI).balanceOf(address(this))
         );
-        ICurveFiCurve(_curvePool).exchange_underlying(
-            int128(0),
-            int128(1),
-            IERC20(Constants.DAI).balanceOf(address(this)),
-            0
-        );
-
         IERC20(Constants.USDC).transfer(
             _sender,
             IERC20(Constants.USDC).balanceOf(address(this))
