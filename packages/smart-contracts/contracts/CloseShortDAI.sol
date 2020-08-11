@@ -38,16 +38,22 @@ contract CloseShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
         // Step 2.
         // Converts USDC to DAI on CurveFi (To repay loan)
         // DAI = 0 index, USDC = 1 index
+        ICurveFiCurve curve = ICurveFiCurve(csdp.curvePool);
+
+        // Calculate amount of USDC needed to exchange to repay flashloaned DAI
+        // Allow max of 2.5% slippage (otherwise no profits lmao)
+        uint256 repayAmount = csdp.flashloanAmount.mul(1025).div(1000);
+        uint256 usdcSwapAmount = curve.get_dy_underlying(
+            int128(0),
+            int128(1),
+            repayAmount
+        );
+
         require(
-            IERC20(Constants.USDC).approve(csdp.curvePool, csdp.withdrawAmount),
+            IERC20(Constants.USDC).approve(address(curve), usdcSwapAmount),
             "erc20-approve-curvepool-failed"
         );
-        ICurveFiCurve(csdp.curvePool).exchange_underlying(
-            int128(1),
-            int128(0),
-            csdp.withdrawAmount,
-            0
-        );
+        curve.exchange_underlying(int128(1), int128(0), usdcSwapAmount, 0);
     }
 
     function flashloanAndClose(
@@ -60,7 +66,8 @@ contract CloseShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
 
         uint256 marketId = _getMarketIdFromTokenAddress(_solo, Constants.DAI);
 
-        //
+        // Supplied = How much we want to withdraw
+        // Borrowed = How much we want to loan
         (
             uint256 withdrawAmount,
             uint256 flashloanAmount
@@ -89,11 +96,20 @@ contract CloseShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
 
         solo.operate(accountInfos, operations);
 
-        // Refund leftovers
-        IERC20(Constants.DAI).transfer(
-            _sender,
-            IERC20(Constants.DAI).balanceOf(address(this))
+        // Convert DAI leftovers to USDC
+        uint256 daiLeftovers = IERC20(Constants.DAI).balanceOf(address(this));
+        require(
+            IERC20(Constants.DAI).approve(_curvePool, daiLeftovers),
+            "erc20-approve-curvepool-failed"
         );
+        ICurveFiCurve(_curvePool).exchange_underlying(
+            int128(0),
+            int128(1),
+            daiLeftovers,
+            0
+        );
+
+        // Refund leftovers
         IERC20(Constants.USDC).transfer(
             _sender,
             IERC20(Constants.USDC).balanceOf(address(this))

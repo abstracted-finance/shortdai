@@ -46,12 +46,10 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
             0
         );
 
-        // Lock up all USDC
-        uint256 supplyAmount = IERC20(Constants.USDC).balanceOf(address(this));
-
-        uint256 borrowAmount = osdp.flashloanAmount.add(_getRepaymentAmount());
-
+        // Step 2.
         // Locks up USDC and borrow just enough DAI to repay flashloan
+        uint256 supplyAmount = IERC20(Constants.USDC).balanceOf(address(this));
+        uint256 borrowAmount = osdp.flashloanAmount.add(_getRepaymentAmount());
         _lockGemAndDraw(osdp.cdpId, supplyAmount, borrowAmount);
     }
 

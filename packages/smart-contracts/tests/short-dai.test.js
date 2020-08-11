@@ -61,7 +61,7 @@ beforeAll(async function () {
   }
 });
 
-test.only("open and close short (new) vault position", async function () {
+test("open and close short (new) vault position", async function () {
   // Initial cdpId
   const initialCdpId = await IDssCdpManager.last(IDSProxy.address);
 
