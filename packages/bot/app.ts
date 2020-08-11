@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
+import { getEthersContracts, CONSTANTS } from "@shortdai/smart-contracts";
+
 import { getSettings } from "./src/settings";
-import { getContracts } from "./src/contracts";
-import { CONSTANTS } from "@shortdai/smart-contracts";
 
 const { CONTRACT_ADDRESSES } = CONSTANTS;
 
@@ -19,7 +19,7 @@ const {
   CloseShortDAI,
   ShortDAIActions,
   VaultPositionReader,
-} = getContracts(wallet, network);
+} = getEthersContracts(network, wallet);
 const ICurveSUSD = ICurveFiCurve.attach(CONTRACT_ADDRESSES.CurveFiSUSDv2);
 
 // Event listener, listens every block

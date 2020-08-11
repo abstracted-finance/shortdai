@@ -1,6 +1,6 @@
 {
     "OpenShortDAI": {
-        "address": "0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab",
+        "address": "0x9b1f7F645351AF3631a656421eD2e40f2802E6c0",
         "abi": [
             {
                 "type": "function",
@@ -53,10 +53,6 @@
                     },
                     {
                         "type": "uint256",
-                        "name": "_flashloanAmount"
-                    },
-                    {
-                        "type": "uint256",
                         "name": "_cdpId"
                     },
                     {
@@ -65,7 +61,7 @@
                     },
                     {
                         "type": "uint256",
-                        "name": "_borrowAmount"
+                        "name": "_flashloanAmount"
                     }
                 ],
                 "ouputs": []
@@ -73,7 +69,7 @@
         ]
     },
     "CloseShortDAI": {
-        "address": "0x5b1869D9A4C187F2EAa108f3062412ecf0526b24",
+        "address": "0x67B5656d60a809915323Bf2C40A8bEF15A152e3e",
         "abi": [
             {
                 "type": "function",
@@ -126,14 +122,6 @@
                     },
                     {
                         "type": "uint256",
-                        "name": "_flashloanAmount"
-                    },
-                    {
-                        "type": "uint256",
-                        "name": "_withdrawAmount"
-                    },
-                    {
-                        "type": "uint256",
                         "name": "_cdpId"
                     }
                 ],
@@ -142,7 +130,7 @@
         ]
     },
     "OpenShortDAIActions": {
-        "address": "0xCfEB869F69431e42cdB54A4F4f105C19C080A601",
+        "address": "0xe982E462b094850F12AF94d21D470e21bE9D0E9C",
         "abi": [
             {
                 "type": "function",
@@ -152,7 +140,7 @@
                 "inputs": [
                     {
                         "type": "address",
-                        "name": "_lsd"
+                        "name": "_osd"
                     },
                     {
                         "type": "address",
@@ -164,19 +152,15 @@
                     },
                     {
                         "type": "uint256",
+                        "name": "_cdpId"
+                    },
+                    {
+                        "type": "uint256",
                         "name": "_initialMargin"
                     },
                     {
                         "type": "uint256",
                         "name": "_flashloanAmount"
-                    },
-                    {
-                        "type": "uint256",
-                        "name": "_borrowAmount"
-                    },
-                    {
-                        "type": "uint256",
-                        "name": "_cdpId"
                     }
                 ],
                 "ouputs": []
@@ -184,7 +168,7 @@
         ]
     },
     "CloseShortDAIActions": {
-        "address": "0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B",
+        "address": "0x59d3631c86BbE35EF041872d502F218A39FBa150",
         "abi": [
             {
                 "type": "function",
@@ -206,15 +190,15 @@
                     },
                     {
                         "type": "uint256",
+                        "name": "_cdpId"
+                    },
+                    {
+                        "type": "uint256",
                         "name": "_flashloanAmount"
                     },
                     {
                         "type": "uint256",
                         "name": "_withdrawAmount"
-                    },
-                    {
-                        "type": "uint256",
-                        "name": "_cdpId"
                     }
                 ],
                 "ouputs": []
@@ -222,7 +206,7 @@
         ]
     },
     "VaultPositionReader": {
-        "address": "0xC89Ce4735882C9F0f0FE26686c53074E09B0D550",
+        "address": "0x0290FB167208Af455bB137780163b7B7a9a10C16",
         "abi": [
             {
                 "type": "function",
@@ -243,40 +227,76 @@
                     },
                     {
                         "type": "uint256",
-                        "name": "debt"
+                        "name": "borrowed"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "supplied"
                     }
                 ]
-            },
+            }
+        ]
+    },
+    "ShortDAIActions": {
+        "address": "0x2612Af3A521c2df9EAF28422Ca335b04AdF3ac66",
+        "abi": [
             {
                 "type": "function",
-                "name": "getWipeAllWad",
-                "constant": true,
-                "stateMutability": "view",
+                "name": "flashloanAndClose",
+                "constant": false,
                 "payble": false,
                 "inputs": [
                     {
                         "type": "address",
-                        "name": "vat"
+                        "name": "_csd"
                     },
                     {
                         "type": "address",
-                        "name": "usr"
+                        "name": "_solo"
                     },
                     {
                         "type": "address",
-                        "name": "urn"
+                        "name": "_curvePool"
                     },
-                    {
-                        "type": "bytes32",
-                        "name": "ilk"
-                    }
-                ],
-                "ouputs": [
                     {
                         "type": "uint256",
-                        "name": "wad"
+                        "name": "_cdpId"
                     }
-                ]
+                ],
+                "ouputs": []
+            },
+            {
+                "type": "function",
+                "name": "flashloanAndOpen",
+                "constant": false,
+                "payble": false,
+                "inputs": [
+                    {
+                        "type": "address",
+                        "name": "_osd"
+                    },
+                    {
+                        "type": "address",
+                        "name": "_solo"
+                    },
+                    {
+                        "type": "address",
+                        "name": "_curvePool"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_cdpId"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_initialMargin"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_flashloanAmount"
+                    }
+                ],
+                "ouputs": []
             }
         ]
     }

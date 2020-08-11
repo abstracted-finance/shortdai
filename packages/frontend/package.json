@@ -12,6 +12,7 @@
     "@zeit-ui/react": "^1.8.0-canary.8",
     "ethers": "^5.0.8",
     "next": "9.5.1",
+    "next-transpile-modules": "^4.0.2",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "unstated-next": "^1.1.0",

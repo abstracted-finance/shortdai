@@ -1,19 +1,61 @@
 import { ethers } from "ethers";
-import { getContract, CONSTANTS } from "@shortdai/smart-contracts";
-import { BotContracts } from "./types";
+
+import CONSTANTS from "./cli/utils/constants";
 
 const { CONTRACT_ADDRESSES } = CONSTANTS;
 
-export const getContracts = (
-  wallet: ethers.Wallet,
-  network: string
-): BotContracts => {
+export interface Contract {
+  abi: any;
+  address?: string;
+}
+
+export interface EthersContracts {
+  IERC20: ethers.Contract;
+  IDSProxy: ethers.Contract;
+  IOneSplit: ethers.Contract;
+  ICurveFiCurve: ethers.Contract;
+  IProxyRegistry: ethers.Contract;
+  OpenShortDAI: ethers.Contract;
+  CloseShortDAI: ethers.Contract;
+  ShortDAIActions: ethers.Contract;
+  VaultPositionReader: ethers.Contract;
+}
+
+export const getContract = ({
+  network,
+  name,
+}: {
+  network?: string;
+  name: string;
+}): Contract => {
+  if (!network) {
+    const { abi } = require(`${__dirname}/artifacts/${name}.json`);
+    return { abi };
+  }
+
+  const deployed = require(`${__dirname}/deployed/${network}/deployed.json`);
+  const { abi, address } = deployed[name];
+
+  return {
+    abi,
+    address,
+  };
+};
+
+export const getEthersContracts = (
+  network: string,
+  signerOrProvider: ethers.Signer | ethers.providers.BaseProvider
+): EthersContracts => {
   const initialNoAddressContractNames = ["IERC20", "IDSProxy", "ICurveFiCurve"];
 
   const initialNoAddressContracts = initialNoAddressContractNames
     .map((name) => {
       const { abi } = getContract({ name, network: null });
-      const c = new ethers.Contract(ethers.constants.AddressZero, abi);
+      const c = new ethers.Contract(
+        ethers.constants.AddressZero,
+        abi,
+        signerOrProvider
+      );
 
       return [name, c];
     })
@@ -32,7 +74,7 @@ export const getContracts = (
   const initialManualAddressContracts = initialManualAddressContractsConfig
     .map(({ name, address }) => {
       const { abi } = getContract({ name, network: null });
-      const c = new ethers.Contract(address, abi);
+      const c = new ethers.Contract(address, abi, signerOrProvider);
 
       return [name, c];
     })
@@ -53,7 +95,7 @@ export const getContracts = (
         name,
         network,
       });
-      const c = new ethers.Contract(address, abi);
+      const c = new ethers.Contract(address, abi, signerOrProvider);
 
       return [name, c];
     })
@@ -67,13 +109,7 @@ export const getContracts = (
     ...initialAddressedContracts,
   };
 
-  const contractsWithWallet = Object.keys(contracts)
-    .map((k) => {
-      return [k, contracts[k].connect(wallet)];
-    })
-    .reduce((acc, [k, v]: [string, ethers.Contract]) => {
-      return { ...acc, [k]: v };
-    }, {});
-
-  return contractsWithWallet as BotContracts;
+  return contracts as EthersContracts;
 };
+
+export { CONSTANTS };
