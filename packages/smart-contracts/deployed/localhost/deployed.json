@@ -1,6 +1,6 @@
 {
     "OpenShortDAI": {
-        "address": "0x9b1f7F645351AF3631a656421eD2e40f2802E6c0",
+        "address": "0x0290FB167208Af455bB137780163b7B7a9a10C16",
         "abi": [
             {
                 "type": "function",
@@ -69,7 +69,7 @@
         ]
     },
     "CloseShortDAI": {
-        "address": "0x67B5656d60a809915323Bf2C40A8bEF15A152e3e",
+        "address": "0x9b1f7F645351AF3631a656421eD2e40f2802E6c0",
         "abi": [
             {
                 "type": "function",
@@ -129,116 +129,8 @@
             }
         ]
     },
-    "OpenShortDAIActions": {
-        "address": "0xe982E462b094850F12AF94d21D470e21bE9D0E9C",
-        "abi": [
-            {
-                "type": "function",
-                "name": "flashloanAndOpen",
-                "constant": false,
-                "payble": false,
-                "inputs": [
-                    {
-                        "type": "address",
-                        "name": "_osd"
-                    },
-                    {
-                        "type": "address",
-                        "name": "_solo"
-                    },
-                    {
-                        "type": "address",
-                        "name": "_curvePool"
-                    },
-                    {
-                        "type": "uint256",
-                        "name": "_cdpId"
-                    },
-                    {
-                        "type": "uint256",
-                        "name": "_initialMargin"
-                    },
-                    {
-                        "type": "uint256",
-                        "name": "_flashloanAmount"
-                    }
-                ],
-                "ouputs": []
-            }
-        ]
-    },
-    "CloseShortDAIActions": {
-        "address": "0x59d3631c86BbE35EF041872d502F218A39FBa150",
-        "abi": [
-            {
-                "type": "function",
-                "name": "flashloanAndClose",
-                "constant": false,
-                "payble": false,
-                "inputs": [
-                    {
-                        "type": "address",
-                        "name": "_csd"
-                    },
-                    {
-                        "type": "address",
-                        "name": "_solo"
-                    },
-                    {
-                        "type": "address",
-                        "name": "_curvePool"
-                    },
-                    {
-                        "type": "uint256",
-                        "name": "_cdpId"
-                    },
-                    {
-                        "type": "uint256",
-                        "name": "_flashloanAmount"
-                    },
-                    {
-                        "type": "uint256",
-                        "name": "_withdrawAmount"
-                    }
-                ],
-                "ouputs": []
-            }
-        ]
-    },
-    "VaultPositionReader": {
-        "address": "0x0290FB167208Af455bB137780163b7B7a9a10C16",
-        "abi": [
-            {
-                "type": "function",
-                "name": "getVaultStats",
-                "constant": true,
-                "stateMutability": "view",
-                "payble": false,
-                "inputs": [
-                    {
-                        "type": "uint256",
-                        "name": "cdp"
-                    }
-                ],
-                "ouputs": [
-                    {
-                        "type": "uint256",
-                        "name": "duty"
-                    },
-                    {
-                        "type": "uint256",
-                        "name": "borrowed"
-                    },
-                    {
-                        "type": "uint256",
-                        "name": "supplied"
-                    }
-                ]
-            }
-        ]
-    },
     "ShortDAIActions": {
-        "address": "0x2612Af3A521c2df9EAF28422Ca335b04AdF3ac66",
+        "address": "0x67B5656d60a809915323Bf2C40A8bEF15A152e3e",
         "abi": [
             {
                 "type": "function",
@@ -297,6 +189,35 @@
                     }
                 ],
                 "ouputs": []
+            }
+        ]
+    },
+    "VaultPositionReader": {
+        "address": "0x2612Af3A521c2df9EAF28422Ca335b04AdF3ac66",
+        "abi": [
+            {
+                "type": "function",
+                "name": "getVaultStats",
+                "constant": true,
+                "stateMutability": "view",
+                "payble": false,
+                "inputs": [
+                    {
+                        "type": "uint256",
+                        "name": "cdp"
+                    }
+                ],
+                "ouputs": [
+                    {
+                        "type": "uint256"
+                    },
+                    {
+                        "type": "uint256"
+                    },
+                    {
+                        "type": "uint256"
+                    }
+                ]
             }
         ]
     }

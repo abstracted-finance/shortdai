@@ -10,6 +10,8 @@ export interface EthersContracts {
     IOneSplit: ethers.Contract;
     ICurveFiCurve: ethers.Contract;
     IProxyRegistry: ethers.Contract;
+    IDssCdpManager: ethers.Contract;
+    VatLike: ethers.Contract;
     OpenShortDAI: ethers.Contract;
     CloseShortDAI: ethers.Contract;
     ShortDAIActions: ethers.Contract;

@@ -2,7 +2,7 @@
 pragma solidity >=0.6.0 <0.7.0;
 
 interface ICurveFiCurve {
-    function get_virtual_price() external returns (uint256 out);
+    function get_virtual_price() external view returns (uint256 out);
 
     function add_liquidity(uint256[2] calldata amounts, uint256 deadline)
         external;
@@ -11,21 +11,30 @@ interface ICurveFiCurve {
         int128 i,
         int128 j,
         uint256 dx
-    ) external returns (uint256 out);
+    ) external view returns (uint256 out);
 
     function get_dy_underlying(
         int128 i,
         int128 j,
         uint256 dx
-    ) external returns (uint256 out);
-
-    function get_dx_underlying(
-        int128 i,
-        int128 j,
-        uint256 dy
-    ) external returns (uint256 out);
+    ) external view returns (uint256 out);
 
     function exchange(
+        int128 i,
+        int128 j,
+        uint256 dx,
+        uint256 min_dy
+    ) external;
+
+    function exchange(
+        int128 i,
+        int128 j,
+        uint256 dx,
+        uint256 min_dy,
+        uint256 deadline
+    ) external;
+
+    function exchange_underlying(
         int128 i,
         int128 j,
         uint256 dx,
@@ -36,7 +45,8 @@ interface ICurveFiCurve {
         int128 i,
         int128 j,
         uint256 dx,
-        uint256 min_dy
+        uint256 min_dy,
+        uint256 deadline
     ) external;
 
     function remove_liquidity(

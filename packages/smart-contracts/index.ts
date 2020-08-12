@@ -15,6 +15,8 @@ export interface EthersContracts {
   IOneSplit: ethers.Contract;
   ICurveFiCurve: ethers.Contract;
   IProxyRegistry: ethers.Contract;
+  IDssCdpManager: ethers.Contract;
+  VatLike: ethers.Contract;
   OpenShortDAI: ethers.Contract;
   CloseShortDAI: ethers.Contract;
   ShortDAIActions: ethers.Contract;
@@ -46,7 +48,12 @@ export const getEthersContracts = (
   network: string,
   signerOrProvider: ethers.Signer | ethers.providers.BaseProvider
 ): EthersContracts => {
-  const initialNoAddressContractNames = ["IERC20", "IDSProxy", "ICurveFiCurve"];
+  const initialNoAddressContractNames = [
+    "IERC20",
+    "IDSProxy",
+    "ICurveFiCurve",
+    "VatLike",
+  ];
 
   const initialNoAddressContracts = initialNoAddressContractNames
     .map((name) => {
@@ -66,6 +73,7 @@ export const getEthersContracts = (
   // Contracts with manual address
   const initialManualAddressContractsConfig = [
     { name: "IOneSplit", address: CONTRACT_ADDRESSES.IOneSplit },
+    { name: "IDssCdpManager", address: CONTRACT_ADDRESSES.IDssCdpManager },
     {
       name: "IProxyRegistry",
       address: CONTRACT_ADDRESSES.IProxyRegistry,
