@@ -46,12 +46,10 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
             0
         );
 
-        // Lock up all USDC
-        uint256 supplyAmount = IERC20(Constants.USDC).balanceOf(address(this));
-
-        uint256 borrowAmount = osdp.flashloanAmount.add(_getRepaymentAmount());
-
+        // Step 2.
         // Locks up USDC and borrow just enough DAI to repay flashloan
+        uint256 supplyAmount = IERC20(Constants.USDC).balanceOf(address(this));
+        uint256 borrowAmount = osdp.flashloanAmount.add(_getRepaymentAmount());
         _lockGemAndDraw(osdp.cdpId, supplyAmount, borrowAmount);
     }
 
@@ -106,65 +104,5 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
             _sender,
             IERC20(Constants.USDC).balanceOf(address(this))
         );
-    }
-}
-
-contract OpenShortDAIActions {
-    using SafeMath for uint256;
-
-    function _openUSDCACdp() internal returns (uint256) {
-        return
-            IDssCdpManager(Constants.CDP_MANAGER).open(
-                bytes32("USDC-A"),
-                address(this)
-            );
-    }
-
-    // Entry point for proxy contracts
-    function flashloanAndOpen(
-        address _osd,
-        address _solo,
-        address _curvePool,
-        uint256 _cdpId, // Set 0 for new vault
-        uint256 _initialMargin, // Initial amount of USDC
-        uint256 _flashloanAmount // Amount of DAI to flashloan
-    ) external {
-        // Tries and get USDC from msg.sender to proxy
-        require(
-            IERC20(Constants.USDC).transferFrom(
-                msg.sender,
-                address(this),
-                _initialMargin
-            ),
-            "initial-margin-transferFrom-failed"
-        );
-
-        uint256 cdpId = _cdpId;
-
-        // Opens a new USDC vault for the user if unspecified
-        if (cdpId == 0) {
-            cdpId = _openUSDCACdp();
-        }
-
-        // Allows LSD contract to manage vault on behalf of user
-        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(cdpId, _osd, 1);
-
-        // Transfers the initial margin (in USDC) to lsd contract
-        require(
-            IERC20(Constants.USDC).transfer(_osd, _initialMargin),
-            "initial-margin-transfer-failed"
-        );
-        // Flashloan and shorts DAI
-        OpenShortDAI(_osd).flashloanAndOpen(
-            msg.sender,
-            _solo,
-            _curvePool,
-            cdpId,
-            _initialMargin,
-            _flashloanAmount
-        );
-
-        // Forbids LSD contract to manage vault on behalf of user
-        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(cdpId, _osd, 0);
     }
 }

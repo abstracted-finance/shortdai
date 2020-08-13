@@ -32,46 +32,58 @@ contract CloseShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
 
         // Step 1.
         // Use flashloaned DAI to repay entire vault and withdraw USDC
-        _wipeAndFreeGem(csdp.cdpId, csdp.withdrawAmount, csdp.flashloanAmount);
+        _wipeAll(csdp.cdpId);
+        _freeGem(csdp.cdpId, csdp.withdrawAmount);
 
         // Step 2.
         // Converts USDC to DAI on CurveFi (To repay loan)
         // DAI = 0 index, USDC = 1 index
+        ICurveFiCurve curve = ICurveFiCurve(csdp.curvePool);
+
+        // Calculate amount of USDC needed to exchange to repay flashloaned DAI
+        // Allow max of 2.5% slippage (otherwise no profits lmao)
+        uint256 repayAmount = csdp.flashloanAmount.mul(1025).div(1000);
+        uint256 usdcSwapAmount = curve.get_dy_underlying(
+            int128(0),
+            int128(1),
+            repayAmount
+        );
+
         require(
-            IERC20(Constants.USDC).approve(csdp.curvePool, csdp.withdrawAmount),
+            IERC20(Constants.USDC).approve(address(curve), usdcSwapAmount),
             "erc20-approve-curvepool-failed"
         );
-        ICurveFiCurve(csdp.curvePool).exchange_underlying(
-            int128(1),
-            int128(0),
-            csdp.withdrawAmount,
-            0
-        );
+        curve.exchange_underlying(int128(1), int128(0), usdcSwapAmount, 0);
     }
 
     function flashloanAndClose(
         address _sender,
         address _solo,
         address _curvePool,
-        uint256 _cdpId,
-        uint256 _flashloanAmount,
-        uint256 _withdrawAmount
+        uint256 _cdpId
     ) external {
         ISoloMargin solo = ISoloMargin(_solo);
 
         uint256 marketId = _getMarketIdFromTokenAddress(_solo, Constants.DAI);
 
-        uint256 repayAmount = _flashloanAmount.add(_getRepaymentAmount());
+        // Supplied = How much we want to withdraw
+        // Borrowed = How much we want to loan
+        (
+            uint256 withdrawAmount,
+            uint256 flashloanAmount
+        ) = _getSuppliedAndBorrow(_cdpId);
+
+        uint256 repayAmount = flashloanAmount.add(_getRepaymentAmount());
         IERC20(Constants.DAI).approve(_solo, repayAmount);
 
         Actions.ActionArgs[] memory operations = new Actions.ActionArgs[](3);
 
-        operations[0] = _getWithdrawAction(marketId, _flashloanAmount);
+        operations[0] = _getWithdrawAction(marketId, flashloanAmount);
         operations[1] = _getCallAction(
             abi.encode(
                 CSDParams({
-                    flashloanAmount: _flashloanAmount,
-                    withdrawAmount: _withdrawAmount,
+                    flashloanAmount: flashloanAmount,
+                    withdrawAmount: withdrawAmount,
                     cdpId: _cdpId,
                     curvePool: _curvePool
                 })
@@ -84,50 +96,23 @@ contract CloseShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
 
         solo.operate(accountInfos, operations);
 
-        // Convert DAI back to USDC
+        // Convert DAI leftovers to USDC
+        uint256 daiLeftovers = IERC20(Constants.DAI).balanceOf(address(this));
         require(
-            IERC20(Constants.DAI).approve(
-                _curvePool,
-                IERC20(Constants.DAI).balanceOf(address(this))
-            ),
+            IERC20(Constants.DAI).approve(_curvePool, daiLeftovers),
             "erc20-approve-curvepool-failed"
         );
         ICurveFiCurve(_curvePool).exchange_underlying(
             int128(0),
             int128(1),
-            IERC20(Constants.DAI).balanceOf(address(this)),
+            daiLeftovers,
             0
         );
 
+        // Refund leftovers
         IERC20(Constants.USDC).transfer(
             _sender,
             IERC20(Constants.USDC).balanceOf(address(this))
         );
-    }
-}
-
-contract CloseShortDAIActions {
-    using SafeMath for uint256;
-
-    function flashloanAndClose(
-        address _csd,
-        address _solo,
-        address _curvePool,
-        uint256 _cdpId,
-        uint256 _flashloanAmount,
-        uint256 _withdrawAmount
-    ) external {
-        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(_cdpId, _csd, 1);
-
-        CloseShortDAI(_csd).flashloanAndClose(
-            msg.sender,
-            _solo,
-            _curvePool,
-            _cdpId,
-            _flashloanAmount,
-            _withdrawAmount
-        );
-
-        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(_cdpId, _csd, 0);
     }
 }

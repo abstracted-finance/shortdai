@@ -5,10 +5,7 @@
   "CloseShortDAI": {
     "deploy": true
   },
-  "OpenShortDAIActions": {
-    "deploy": true
-  },
-  "CloseShortDAIActions": {
+  "ShortDAIActions": {
     "deploy": true
   },
   "VaultPositionReader": {

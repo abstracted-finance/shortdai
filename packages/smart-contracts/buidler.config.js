@@ -1,7 +1,11 @@
 // Go to https://buidler.dev/config/ to learn more
 module.exports = {
   solc: {
-    version: "0.6.10",
+    version: "0.6.12",
+    optimizer: {
+      enabled: true,
+      runs: 199,
+    },
   },
   networks: {
     localhost: {

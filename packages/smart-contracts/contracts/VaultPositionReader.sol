@@ -46,9 +46,9 @@ contract VaultPositionReader {
         public
         view
         returns (
-            uint256 duty,
-            uint256 borrowed,
-            uint256 supplied
+            uint256,
+            uint256,
+            uint256
         )
     {
         IDssCdpManager manager = IDssCdpManager(Constants.CDP_MANAGER);
@@ -59,8 +59,15 @@ contract VaultPositionReader {
         address owner = manager.owns(cdp);
 
         // Get global stability fee
-        (duty, ) = JugLike(Constants.MCD_JUG).ilks(ilk);
+        (uint256 duty, ) = JugLike(Constants.MCD_JUG).ilks(ilk);
 
-        (supplied, borrowed) = _getSuppliedAndBorrowed(vat, owner, urn, ilk);
+        (uint256 supplied, uint256 borrowed) = _getSuppliedAndBorrowed(
+            vat,
+            owner,
+            urn,
+            ilk
+        );
+
+        return (duty, supplied, borrowed);
     }
 }

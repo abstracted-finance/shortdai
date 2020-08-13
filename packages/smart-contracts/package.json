@@ -1,15 +1,15 @@
 {
   "name": "@shortdai/smart-contracts",
   "version": "1.0.0",
-  "main": "index.js",
-  "types": "types/index.d.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "license": "MIT",
   "scripts": {
     "compile": "buidler compile",
     "clean": "buidler clean",
     "deploy:localhost": "node cli/index.js deploy -d deployed/localhost",
     "test": "yarn compile && jest",
-    "build:types": "tsc -d --declarationMap --emitDeclarationOnly"
+    "build:ts": "tsc && cp -r artifacts dist && cp -r deployed dist"
   },
   "dependencies": {
     "@nomiclabs/buidler": "^1.4.3",
