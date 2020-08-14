@@ -157,17 +157,20 @@ const getDaiUsdcRatio = async (
 
 // Do we have an open position
 const getHasOpenPosition = async (
-  borrowed18: ethers.BigNumber // Borrowed amount in 18 decimals
+  borrowed18: ethers.BigNumber, // Borrowed amount in 18 decimals
+  supplied18: ethers.BigNumber
 ): Promise<boolean> => {
   // Our position is open if we have debt in it
   const borrowed = ethers.utils.formatEther(borrowed18);
+  const supplied = ethers.utils.formatEther(supplied18);
 
   if (parseInt(borrowed, 10) > 0) {
-    logging.info(`Vault has an open position`);
+    logging.info(`Vault is currently shorting DAI`);
+    logging.info(`DAI borrowed: ${borrowed}, USDC supplied: ${supplied}`);
     return true;
   }
 
-  logging.info(`Vault does not have an open position`);
+  logging.info(`Vault is currently NOT shorting DAI`);
   return false;
 };
 
@@ -257,7 +260,7 @@ const closeShortDAIPosition = async (proxy: ethers.Contract, cdpId: number) => {
   );
   const txRecp = await tx.wait();
 
-  logging.success(`Succesfully closed short DAI position at ${txRecp.hash}`);
+  logging.success(`Succesfully closed short DAI position at txHash ${txRecp.hash}`);
 };
 
 // Gets vault stats
@@ -298,9 +301,7 @@ const runBot = async (proxy: ethers.Contract, cdpId: number) => {
   const { borrowed, supplied } = await getVaultStates(cdpId);
 
   // Do we have an open position?
-  const hasOpenPosition = await getHasOpenPosition(
-    borrowed as ethers.BigNumber
-  );
+  const hasOpenPosition = await getHasOpenPosition(borrowed, supplied);
 
   // Whats the DAI <> USDC ratio
   const daiUsdcRatio = await getDaiUsdcRatio(
