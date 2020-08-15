@@ -131,7 +131,7 @@ const Main = () => {
             <Box height={32} />
 
             <Box textAlign="center">
-              <Typography variant="h6">Levarage</Typography>
+              <Typography variant="h6">Leverage</Typography>
               <Typography variant="h3">
                 {Number(1000 / cR).toFixed(2)}
                 <Box
