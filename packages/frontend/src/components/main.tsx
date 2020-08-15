@@ -43,6 +43,7 @@ const Main = () => {
   const { contracts } = useContracts.useContainer();
   const [daiUsdcRatio, setDaiUsdcRatio] = useState(null);
   const [inputAmount, setInputAmount] = useState("");
+  const [cR, setCR] = useState(115);
 
   const getDaiUsdcRates = async () => {
     const { ICurveFiCurve } = contracts;
@@ -97,7 +98,7 @@ const Main = () => {
         </Box>
 
         <Paper variant="outlined">
-          <Box px={3} py={2}>
+          <Box px={2.5} py={2}>
             <Box display="flex" justifyContent="space-between">
               <Typography variant="h6" component="p">
                 Principal
@@ -126,9 +127,35 @@ const Main = () => {
                 <Typography>USDC</Typography>
               </Box>
             </Box>
-            <Box height={24} />
-            <Typography variant="h6">Levarage</Typography>
-            <Slider defaultValue={20} />
+
+            <Box height={32} />
+
+            <Box textAlign="center">
+              <Typography variant="h6">Leverage</Typography>
+              <Typography variant="h3">
+                {Number(1000 / cR).toFixed(2)}
+                <Box
+                  component="span"
+                  color={theme.palette.text.disabled}
+                  ml={0.5}
+                >
+                  <Typography component="span" variant="h5">
+                    x
+                  </Typography>
+                </Box>
+              </Typography>
+            </Box>
+
+            <Slider
+              value={cR}
+              onChange={(_, newValue) => setCR(newValue as number)}
+              min={110}
+              max={500}
+            />
+            <Box textAlign="center">
+              <Typography variant="h5">{cR}%</Typography>
+              <Typography variant="h6">Collateralization Ratio</Typography>
+            </Box>
           </Box>
         </Paper>
 
