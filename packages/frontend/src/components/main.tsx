@@ -1,10 +1,18 @@
-import { useState, useEffect } from "react";
-import { ethers } from "ethers";
+import {
+  Box,
+  Button,
+  InputBase,
+  makeStyles,
+  Paper,
+  Slider,
+  Typography,
+  useTheme,
+} from "@material-ui/core";
 import { CONSTANTS } from "@shortdai/smart-contracts";
-
-import useWeb3 from "../containers/web3/use-web3";
+import { ethers } from "ethers";
+import { useState, ChangeEvent } from "react";
 import useContracts from "../containers/web3/use-contracts";
-import { Box, Button, makeStyles } from "@material-ui/core";
+import useWeb3 from "../containers/web3/use-web3";
 
 const useStyles = makeStyles({
   "@global": {
@@ -29,10 +37,12 @@ const useStyles = makeStyles({
 
 const Main = () => {
   const classes = useStyles();
+  const theme = useTheme();
 
   const { connect, isConnecting, connected } = useWeb3.useContainer();
   const { contracts } = useContracts.useContainer();
   const [amount, setAmount] = useState(null);
+  const [inputAmount, setInputAmount] = useState("");
 
   const getRates = async () => {
     const { IOneSplit } = contracts;
@@ -60,37 +70,82 @@ const Main = () => {
     setAmount(returnAmountFixed);
   };
 
+  function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
+    const {
+      target: { value },
+    } = event;
+    if (/^[0-9]*[.,]?[0-9]*$/.test(value)) {
+      setInputAmount(value);
+    }
+  }
+
   return (
     <Box height="100vh" pt={20} overflow="hidden">
       <Box
         mx="auto"
         width={400}
         maxWidth="80%"
-        height={388}
-        bgcolor="rgb(33, 36, 41)"
+        bgcolor={theme.palette.background.paper}
         borderRadius={30}
         position="relative"
+        p={4}
       >
         <img className={classes.pickle} src="/pickle.png" alt="pickle" />
-        {!connected ? (
-          <Button disabled={connected} onClick={connect}>
-            Connect to Metamask
-          </Button>
-        ) : null}
 
-        {connected ? (
-          <Button
-            onClick={() => {
-              setAmount(null);
-              getRates();
-            }}
-          >
-            Fetch
-          </Button>
-        ) : null}
+        <Box p={1} mb={4} textAlign="center">
+          <Typography variant="h5">1 DAI = 1.0083 USDC</Typography>
+        </Box>
 
-        <br />
-        <div>1 DAI returns {(amount || "???").toString()} USDC</div>
+        <Paper variant="outlined">
+          <Box px={3} py={2}>
+            <Box display="flex" justifyContent="space-between">
+              <Typography variant="h6" component="p">
+                Principal
+              </Typography>
+
+              <Typography variant="h6" component="p">
+                Balance: 2.30723
+              </Typography>
+            </Box>
+            <Box display="flex" alignItems="center">
+              <Box flex={1}>
+                <InputBase
+                  placeholder="0.0"
+                  value={inputAmount}
+                  onChange={handleInputChange}
+                />
+              </Box>
+
+              <Button variant="outlined" size="small" color="primary">
+                MAX
+              </Button>
+
+              <Box display="flex" alignItems="center" ml={2}>
+                <img src="/usdc.png" width={24} height={24} />
+                <Box flexShrink={0} width={8} />
+                <Typography>USDC</Typography>
+              </Box>
+            </Box>
+            <Box height={24} />
+            <Typography variant="h6">Levarage</Typography>
+            <Slider defaultValue={20} />
+          </Box>
+        </Paper>
+
+        <Box mt={4}>
+          {!connected ? (
+            <Button
+              variant="contained"
+              color="primary"
+              disabled={isConnecting}
+              onClick={connect}
+              size="large"
+              fullWidth
+            >
+              {isConnecting ? "Connecting ..." : "Connect to Metamask"}
+            </Button>
+          ) : null}
+        </Box>
       </Box>
     </Box>
   );
