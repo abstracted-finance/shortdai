@@ -7,47 +7,58 @@ import {
   Slider,
   Typography,
   useTheme,
+  Collapse,
+  createStyles,
 } from "@material-ui/core";
 import { CONSTANTS } from "@shortdai/smart-contracts";
 import { ethers, Signer } from "ethers";
 import { useEffect, useState, ChangeEvent } from "react";
 import useContracts from "../containers/web3/use-contracts";
 import useWeb3 from "../containers/web3/use-web3";
+import cn from "classnames";
 
-const useStyles = makeStyles({
-  "@global": {
-    body: {
-      backgroundColor: "rgb(44, 47, 54)",
-      backgroundImage:
-        "radial-gradient(50% 50% at 50% 50%, rgba(33, 114, 229, 0.1) 0%, rgba(33, 36, 41, 0) 100%)",
-      backgroundRepeat: "no-repeat",
-      backgroundPosition: `0 -30vh`,
+const useStyles = makeStyles((theme) =>
+  createStyles({
+    "@global": {
+      body: {
+        backgroundColor: "rgb(44, 47, 54)",
+        backgroundImage:
+          "radial-gradient(50% 50% at 50% 50%, rgba(33, 114, 229, 0.1) 0%, rgba(33, 36, 41, 0) 100%)",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: `0 -30vh`,
+      },
     },
-  },
-  pickle: {
-    position: "absolute",
-    maxWidth: 300,
-    width: "50%",
-    top: 0,
-    left: "50%",
-    transform: "translate(35%, -36%)",
-    zIndex: -1,
-  },
-  leverage: {
-    position: "relative",
-    "&:after": {
+    pickle: {
       position: "absolute",
-      content: "'x'",
+      maxWidth: 300,
+      width: "50%",
       top: 0,
-      right: -20,
-      height: "100%",
-      fontSize: 24,
-      color: "grey",
-      display: "flex",
-      alignItems: "center",
+      left: "50%",
+      transform: "translate(35%, -36%)",
+      zIndex: -1,
     },
-  },
-});
+    leverage: {
+      position: "relative",
+      "&:after": {
+        position: "absolute",
+        content: "'x'",
+        top: 0,
+        right: -20,
+        height: "100%",
+        fontSize: 24,
+        color: "grey",
+        display: "flex",
+        alignItems: "center",
+      },
+    },
+    metamask: {
+      backgroundColor: "#f6851b",
+    },
+    withdraw: {
+      backgroundColor: theme.palette.error.main,
+    },
+  })
+);
 
 const Main = () => {
   const classes = useStyles();
@@ -64,6 +75,7 @@ const Main = () => {
 
   const [daiUsdcRatio, setDaiUsdcRatio] = useState<null | string>(null);
   const [usdcBal, setUdscBal] = useState<null | string>(null);
+  const [hasPosition, setHasPosition] = useState(false);
 
   const [inputAmount, setInputAmount] = useState("");
 
@@ -211,18 +223,31 @@ const Main = () => {
         </Paper>
 
         <Box mt={4}>
-          {!connected ? (
+          <Collapse in={!connected}>
             <Button
               variant="contained"
-              color="primary"
+              color="secondary"
               disabled={isConnecting}
               onClick={connect}
               size="large"
               fullWidth
             >
-              {isConnecting ? "Connecting ..." : "Connect to Metamask"}
+              {isConnecting ? "Connecting ..." : "METAMASK"}
             </Button>
-          ) : null}
+          </Collapse>
+          <Collapse in={connected}>
+            <Button
+              variant="contained"
+              color="primary"
+              disabled={!inputAmount}
+              size="large"
+              fullWidth
+              onClick={() => setHasPosition(!hasPosition)}
+              className={cn({ [classes.withdraw]: hasPosition })}
+            >
+              {hasPosition ? "CLOSE POSITION" : "OPEN SHORT POSITION"}
+            </Button>
+          </Collapse>
         </Box>
       </Box>
     </Box>

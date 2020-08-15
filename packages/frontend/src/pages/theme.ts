@@ -8,6 +8,9 @@ export const theme = createMuiTheme({
     primary: {
       main: "#2e7d32",
     },
+    secondary: {
+      main: "#f6851b",
+    },
     background: {
       paper: "rgb(33, 36, 41)",
     },
@@ -31,6 +34,12 @@ export const theme = createMuiTheme({
       },
       containedSizeLarge: {
         height: 65,
+      },
+      containedSecondary: {
+        "&> span": {
+          letterSpacing: 5,
+          fontWeight: "bold",
+        },
       },
       outlinedSizeSmall: {
         padding: "2px 6px",
