@@ -15,7 +15,7 @@ import { ethers } from "ethers";
 import { ChangeEvent, useEffect, useState } from "react";
 import useContracts from "../containers/web3/use-contracts";
 import useWeb3 from "../containers/web3/use-web3";
-import { CustomButton } from "./customButton";
+import { CustomButton } from "./CustomButton";
 
 const metamaskContainerHeight = 64;
 
@@ -90,10 +90,11 @@ const Main = () => {
   const [justConnected, setJustConnected] = useState(false);
 
   const [inputAmount, setInputAmount] = useState("");
+  const [sliderValue, setSliderValue] = useState<number>(80);
 
-  const [cR, setCR] = useState(115);
-  const maxCR = 1000;
-  const progressPercent = (maxCR - cR) / maxCR;
+  const leverage = sliderValue / 10;
+  const initialPrincipal = parseFloat(inputAmount);
+  const leveragedAmount = initialPrincipal * leverage;
 
   const getDaiUsdcRates = async () => {
     const { ICurveFiCurve } = contracts;
@@ -144,10 +145,8 @@ const Main = () => {
     if (contracts === null) return;
     if (!connected) return;
 
-    setTimeout(() => {
-      getDaiUsdcRates();
-      getUsdcBalances();
-    }, 1000);
+    getDaiUsdcRates();
+    getUsdcBalances();
   }, [contracts, connected]);
 
   useEffect(() => {
@@ -176,8 +175,8 @@ const Main = () => {
           src="/pickle.png"
           alt="pickle"
           style={{
-            transform: `translate(${32 * progressPercent}%, -${
-              30 * progressPercent
+            transform: `translate(${32 * (leverage / 11)}%, -${
+              30 * (leverage / 11)
             }%)`,
           }}
         />
@@ -244,24 +243,26 @@ const Main = () => {
                   variant="h3"
                   className={classes.leverage}
                 >
-                  {Number(maxCR / cR).toFixed(2)}
+                  {leverage.toString()}
                 </Typography>
               </Box>
 
               <Slider
-                value={cR * -1}
-                onChange={(_, newValue) => setCR((newValue as number) * -1)}
-                min={-maxCR}
-                max={-110}
+                value={sliderValue}
+                onChange={(_, newValue) => setSliderValue(parseFloat(newValue))}
+                min={11}
+                max={109}
               />
               <Box textAlign="center">
-                <Typography variant="h5">{cR}%</Typography>
+                <Typography variant="h5">
+                  {((leverage / (leverage - 1)) * 100).toFixed()}%
+                </Typography>
                 <Typography variant="h6">Collateralization Ratio</Typography>
               </Box>
             </Box>
           </Paper>
 
-          <Box mt={4}>
+          <Box mt={2} display="flex">
             <Button
               variant="contained"
               color="primary"
@@ -271,7 +272,21 @@ const Main = () => {
               onClick={() => setHasPosition(!hasPosition)}
               className={cn({ [classes.withdraw]: hasPosition })}
             >
-              {hasPosition ? "CLOSE POSITION" : "OPEN SHORT POSITION"}
+              APPROVE
+            </Button>
+
+            <Box width={32} />
+
+            <Button
+              variant="contained"
+              color="primary"
+              disabled={!inputAmount}
+              size="large"
+              fullWidth
+              onClick={() => setHasPosition(!hasPosition)}
+              className={cn({ [classes.withdraw]: hasPosition })}
+            >
+              OPEN
             </Button>
           </Box>
         </Box>
