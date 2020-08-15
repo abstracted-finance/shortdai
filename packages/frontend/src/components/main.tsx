@@ -41,33 +41,33 @@ const Main = () => {
 
   const { connect, isConnecting, connected } = useWeb3.useContainer();
   const { contracts } = useContracts.useContainer();
-  const [amount, setAmount] = useState(null);
+  const [daiUsdcRatio, setDaiUsdcRatio] = useState(null);
   const [inputAmount, setInputAmount] = useState("");
 
-  const getRates = async () => {
-    const { IOneSplit } = contracts;
+  const getDaiUsdcRates = async () => {
+    const { ICurveFiCurve } = contracts;
 
-    console.log("fetching from oneinch...");
-
-    console.log("OneSplit", IOneSplit);
-
-    const { returnAmount } = await IOneSplit.getExpectedReturn(
-      CONSTANTS.ERC20_ADDRESSES.DAI,
-      CONSTANTS.ERC20_ADDRESSES.USDC,
-      ethers.utils.parseUnits("1", CONSTANTS.ERC20_DECIMALS.DAI), // To Wei
-      2,
-      0
+    const ICurveFiSUSDv2 = ICurveFiCurve.attach(
+      CONSTANTS.CONTRACT_ADDRESSES.CurveFiSUSDv2
     );
 
-    console.log("got from oneinch...");
+    // 0 = DAI
+    // 1 = USDC
+    const daiUsdcRatio = await ICurveFiSUSDv2.get_dy_underlying(
+      0,
+      1,
+      ethers.utils.parseUnits("100000", CONSTANTS.ERC20_DECIMALS.USDC)
+    );
+
+    const daiUsdcRatioNormalized = daiUsdcRatio.div(ethers.BigNumber.from(100000));
 
     // Convert from Wei to Numbers
-    const returnAmountFixed = ethers.utils.formatUnits(
-      returnAmount,
+    const daiUsdcRatioFixed = ethers.utils.formatUnits(
+      daiUsdcRatioNormalized,
       CONSTANTS.ERC20_DECIMALS.USDC
     );
 
-    setAmount(returnAmountFixed);
+    setDaiUsdcRatio(daiUsdcRatioFixed);
   };
 
   function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
