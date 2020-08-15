@@ -207,9 +207,17 @@ const Main = () => {
                   />
                 </Box>
 
-                <Button variant="outlined" size="small" color="primary">
-                  MAX
-                </Button>
+              <Button
+                onClick={() => {
+                  if (usdcBal === null) return;
+                  setInputAmount(usdcBal);
+                }}
+                variant="outlined"
+                size="small"
+                color="primary"
+              >
+                MAX
+              </Button>
 
                 <Box display="flex" alignItems="center" ml={2}>
                   <img src="/usdc.png" width={24} height={24} />
