@@ -57,7 +57,7 @@ const Main = () => {
   const { contracts } = useContracts.useContainer();
   const [amount, setAmount] = useState(null);
   const [inputAmount, setInputAmount] = useState("");
-  const [cR, setCR] = useState(-115);
+  const [cR, setCR] = useState(115);
 
   const getRates = async () => {
     const { IOneSplit } = contracts;
@@ -151,18 +151,18 @@ const Main = () => {
                 variant="h3"
                 className={classes.leverage}
               >
-                {Number((1000 / cR) * -1).toFixed(2)}
+                {Number(1000 / cR).toFixed(2)}
               </Typography>
             </Box>
 
             <Slider
-              value={cR}
-              onChange={(_, newValue) => setCR(newValue as number)}
+              value={cR * -1}
+              onChange={(_, newValue) => setCR((newValue as number) * -1)}
               min={-500}
               max={-110}
             />
             <Box textAlign="center">
-              <Typography variant="h5">{cR * -1}%</Typography>
+              <Typography variant="h5">{cR}%</Typography>
               <Typography variant="h6">Collateralization Ratio</Typography>
             </Box>
           </Box>
