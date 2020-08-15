@@ -185,7 +185,15 @@ const Main = () => {
                 />
               </Box>
 
-              <Button variant="outlined" size="small" color="primary">
+              <Button
+                onClick={() => {
+                  if (usdcBal === null) return;
+                  setInputAmount(usdcBal);
+                }}
+                variant="outlined"
+                size="small"
+                color="primary"
+              >
                 MAX
               </Button>
 
