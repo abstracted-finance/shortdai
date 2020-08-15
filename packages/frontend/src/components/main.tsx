@@ -33,6 +33,20 @@ const useStyles = makeStyles({
     transform: "translate(35%, -36%)",
     zIndex: -1,
   },
+  leverage: {
+    position: "relative",
+    "&:after": {
+      position: "absolute",
+      content: "'x'",
+      top: 0,
+      right: -20,
+      height: "100%",
+      fontSize: 24,
+      color: "grey",
+      display: "flex",
+      alignItems: "center",
+    },
+  },
 });
 
 const Main = () => {
@@ -54,6 +68,7 @@ const Main = () => {
   const [inputAmount, setInputAmount] = useState("");
 
   const [cR, setCR] = useState(115);
+  const maxCR = 1000;
 
   const getDaiUsdcRates = async () => {
     const { ICurveFiCurve } = contracts;
@@ -139,7 +154,7 @@ const Main = () => {
         </Box>
 
         <Paper variant="outlined">
-          <Box px={2.5} py={2}>
+          <Box p={2.5}>
             <Box display="flex" justifyContent="space-between">
               <Typography variant="h6" component="p">
                 Principal
@@ -173,25 +188,20 @@ const Main = () => {
 
             <Box textAlign="center">
               <Typography variant="h6">Leverage</Typography>
-              <Typography variant="h3">
-                {Number(1000 / cR).toFixed(2)}
-                <Box
-                  component="span"
-                  color={theme.palette.text.disabled}
-                  ml={0.5}
-                >
-                  <Typography component="span" variant="h5">
-                    x
-                  </Typography>
-                </Box>
+              <Typography
+                component="span"
+                variant="h3"
+                className={classes.leverage}
+              >
+                {Number(maxCR / cR).toFixed(2)}
               </Typography>
             </Box>
 
             <Slider
-              value={cR}
-              onChange={(_, newValue) => setCR(newValue as number)}
-              min={110}
-              max={500}
+              value={cR * -1}
+              onChange={(_, newValue) => setCR((newValue as number) * -1)}
+              min={-maxCR}
+              max={-110}
             />
             <Box textAlign="center">
               <Typography variant="h5">{cR}%</Typography>
