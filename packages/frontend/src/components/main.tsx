@@ -36,7 +36,6 @@ const useStyles = makeStyles((theme) =>
       width: "50%",
       top: 0,
       left: "50%",
-      transform: "translate(35%, -36%)",
       zIndex: -1,
     },
     leverage: {
@@ -94,6 +93,7 @@ const Main = () => {
 
   const [cR, setCR] = useState(115);
   const maxCR = 1000;
+  const progressPercent = (maxCR - cR) / maxCR;
 
   const getDaiUsdcRates = async () => {
     const { ICurveFiCurve } = contracts;
@@ -171,7 +171,16 @@ const Main = () => {
   return (
     <Box height="100vh" pt={20} overflow="hidden">
       <Box mx="auto" width={400} maxWidth="80%" position="relative" zIndex={1}>
-        <img className={classes.pickle} src="/pickle.png" alt="pickle" />
+        <img
+          className={classes.pickle}
+          src="/pickle.png"
+          alt="pickle"
+          style={{
+            transform: `translate(${32 * progressPercent}%, -${
+              30 * progressPercent
+            }%)`,
+          }}
+        />
 
         <Box
           width="100%"
@@ -207,17 +216,17 @@ const Main = () => {
                   />
                 </Box>
 
-              <Button
-                onClick={() => {
-                  if (usdcBal === null) return;
-                  setInputAmount(usdcBal);
-                }}
-                variant="outlined"
-                size="small"
-                color="primary"
-              >
-                MAX
-              </Button>
+                <Button
+                  onClick={() => {
+                    if (usdcBal === null) return;
+                    setInputAmount(usdcBal);
+                  }}
+                  variant="outlined"
+                  size="small"
+                  color="primary"
+                >
+                  MAX
+                </Button>
 
                 <Box display="flex" alignItems="center" ml={2}>
                   <img src="/usdc.png" width={24} height={24} />
