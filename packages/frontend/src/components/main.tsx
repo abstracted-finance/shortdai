@@ -9,8 +9,8 @@ import {
   useTheme,
 } from "@material-ui/core";
 import { CONSTANTS } from "@shortdai/smart-contracts";
-import { ethers } from "ethers";
-import { useState, ChangeEvent } from "react";
+import { ethers, Signer } from "ethers";
+import { useEffect, useState, ChangeEvent } from "react";
 import useContracts from "../containers/web3/use-contracts";
 import useWeb3 from "../containers/web3/use-web3";
 
@@ -39,10 +39,20 @@ const Main = () => {
   const classes = useStyles();
   const theme = useTheme();
 
-  const { connect, isConnecting, connected } = useWeb3.useContainer();
+  const {
+    signer,
+    ethAddress,
+    connect,
+    isConnecting,
+    connected,
+  } = useWeb3.useContainer();
   const { contracts } = useContracts.useContainer();
-  const [daiUsdcRatio, setDaiUsdcRatio] = useState(null);
+
+  const [daiUsdcRatio, setDaiUsdcRatio] = useState<null | string>(null);
+  const [usdcBal, setUdscBal] = useState<null | string>(null);
+
   const [inputAmount, setInputAmount] = useState("");
+
   const [cR, setCR] = useState(115);
 
   const getDaiUsdcRates = async () => {
@@ -57,19 +67,48 @@ const Main = () => {
     const daiUsdcRatio = await ICurveFiSUSDv2.get_dy_underlying(
       0,
       1,
-      ethers.utils.parseUnits("100000", CONSTANTS.ERC20_DECIMALS.USDC)
+      ethers.utils.parseUnits("100000", CONSTANTS.ERC20_DECIMALS.DAI)
     );
 
-    const daiUsdcRatioNormalized = daiUsdcRatio.div(ethers.BigNumber.from(100000));
+    const daiUsdcRatioNormalized = daiUsdcRatio.div(
+      ethers.BigNumber.from(100000)
+    );
 
     // Convert from Wei to Numbers
-    const daiUsdcRatioFixed = ethers.utils.formatUnits(
-      daiUsdcRatioNormalized,
-      CONSTANTS.ERC20_DECIMALS.USDC
-    );
+    const daiUsdcRatioFixed = parseFloat(
+      ethers.utils.formatUnits(
+        daiUsdcRatioNormalized,
+        CONSTANTS.ERC20_DECIMALS.USDC
+      )
+    )
+      .toFixed(3)
+      .toString();
 
     setDaiUsdcRatio(daiUsdcRatioFixed);
   };
+
+  const getUsdcBalances = async () => {
+    const { IERC20 } = contracts;
+    const USDC = IERC20.attach(CONSTANTS.ERC20_ADDRESSES.USDC);
+
+    // Balance in 6 decimals
+    const bal6 = await USDC.balanceOf(ethAddress);
+
+    // Convert to readable
+    const bal = ethers.utils.formatUnits(bal6, CONSTANTS.ERC20_DECIMALS.USDC);
+
+    setUdscBal(bal);
+  };
+
+  useEffect(() => {
+    if (contracts === null) return;
+    if (!connected) return;
+
+    setTimeout(() => {
+      getDaiUsdcRates();
+      getUsdcBalances();
+    }, 1000);
+  }, [contracts, connected]);
 
   function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
     const {
@@ -94,7 +133,9 @@ const Main = () => {
         <img className={classes.pickle} src="/pickle.png" alt="pickle" />
 
         <Box p={1} mb={4} textAlign="center">
-          <Typography variant="h5">1 DAI = 1.0083 USDC</Typography>
+          <Typography variant="h5">
+            1.000 DAI = {daiUsdcRatio === null ? "..." : daiUsdcRatio} USDC
+          </Typography>
         </Box>
 
         <Paper variant="outlined">
@@ -105,7 +146,7 @@ const Main = () => {
               </Typography>
 
               <Typography variant="h6" component="p">
-                Balance: 2.30723
+                Balance: {usdcBal === null ? "..." : usdcBal}
               </Typography>
             </Box>
             <Box display="flex" alignItems="center">
