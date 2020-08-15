@@ -1,21 +1,23 @@
 import {
   Box,
   Button,
+  createStyles,
   InputBase,
   makeStyles,
   Paper,
   Slider,
   Typography,
   useTheme,
-  Collapse,
-  createStyles,
 } from "@material-ui/core";
 import { CONSTANTS } from "@shortdai/smart-contracts";
-import { ethers, Signer } from "ethers";
-import { useEffect, useState, ChangeEvent } from "react";
+import cn from "classnames";
+import { ethers } from "ethers";
+import { ChangeEvent, useEffect, useState } from "react";
 import useContracts from "../containers/web3/use-contracts";
 import useWeb3 from "../containers/web3/use-web3";
-import cn from "classnames";
+import { CustomButton } from "./customButton";
+
+const metamaskContainerHeight = 64;
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -51,8 +53,18 @@ const useStyles = makeStyles((theme) =>
         alignItems: "center",
       },
     },
-    metamask: {
-      backgroundColor: "#f6851b",
+    bottomDrawer: {
+      transition: "transform 300ms ease-in-out",
+      width: "85%",
+      position: "relative",
+      margin: "0 auto",
+      transform: "translateY(-124px)",
+      height: "100px",
+      paddingTop: 24,
+      backgroundColor: "transparent",
+    },
+    bottomDrawerShow: {
+      transform: "translateY(-24px)",
     },
     withdraw: {
       backgroundColor: theme.palette.error.main,
@@ -76,6 +88,7 @@ const Main = () => {
   const [daiUsdcRatio, setDaiUsdcRatio] = useState<null | string>(null);
   const [usdcBal, setUdscBal] = useState<null | string>(null);
   const [hasPosition, setHasPosition] = useState(false);
+  const [justConnected, setJustConnected] = useState(false);
 
   const [inputAmount, setInputAmount] = useState("");
 
@@ -137,6 +150,15 @@ const Main = () => {
     }, 1000);
   }, [contracts, connected]);
 
+  useEffect(() => {
+    if (connected) {
+      setJustConnected(true);
+      setTimeout(() => {
+        setJustConnected(false);
+      }, 1000);
+    }
+  }, [connected]);
+
   function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
     const {
       target: { value },
@@ -148,94 +170,81 @@ const Main = () => {
 
   return (
     <Box height="100vh" pt={20} overflow="hidden">
-      <Box
-        mx="auto"
-        width={400}
-        maxWidth="80%"
-        bgcolor={theme.palette.background.paper}
-        borderRadius={30}
-        position="relative"
-        p={4}
-      >
+      <Box mx="auto" width={400} maxWidth="80%" position="relative" zIndex={1}>
         <img className={classes.pickle} src="/pickle.png" alt="pickle" />
 
-        <Box p={1} mb={4} textAlign="center">
-          <Typography variant="h5">
-            1.000 DAI = {daiUsdcRatio === null ? "..." : daiUsdcRatio} USDC
-          </Typography>
-        </Box>
-
-        <Paper variant="outlined">
-          <Box p={2.5}>
-            <Box display="flex" justifyContent="space-between">
-              <Typography variant="h6" component="p">
-                Principal
-              </Typography>
-
-              <Typography variant="h6" component="p">
-                Balance: {usdcBal === null ? "..." : usdcBal}
-              </Typography>
-            </Box>
-            <Box display="flex" alignItems="center">
-              <Box flex={1}>
-                <InputBase
-                  placeholder="0.0"
-                  value={inputAmount}
-                  onChange={handleInputChange}
-                />
-              </Box>
-
-              <Button variant="outlined" size="small" color="primary">
-                MAX
-              </Button>
-
-              <Box display="flex" alignItems="center" ml={2}>
-                <img src="/usdc.png" width={24} height={24} />
-                <Box flexShrink={0} width={8} />
-                <Typography>USDC</Typography>
-              </Box>
-            </Box>
-
-            <Box height={32} />
-
-            <Box textAlign="center">
-              <Typography variant="h6">Leverage</Typography>
-              <Typography
-                component="span"
-                variant="h3"
-                className={classes.leverage}
-              >
-                {Number(maxCR / cR).toFixed(2)}
-              </Typography>
-            </Box>
-
-            <Slider
-              value={cR * -1}
-              onChange={(_, newValue) => setCR((newValue as number) * -1)}
-              min={-maxCR}
-              max={-110}
-            />
-            <Box textAlign="center">
-              <Typography variant="h5">{cR}%</Typography>
-              <Typography variant="h6">Collateralization Ratio</Typography>
-            </Box>
+        <Box
+          width="100%"
+          bgcolor={theme.palette.background.paper}
+          borderRadius={30}
+          p={4}
+          position="relative"
+          zIndex={1}
+        >
+          <Box p={1} mb={4} textAlign="center">
+            <Typography variant="h5">
+              1.000 DAI = {daiUsdcRatio === null ? "..." : daiUsdcRatio} USDC
+            </Typography>
           </Box>
-        </Paper>
 
-        <Box mt={4}>
-          <Collapse in={!connected}>
-            <Button
-              variant="contained"
-              color="secondary"
-              disabled={isConnecting}
-              onClick={connect}
-              size="large"
-              fullWidth
-            >
-              {isConnecting ? "Connecting ..." : "METAMASK"}
-            </Button>
-          </Collapse>
-          <Collapse in={connected}>
+          <Paper variant="outlined">
+            <Box p={2.5}>
+              <Box display="flex" justifyContent="space-between">
+                <Typography variant="h6" component="p">
+                  Principal
+                </Typography>
+
+                <Typography variant="h6" component="p">
+                  Balance: {usdcBal === null ? "..." : usdcBal}
+                </Typography>
+              </Box>
+              <Box display="flex" alignItems="center">
+                <Box flex={1}>
+                  <InputBase
+                    placeholder="0.0"
+                    value={inputAmount}
+                    onChange={handleInputChange}
+                  />
+                </Box>
+
+                <Button variant="outlined" size="small" color="primary">
+                  MAX
+                </Button>
+
+                <Box display="flex" alignItems="center" ml={2}>
+                  <img src="/usdc.png" width={24} height={24} />
+                  <Box flexShrink={0} width={8} />
+                  <Typography>USDC</Typography>
+                </Box>
+              </Box>
+
+              <Box height={32} />
+
+              <Box textAlign="center">
+                <Typography variant="h6">Leverage</Typography>
+                <Typography
+                  component="span"
+                  variant="h3"
+                  className={classes.leverage}
+                >
+                  {Number(maxCR / cR).toFixed(2)}
+                </Typography>
+              </Box>
+
+              <Slider
+                value={cR * -1}
+                onChange={(_, newValue) => setCR((newValue as number) * -1)}
+                min={-maxCR}
+                max={-110}
+              />
+              <Box textAlign="center">
+                <Typography variant="h5">{cR}%</Typography>
+                <Typography variant="h6">Collateralization Ratio</Typography>
+              </Box>
+            </Box>
+          </Paper>
+
+          <Box mt={4}>
             <Button
               variant="contained"
               color="primary"
@@ -247,8 +256,31 @@ const Main = () => {
             >
               {hasPosition ? "CLOSE POSITION" : "OPEN SHORT POSITION"}
             </Button>
-          </Collapse>
+          </Box>
         </Box>
+
+        <Paper
+          variant="outlined"
+          className={cn(classes.bottomDrawer, {
+            [classes.bottomDrawerShow]: !connected,
+          })}
+        >
+          <Box p={2}>
+            <CustomButton
+              fullWidth
+              name="metamask"
+              variant="outlined"
+              disabled={isConnecting}
+              onClick={connect}
+            >
+              {justConnected
+                ? "CONNECTED!"
+                : isConnecting
+                ? "CONNECTING ..."
+                : "CONNECT"}
+            </CustomButton>
+          </Box>
+        </Paper>
       </Box>
     </Box>
   );
