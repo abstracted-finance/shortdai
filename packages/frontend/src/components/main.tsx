@@ -33,6 +33,20 @@ const useStyles = makeStyles({
     transform: "translate(35%, -36%)",
     zIndex: -1,
   },
+  leverage: {
+    position: "relative",
+    "&:after": {
+      position: "absolute",
+      content: "'x'",
+      top: 0,
+      right: -20,
+      height: "100%",
+      fontSize: 24,
+      color: "grey",
+      display: "flex",
+      alignItems: "center",
+    },
+  },
 });
 
 const Main = () => {
@@ -132,17 +146,12 @@ const Main = () => {
 
             <Box textAlign="center">
               <Typography variant="h6">Leverage</Typography>
-              <Typography variant="h3">
+              <Typography
+                component="span"
+                variant="h3"
+                className={classes.leverage}
+              >
                 {Number(1000 / cR).toFixed(2)}
-                <Box
-                  component="span"
-                  color={theme.palette.text.disabled}
-                  ml={0.5}
-                >
-                  <Typography component="span" variant="h5">
-                    x
-                  </Typography>
-                </Box>
               </Typography>
             </Box>
 
