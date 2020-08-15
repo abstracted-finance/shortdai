@@ -1,6 +1,6 @@
 {
     "OpenShortDAI": {
-        "address": "0xDb56f2e9369E0D7bD191099125a3f6C370F8ed15",
+        "address": "0xDa61467Ecd8566c67eB6d85E248dD1a91F804C30",
         "abi": [
             {
                 "type": "function",
@@ -69,7 +69,7 @@
         ]
     },
     "CloseShortDAI": {
-        "address": "0xA94B7f0465E98609391C623d0560C5720a3f2D33",
+        "address": "0xd3522f3bEcf460DDCad3476fFc8539dD55664CEc",
         "abi": [
             {
                 "type": "function",
@@ -130,7 +130,7 @@
         ]
     },
     "ShortDAIActions": {
-        "address": "0x6eD79Aa1c71FD7BdBC515EfdA3Bd4e26394435cC",
+        "address": "0x89E8c4Fa9dEe9Aa6Ea718699ad755C2d68DBF43c",
         "abi": [
             {
                 "type": "function",
@@ -189,35 +189,6 @@
                     }
                 ],
                 "ouputs": []
-            }
-        ]
-    },
-    "VaultPositionReader": {
-        "address": "0xb09bCc172050fBd4562da8b229Cf3E45Dc3045A6",
-        "abi": [
-            {
-                "type": "function",
-                "name": "getVaultStats",
-                "constant": true,
-                "stateMutability": "view",
-                "payble": false,
-                "inputs": [
-                    {
-                        "type": "uint256",
-                        "name": "cdp"
-                    }
-                ],
-                "ouputs": [
-                    {
-                        "type": "uint256"
-                    },
-                    {
-                        "type": "uint256"
-                    },
-                    {
-                        "type": "uint256"
-                    }
-                ]
             }
         ]
     }
