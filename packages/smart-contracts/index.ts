@@ -20,7 +20,6 @@ export interface EthersContracts {
   OpenShortDAI: ethers.Contract;
   CloseShortDAI: ethers.Contract;
   ShortDAIActions: ethers.Contract;
-  VaultPositionReader: ethers.Contract;
 }
 
 export const getContract = ({
@@ -95,7 +94,6 @@ export const getEthersContracts = (
     "OpenShortDAI",
     "CloseShortDAI",
     "ShortDAIActions",
-    "VaultPositionReader",
   ];
   const initialAddressedContracts = initialAddressedContractNames
     .map((name) => {

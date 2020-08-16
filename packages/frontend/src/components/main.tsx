@@ -13,6 +13,8 @@ import { CONSTANTS } from "@shortdai/smart-contracts";
 import cn from "classnames";
 import { ethers } from "ethers";
 import { ChangeEvent, useEffect, useState } from "react";
+
+import useProxy from "../containers/web3/use-proxy";
 import useContracts from "../containers/web3/use-contracts";
 import useWeb3 from "../containers/web3/use-web3";
 import { CustomButton } from "./CustomButton";
@@ -52,6 +54,14 @@ const useStyles = makeStyles((theme) =>
         alignItems: "center",
       },
     },
+    tabButton: {
+      fontSize: "1.75em",
+      color: "#888D9B",
+    },
+    tabButtonActive: {
+      fontSize: "1.75em",
+      color: "#FFFFFF",
+    },
     bottomDrawer: {
       transition: "transform 300ms ease-in-out",
       width: "85%",
@@ -71,30 +81,110 @@ const useStyles = makeStyles((theme) =>
   })
 );
 
+enum Tabs {
+  OPEN,
+  CLOSE,
+}
+
 const Main = () => {
   const classes = useStyles();
   const theme = useTheme();
 
   const {
-    signer,
     ethAddress,
     connect,
     isConnecting,
     connected,
   } = useWeb3.useContainer();
   const { contracts } = useContracts.useContainer();
+  const {
+    hasProxy,
+    proxy,
+    proxyAddress,
+    createProxy,
+  } = useProxy.useContainer();
+
+  const [selectedTab, setSelectedTab] = useState<Tabs>(Tabs.OPEN);
 
   const [daiUsdcRatio, setDaiUsdcRatio] = useState<null | string>(null);
   const [usdcBal, setUdscBal] = useState<null | string>(null);
   const [hasPosition, setHasPosition] = useState(false);
-  const [justConnected, setJustConnected] = useState(false);
 
+  const [hasApproved, setHasApproved] = useState<boolean>(false);
   const [inputAmount, setInputAmount] = useState("");
   const [sliderValue, setSliderValue] = useState<number>(80);
 
   const leverage = sliderValue / 10;
-  const initialPrincipal = parseFloat(inputAmount);
-  const leveragedAmount = initialPrincipal * leverage;
+
+  const openShortDaiPosition = async () => {
+    const { ShortDAIActions, OpenShortDAI } = contracts;
+
+    const initialUsdcMargin = ethers.utils.parseUnits(
+      inputAmount,
+      CONSTANTS.ERC20_DECIMALS.USDC
+    );
+
+    const tenBN = ethers.BigNumber.from("10");
+    const leverageBN = ethers.BigNumber.from(
+      (leverage * 10).toFixed(0).toString()
+    );
+
+    const daiUsdcRatioBN = ethers.BigNumber.from(
+      (parseFloat(daiUsdcRatio) * 1000).toFixed(0).toString()
+    );
+    const thousandBN = ethers.BigNumber.from("1000");
+
+    const flashloanDaiAmount = ethers.utils
+      .parseUnits(inputAmount, CONSTANTS.ERC20_DECIMALS.DAI)
+      .mul(leverageBN)
+      .div(tenBN)
+      .mul(daiUsdcRatioBN)
+      .div(thousandBN);
+
+    console.log("initialUsdcMargin", initialUsdcMargin.toString());
+    console.log("flashloanDaiAmount", flashloanDaiAmount.toString());
+
+    const openCalldata = ShortDAIActions.interface.encodeFunctionData(
+      "flashloanAndOpen",
+      [
+        OpenShortDAI.address,
+        CONSTANTS.CONTRACT_ADDRESSES.ISoloMargin,
+        CONSTANTS.CONTRACT_ADDRESSES.CurveFiSUSDv2,
+        0,
+        initialUsdcMargin,
+        flashloanDaiAmount,
+      ]
+    );
+
+    const openTx = await proxy[
+      "execute(address,bytes)"
+    ](ShortDAIActions.address, openCalldata, { gasLimit: 1000000 });
+    await openTx.wait();
+  };
+
+  const approveProxyUsdc = async () => {
+    const { IERC20 } = contracts;
+    const USDC = IERC20.attach(CONSTANTS.ERC20_ADDRESSES.USDC);
+
+    const tx = await USDC.approve(proxyAddress, ethers.constants.MaxUint256);
+    await tx.wait();
+  };
+
+  const getUsdcApprovedAmount = async () => {
+    const { IERC20 } = contracts;
+    const USDC = IERC20.attach(CONSTANTS.ERC20_ADDRESSES.USDC);
+
+    if (
+      proxyAddress === ethers.constants.AddressZero ||
+      proxyAddress === null
+    ) {
+      setHasApproved(false);
+      return;
+    }
+
+    const approved = await USDC.allowance(ethAddress, proxyAddress);
+    setHasApproved(approved.gt(ethers.constants.Zero));
+  };
 
   const getDaiUsdcRates = async () => {
     const { ICurveFiCurve } = contracts;
@@ -144,19 +234,12 @@ const Main = () => {
   useEffect(() => {
     if (contracts === null) return;
     if (!connected) return;
+    if (proxyAddress === null) return;
 
     getDaiUsdcRates();
     getUsdcBalances();
-  }, [contracts, connected]);
-
-  useEffect(() => {
-    if (connected) {
-      setJustConnected(true);
-      setTimeout(() => {
-        setJustConnected(false);
-      }, 1000);
-    }
-  }, [connected]);
+    getUsdcApprovedAmount();
+  }, [contracts, connected, proxyAddress]);
 
   function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
     const {
@@ -169,7 +252,7 @@ const Main = () => {
 
   return (
     <Box height="100vh" pt={20} overflow="hidden">
-      <Box mx="auto" width={400} maxWidth="80%" position="relative" zIndex={1}>
+      <Box mx="auto" width={500} maxWidth="80%" position="relative" zIndex={1}>
         <img
           className={classes.pickle}
           src="/pickle.png"
@@ -193,6 +276,36 @@ const Main = () => {
             <Typography variant="h5">
               1.000 DAI = {daiUsdcRatio === null ? "..." : daiUsdcRatio} USDC
             </Typography>
+          </Box>
+
+          <Box marginBottom={1.5} mt={2} display="flex">
+            <Button
+              className={
+                selectedTab === Tabs.OPEN
+                  ? classes.tabButtonActive
+                  : classes.tabButton
+              }
+              onClick={() => setSelectedTab(Tabs.OPEN)}
+              size="small"
+              fullWidth
+            >
+              OPEN
+            </Button>
+
+            <Box width={32} />
+
+            <Button
+              className={
+                selectedTab === Tabs.CLOSE
+                  ? classes.tabButtonActive
+                  : classes.tabButton
+              }
+              onClick={() => setSelectedTab(Tabs.CLOSE)}
+              size="small"
+              fullWidth
+            >
+              CLOSE
+            </Button>
           </Box>
 
           <Paper variant="outlined">
@@ -249,46 +362,72 @@ const Main = () => {
 
               <Slider
                 value={sliderValue}
-                onChange={(_, newValue) => setSliderValue(parseFloat(newValue))}
+                onChange={(_, newValue: number) => {
+                  setSliderValue(newValue);
+                }}
                 min={11}
                 max={109}
               />
               <Box textAlign="center">
                 <Typography variant="h5">
-                  {((leverage / (leverage - 1)) * 100).toFixed()}%
+                  {((leverage / (leverage - 1)) * 100).toFixed(2)}%
                 </Typography>
                 <Typography variant="h6">Collateralization Ratio</Typography>
               </Box>
             </Box>
           </Paper>
 
-          <Box mt={2} display="flex">
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={!inputAmount}
-              size="large"
-              fullWidth
-              onClick={() => setHasPosition(!hasPosition)}
-              className={cn({ [classes.withdraw]: hasPosition })}
-            >
-              APPROVE
-            </Button>
-
-            <Box width={32} />
-
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={!inputAmount}
-              size="large"
-              fullWidth
-              onClick={() => setHasPosition(!hasPosition)}
-              className={cn({ [classes.withdraw]: hasPosition })}
-            >
-              OPEN
-            </Button>
-          </Box>
+          {hasProxy ? (
+            <Box mt={2} display="flex">
+              {hasApproved ? (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  disabled={
+                    !inputAmount ||
+                    !hasProxy ||
+                    parseFloat(inputAmount) === 0.0 ||
+                    parseFloat(inputAmount) > parseFloat(usdcBal)
+                  }
+                  size="large"
+                  fullWidth
+                  onClick={() => openShortDaiPosition()}
+                  className={cn({ [classes.withdraw]: hasPosition })}
+                >
+                  OPEN
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  disabled={!hasProxy && hasApproved}
+                  size="large"
+                  fullWidth
+                  onClick={async () => {
+                    await approveProxyUsdc();
+                    await getUsdcApprovedAmount();
+                  }}
+                  className={cn({ [classes.withdraw]: hasPosition })}
+                >
+                  APPROVE
+                </Button>
+              )}
+            </Box>
+          ) : (
+            <Box mt={2}>
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                fullWidth
+                disabled={!connected}
+                onClick={() => createProxy()}
+                className={cn({ [classes.withdraw]: hasPosition })}
+              >
+                Setup
+              </Button>
+            </Box>
+          )}
         </Box>
 
         <Paper
@@ -305,7 +444,7 @@ const Main = () => {
               disabled={isConnecting}
               onClick={connect}
             >
-              {justConnected
+              {connected
                 ? "CONNECTED!"
                 : isConnecting
                 ? "CONNECTING ..."

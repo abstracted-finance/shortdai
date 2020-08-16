@@ -15,7 +15,6 @@ export interface EthersContracts {
     OpenShortDAI: ethers.Contract;
     CloseShortDAI: ethers.Contract;
     ShortDAIActions: ethers.Contract;
-    VaultPositionReader: ethers.Contract;
 }
 export declare const getContract: ({ network, name, }: {
     network?: string;

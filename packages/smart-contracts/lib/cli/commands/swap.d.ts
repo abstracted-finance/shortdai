@@ -1,5 +1,5 @@
-export function swap({ mnemonic, amountWei, fromToken, toToken, host }: {
-    mnemonic: any;
+export function swap({ privateKey, amountWei, fromToken, toToken, host }: {
+    privateKey: any;
     amountWei: any;
     fromToken: any;
     toToken: any;

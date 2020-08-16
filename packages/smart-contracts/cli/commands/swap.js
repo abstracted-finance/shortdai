@@ -4,20 +4,12 @@ const chalk = require("chalk");
 
 const { setupContract } = require("../utils/setup");
 
-async function swap({ mnemonic, amountWei, fromToken, toToken, host }) {
+async function swap({ privateKey, amountWei, fromToken, toToken, host }) {
   const provider = new ethers.providers.JsonRpcProvider(host);
-  const wallets = Array(10)
-    .fill(0)
-    .map((_, i) =>
-      ethers.Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/${i}`).connect(
-        provider
-      )
-    );
-
-  const [user] = wallets;
+  const user = new ethers.Wallet(privateKey, provider);
 
   const IOneSplit = (
-    await setupContract({ wallets, name: "IOneSplit" })
+    await setupContract({ name: "IOneSplit" })
   ).connect(user);
 
   const flags = 0;
@@ -77,9 +69,9 @@ module.exports = {
       .command("swap")
       .description("Swaps tokens on 1inch")
       .option(
-        "-m, --mnemonic <value>",
-        "Mnemonic key",
-        "myth like bonus scare over problem client lizard pioneer submit female collect"
+        "-k, --private-key <value>",
+        "Private key",
+        "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"
       )
       .requiredOption("-f, --fromToken <value>", "Address of fromToken")
       .requiredOption(
