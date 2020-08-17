@@ -15,11 +15,11 @@ const useStyles = makeStyles({
   },
 });
 
-interface CustomButtonProps extends Partial<ButtonProps> {
+interface ConnectButtonProps extends Partial<ButtonProps> {
   name: "metamask";
 }
 
-export const CustomButton: React.FC<CustomButtonProps> = ({
+export const ConnectButton: React.FC<ConnectButtonProps> = ({
   name,
   className,
   ...props

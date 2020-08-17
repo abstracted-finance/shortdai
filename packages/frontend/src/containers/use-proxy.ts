@@ -4,15 +4,13 @@ import { useEffect, useState } from "react";
 import useWeb3 from "./use-web3";
 import useContracts from "./use-contracts";
 
-import { EthersContracts, getEthersContracts } from "@shortdai/smart-contracts";
 import { ethers } from "ethers";
 
-const network = "localhost";
-
 function useProxy() {
-  const { signer, ethAddress, connected } = useWeb3.useContainer();
+  const { ethAddress, connected } = useWeb3.useContainer();
   const { contracts } = useContracts.useContainer();
 
+  const [isCreatingProxy, setIsCreatingProxy] = useState<boolean>(false);
   const [proxyAddress, setProxyAddress] = useState<null | string>(null);
 
   const hasProxy =
@@ -28,9 +26,17 @@ function useProxy() {
 
   const createProxy = async () => {
     const { IProxyRegistry } = contracts;
-    const tx = await IProxyRegistry["build(address)"](ethAddress);
-    await tx.wait();
+    setIsCreatingProxy(true);
+
+    try {
+      const tx = await IProxyRegistry["build(address)"](ethAddress);
+      await tx.wait();
+    } catch (e) {
+      // TODO: Do a toast
+    }
+
     await getProxy();
+    setIsCreatingProxy(false);
   };
 
   useEffect(() => {
@@ -45,6 +51,7 @@ function useProxy() {
     proxy,
     getProxy,
     createProxy,
+    isCreatingProxy,
     proxyAddress,
   };
 }
