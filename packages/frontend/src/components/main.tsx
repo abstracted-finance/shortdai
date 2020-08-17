@@ -103,7 +103,7 @@ const Main = () => {
 
           <Box mb={4}>
             <FormControl style={{ width: "100%" }}>
-              <Select value={cdpId} onChange={(e) => setCdpId(e.target.value)}>
+              <Select value={cdpId} onChange={(e: any) => setCdpId(e.target.value)}>
                 {cdps.map((x) => {
                   return <MenuItem value={x.cdpId}>{x.cdpId}</MenuItem>;
                 })}
