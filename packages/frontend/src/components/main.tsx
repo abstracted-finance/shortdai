@@ -1,4 +1,12 @@
-import { Box, Button, Paper, Typography, useTheme } from "@material-ui/core";
+import {
+  Box,
+  Button,
+  Paper,
+  Typography,
+  useTheme,
+  Select,
+  MenuItem,
+} from "@material-ui/core";
 import { ethers } from "ethers";
 import cn from "classnames";
 import { useState } from "react";
@@ -22,7 +30,7 @@ const Main = () => {
   const classes = useStyles();
   const theme = useTheme();
 
-  const {} = useCdps.useContainer();
+  const { isGettingCdps, cdps } = useCdps.useContainer();
   const { connected, isConnecting, connect } = useWeb3.useContainer();
   const { daiUsdcRatio6 } = useUsdc.useContainer();
 
@@ -89,6 +97,21 @@ const Main = () => {
             >
               CLOSE
             </Button>
+          </Box>
+
+          <Box mb={4}>
+            <Select style={{ width: "100%" }}>
+              {cdps.map((x) => {
+                const daiBorrowed = ethers.utils.formatUnits(x.borrowed18);
+                const usdcSupplied = ethers.utils.formatUnits(x.supplied18);
+
+                return (
+                  <MenuItem value={x.cdpId}>
+                    {x.cdpId} - USDC: +{usdcSupplied}, DAI: -{daiBorrowed}
+                  </MenuItem>
+                );
+              })}
+            </Select>
           </Box>
 
           {selectedTab === Tabs.OPEN ? (
