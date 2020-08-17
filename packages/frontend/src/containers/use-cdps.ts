@@ -17,8 +17,7 @@ import { ethers } from "ethers";
 export interface Cdp {
   cdpId: number;
   ilk: string;
-  borrowed18: ethers.BigNumber;
-  supplied18: ethers.BigNumber;
+  urn: string;
 }
 
 function useCdps() {
@@ -58,54 +57,29 @@ function useCdps() {
   };
 
   const getCdps = async () => {
-    const { IDssCdpManager } = contracts;
+    const { IGetCdps } = contracts;
 
     setIsGettingCdps(true);
 
-    const cdpCountBN = await IDssCdpManager.count(proxyAddress);
-    const cdpCount = parseInt(cdpCountBN.toString());
+    const cdpsAsc = await IGetCdps.getCdpsAsc(
+      CONSTANTS.CONTRACT_ADDRESSES.IDssCdpManager,
+      proxyAddress
+    );
 
     const usdcIlk = ethers.utils.formatBytes32String("USDC-A");
 
-    let cdps = [];
+    const usdcCdps = cdpsAsc.ids
+      .map((cdpId, idx) => {
+        return {
+          cdpId: parseInt(cdpId.toString()),
+          ilk: cdpsAsc.ilks[idx],
+          urn: cdpsAsc.urns[idx],
+        };
+      })
+      .filter(({ ilk }) => ilk === usdcIlk);
 
-    let curCdpI = await IDssCdpManager.first(proxyAddress);
-    let curCdpIlk = await IDssCdpManager.ilks(curCdpI);
-    if (curCdpIlk === usdcIlk && !curCdpI.eq(ethers.constants.Zero)) {
-      const { borrowed, supplied } = await getCdpBorrowedSuppied(curCdpI);
-      cdps.push({
-        cdpId: parseInt(curCdpI.toString()),
-        ilk: curCdpIlk,
-        borrowed18: borrowed,
-        supplied18: supplied,
-      });
-    }
-
-    for (let i = 0; i < cdpCount; i++) {
-      const list = await IDssCdpManager.list(curCdpI);
-
-      curCdpI = list.next;
-      curCdpIlk = await IDssCdpManager.ilks(curCdpI);
-
-      if (curCdpI.eq(ethers.constants.Zero)) {
-        break;
-      }
-
-      if (curCdpIlk === usdcIlk) {
-        const { borrowed, supplied } = await getCdpBorrowedSuppied(curCdpI);
-        cdps.push({
-          cdpId: parseInt(curCdpI.toString()),
-          ilk: curCdpIlk,
-          borrowed18: borrowed,
-          supplied18: supplied,
-        });
-      }
-    }
-
-    console.log("cdps", cdps);
-
-    setCdps(cdps);
     setIsGettingCdps(false);
+    setCdps(usdcCdps);
   };
 
   useEffect(() => {
@@ -121,6 +95,7 @@ function useCdps() {
   return {
     cdps,
     isGettingCdps,
+    getCdpBorrowedSuppied
   };
 }
 

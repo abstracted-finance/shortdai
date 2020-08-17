@@ -25,6 +25,7 @@ function useShortDaiState() {
   // initialUsdcMargin6: BigNumber of initial usdc margin
   // leverage: number between 11-109
   const openShortDaiPosition = async (
+    cdpId: number,
     initialUsdcMargin6: ethers.BigNumber,
     leverage: number
   ) => {
@@ -55,7 +56,7 @@ function useShortDaiState() {
         OpenShortDAI.address,
         CONSTANTS.CONTRACT_ADDRESSES.ISoloMargin,
         CONSTANTS.CONTRACT_ADDRESSES.CurveFiSUSDv2,
-        0,
+        cdpId,
         initialUsdcMargin6,
         flashloanDaiAmount,
       ]

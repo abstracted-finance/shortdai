@@ -4,6 +4,7 @@ export namespace CONTRACT_ADDRESSES {
     export const IDssCdpManager: string;
     export const IProxyRegistry: string;
     export const IOneSplit: string;
+    export const IGetCdps: string;
     export const CurveFiSUSDv2: string;
     export const CurveFiY: string;
 }

@@ -16,6 +16,7 @@ export interface EthersContracts {
   ICurveFiCurve: ethers.Contract;
   IProxyRegistry: ethers.Contract;
   IDssCdpManager: ethers.Contract;
+  IGetCdps: ethers.Contract;
   VatLike: ethers.Contract;
   OpenShortDAI: ethers.Contract;
   CloseShortDAI: ethers.Contract;
@@ -76,6 +77,10 @@ export const getEthersContracts = (
     {
       name: "IProxyRegistry",
       address: CONTRACT_ADDRESSES.IProxyRegistry,
+    },
+    {
+      name: "IGetCdps",
+      address: CONTRACT_ADDRESSES.IGetCdps,
     },
   ];
   const initialManualAddressContracts = initialManualAddressContractsConfig

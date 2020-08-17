@@ -6,6 +6,7 @@ import {
   useTheme,
   Select,
   MenuItem,
+  FormControl,
 } from "@material-ui/core";
 import { ethers } from "ethers";
 import cn from "classnames";
@@ -34,6 +35,7 @@ const Main = () => {
   const { connected, isConnecting, connect } = useWeb3.useContainer();
   const { daiUsdcRatio6 } = useUsdc.useContainer();
 
+  const [cdpId, setCdpId] = useState<number>(0);
   const [leverage, setLeverage] = useState<number>(80);
   const [selectedTab, setSelectedTab] = useState<Tabs>(Tabs.OPEN);
 
@@ -100,22 +102,24 @@ const Main = () => {
           </Box>
 
           <Box mb={4}>
-            <Select style={{ width: "100%" }}>
-              {cdps.map((x) => {
-                const daiBorrowed = ethers.utils.formatUnits(x.borrowed18);
-                const usdcSupplied = ethers.utils.formatUnits(x.supplied18);
-
-                return (
-                  <MenuItem value={x.cdpId}>
-                    {x.cdpId} - USDC: +{usdcSupplied}, DAI: -{daiBorrowed}
-                  </MenuItem>
-                );
-              })}
-            </Select>
+            <FormControl style={{ width: "100%" }}>
+              <Select value={cdpId} onChange={(e) => setCdpId(e.target.value)}>
+                {cdps.map((x) => {
+                  return <MenuItem value={x.cdpId}>{x.cdpId}</MenuItem>;
+                })}
+                {selectedTab === Tabs.OPEN ? (
+                  <MenuItem value={0}>New CDP</MenuItem>
+                ) : null}
+              </Select>
+            </FormControl>
           </Box>
 
           {selectedTab === Tabs.OPEN ? (
-            <OpenShort leverage={leverage} setLeverage={setLeverage} />
+            <OpenShort
+              cdpId={cdpId}
+              leverage={leverage}
+              setLeverage={setLeverage}
+            />
           ) : null}
         </Box>
 

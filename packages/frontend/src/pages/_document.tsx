@@ -1,4 +1,5 @@
 import { ServerStyleSheets } from "@material-ui/core/styles";
+import { theme } from "../components/theme";
 import Document, { Head, Html, Main, NextScript } from "next/document";
 import React from "react";
 
@@ -6,6 +7,9 @@ class MyDocument extends Document {
   render() {
     return (
       <Html>
+        <Head>
+          <meta name="theme-color" content={theme.palette.primary.main} />
+        </Head>
         <body>
           <Main />
           <NextScript />

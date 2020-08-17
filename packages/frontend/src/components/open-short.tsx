@@ -7,25 +7,39 @@ import {
   Typography,
 } from "@material-ui/core";
 import { ethers } from "ethers";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 
+import useCdps from "../containers/use-cdps";
+import useContracts from "../containers/use-contracts";
+import useWeb3 from "../containers/use-web3";
 import useProxy from "../containers/use-proxy";
 import useOpenShort from "../containers/use-open-short";
 import useUsdc from "../containers/use-usdc";
 import useShortDaiState, {
   ShortDaiState,
 } from "../containers/use-shortdai-state";
+
 import { useStyles } from "./styles";
 import { CONSTANTS } from "@shortdai/smart-contracts";
 
-const OpenShort = ({ leverage, setLeverage }) => {
+const OpenShort = ({ cdpId, leverage, setLeverage }) => {
   const classes = useStyles();
 
+  const { connected } = useWeb3.useContainer();
+  const { contracts } = useContracts.useContainer();
+  const { getCdpBorrowedSuppied } = useCdps.useContainer();
   const { openShortDaiPosition, isOpeningShort } = useOpenShort.useContainer();
   const { isCreatingProxy, createProxy } = useProxy.useContainer();
   const { usdcBal6, isApprovingUsdc, approveUsdc } = useUsdc.useContainer();
   const { shortDaiState } = useShortDaiState.useContainer();
 
+  const [isGettingStats, setIsGettingStats] = useState<boolean>(false);
+  const [borrowed, setBorrowed] = useState<ethers.BigNumber>(
+    ethers.constants.Zero
+  );
+  const [supplied, setSupplied] = useState<ethers.BigNumber>(
+    ethers.constants.Zero
+  );
   const [usdcPrincipal, setUsdcPrincipal] = useState("");
 
   const usdcPrincipalBN = ethers.utils.parseUnits(
@@ -45,8 +59,50 @@ const OpenShort = ({ leverage, setLeverage }) => {
     }
   }
 
+  const updateBorrowedSupplied = async () => {
+    setIsGettingStats(true);
+
+    if (cdpId === 0) {
+      setSupplied(ethers.constants.Zero);
+      setBorrowed(ethers.constants.Zero);
+      return;
+    }
+
+    const { borrowed, supplied } = await getCdpBorrowedSuppied(cdpId);
+    setSupplied(supplied);
+    setBorrowed(borrowed);
+    setIsGettingStats(false);
+  };
+
+  useEffect(() => {
+    if (contracts === null) return;
+    if (!connected) return;
+
+    updateBorrowedSupplied();
+  }, [connected, contracts, cdpId]);
+
   return (
     <>
+      <Paper variant="outlined">
+        <Box p={2.5}>
+          <Box display="flex" justifyContent="space-between">
+            <Typography variant="h6" component="p">
+              Supplied (USDC):
+              <br />
+              {isGettingStats ? "..." : ethers.utils.formatUnits(supplied, 18)}
+            </Typography>
+
+            <Typography variant="h6" component="p">
+              Borrowed (DAI):
+              <br />
+              {isGettingStats ? "..." : ethers.utils.formatUnits(borrowed, 18)}
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+
+      <Box height={16} />
+
       <Paper variant="outlined">
         <Box p={2.5}>
           <Box display="flex" justifyContent="space-between">
@@ -150,7 +206,7 @@ const OpenShort = ({ leverage, setLeverage }) => {
               // (Leverage - 10) because we're using "cents"
               // i.e. leverage 15 = x1.5
               // And because we wanna minus initial usdcPrincipal6
-              openShortDaiPosition(usdcPrincipal6, leverage - 10);
+              openShortDaiPosition(cdpId, usdcPrincipal6, leverage - 10);
               return;
             }
           }}
