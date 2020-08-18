@@ -51,8 +51,15 @@ const OpenShort = ({ leverage, setLeverage }) => {
     usdcPrincipalBN,
     leverage - 10
   );
+  const burrowingStr = prettyStringDecimals(
+    ethers.utils.formatUnits(flashloanDaiAmount, 18)
+  );
+
   const toSupplyUsdcAmount = usdcPrincipalBN.add(
     flashloanDaiAmount.mul(daiUsdcRatio6).div(ethers.utils.parseUnits("1", 18))
+  );
+  const supplyingStr = prettyStringDecimals(
+    ethers.utils.formatUnits(toSupplyUsdcAmount, 6)
   );
 
   const newCR = cdpStats.borrowed18
@@ -66,6 +73,7 @@ const OpenShort = ({ leverage, setLeverage }) => {
           .div(cdpStats.borrowed18.add(flashloanDaiAmount))
           .toString()
       ) / 1000;
+  const newCRStr = prettyStringDecimals(newCR.toString()) + "%";
 
   const validUsdcPrincipal =
     usdcPrincipalBN.lte(usdcBal6 || ethers.constants.Zero) &&
@@ -86,68 +94,6 @@ const OpenShort = ({ leverage, setLeverage }) => {
         <Box p={2.5}>
           <Box display="flex" justifyContent="space-between">
             <Typography variant="h6" component="p">
-              <span style={{ color: "#fff" }}>Supplied (USDC)</span>
-              <br />
-              {isGettingCdpStats ? "..." : null}
-              {!isGettingCdpStats
-                ? prettyStringDecimals(
-                    ethers.utils.formatUnits(cdpStats.supplied18, 18)
-                  )
-                : "..."}
-              <br />
-              <span style={{ color: theme.palette.success.main }}>
-                {!isGettingCdpStats && validUsdcPrincipal
-                  ? "+ " +
-                    prettyStringDecimals(
-                      ethers.utils.formatUnits(toSupplyUsdcAmount, 6)
-                    )
-                  : null}
-                &nbsp;
-              </span>
-            </Typography>
-
-            <Typography variant="h6" component="p">
-              <span style={{ color: "#fff" }}>Collateralization Ratio</span>
-              <br />
-              {isGettingCdpStats ? "..." : null}
-              {!isGettingCdpStats ? (cdpStats.cr || 0).toString() + "%" : "..."}
-              <br />
-              <span style={{ color: theme.palette.info.main }}>
-                {!isGettingCdpStats && validUsdcPrincipal
-                  ? "> " + prettyStringDecimals(newCR.toString()) + "%"
-                  : " "}
-              </span>
-            </Typography>
-
-            <Typography variant="h6" component="p">
-              <span style={{ color: "#fff" }}>Borrowed (DAI)</span>
-              <br />
-              {isGettingCdpStats ? "..." : null}
-              {!isGettingCdpStats
-                ? prettyStringDecimals(
-                    ethers.utils.formatUnits(cdpStats.borrowed18, 18)
-                  )
-                : "..."}
-              <br />
-              <span style={{ color: theme.palette.error.main }}>
-                {!isGettingCdpStats && validUsdcPrincipal
-                  ? "+ " +
-                    prettyStringDecimals(
-                      ethers.utils.formatUnits(flashloanDaiAmount, 18)
-                    )
-                  : " "}
-              </span>
-            </Typography>
-          </Box>
-        </Box>
-      </Paper>
-
-      <Box height={16} />
-
-      <Paper variant="outlined">
-        <Box p={2.5}>
-          <Box display="flex" justifyContent="space-between">
-            <Typography variant="h6" component="p">
               Principal
             </Typography>
 
@@ -159,7 +105,7 @@ const OpenShort = ({ leverage, setLeverage }) => {
             </Typography>
           </Box>
           <Box display="flex" alignItems="center">
-            <Box flex={1}>
+            <Box flex={1} pr={1}>
               <InputBase
                 placeholder="0.0"
                 value={usdcPrincipal}
@@ -186,9 +132,7 @@ const OpenShort = ({ leverage, setLeverage }) => {
             </Box>
           </Box>
 
-          <Box height={32} />
-
-          <Box textAlign="center">
+          <Box mt={4} textAlign="center">
             <Typography variant="h6">Leverage</Typography>
             <Typography
               component="span"
@@ -197,16 +141,33 @@ const OpenShort = ({ leverage, setLeverage }) => {
             >
               {(leverage / 10).toString()}
             </Typography>
+
+            <Slider
+              value={leverage}
+              onChange={(_, newValue: number) => {
+                setLeverage(newValue);
+              }}
+              min={11}
+              max={109}
+            />
+
+            <Typography variant="h6">Collateralization Ratio</Typography>
+            <Typography>{newCRStr}</Typography>
           </Box>
 
-          <Slider
-            value={leverage}
-            onChange={(_, newValue: number) => {
-              setLeverage(newValue);
-            }}
-            min={11}
-            max={109}
-          />
+          <Box mt={2} display="flex">
+            <Box flex={1} textAlign="center">
+              <Typography variant="h6">Supplying</Typography>
+              <Typography color="primary">{supplyingStr}</Typography>
+            </Box>
+
+            <img src="/maker.png" width={48} />
+
+            <Box flex={1} textAlign="center">
+              <Typography variant="h6">Burrowing</Typography>
+              <Typography color="error">{burrowingStr}</Typography>
+            </Box>
+          </Box>
         </Box>
       </Paper>
 
@@ -241,7 +202,7 @@ const OpenShort = ({ leverage, setLeverage }) => {
               // (Leverage - 10) because we're using "cents"
               // i.e. leverage 15 = x1.5
               // And because we wanna minus initial usdcPrincipal6
-              openShortDaiPosition(cdpId, usdcPrincipal6, leverage - 10);
+              openShortDaiPosition(0, usdcPrincipal6, leverage - 10);
               return;
             }
           }}
