@@ -4,60 +4,36 @@ import {
   Paper,
   Typography,
   useTheme,
-  Select,
-  MenuItem,
-  FormControl,
+  makeStyles,
+  createStyles,
 } from "@material-ui/core";
-import { ethers } from "ethers";
 import cn from "classnames";
+import { ethers } from "ethers";
 import { useState } from "react";
-
-import useWeb3 from "../containers/use-web3";
 import useUsdc from "../containers/use-usdc";
-import useCdps from "../containers/use-cdps";
-import useSelectedCdp from "../containers/use-selected-cdp";
-
+import useWeb3 from "../containers/use-web3";
 import CloseShort from "./close-short";
-import OpenShort from "./open-short";
 import { ConnectButton } from "./connect-button";
-import { useStyles } from "./styles";
+import OpenShort from "./open-short";
 
 enum Tabs {
-  OPEN,
-  CLOSE,
+  CREATE,
+  MANAGE,
 }
 
 const Main = () => {
   const classes = useStyles();
   const theme = useTheme();
 
-  const { isGettingCdps, cdps } = useCdps.useContainer();
   const { connected, isConnecting, connect } = useWeb3.useContainer();
   const { daiUsdcRatio6 } = useUsdc.useContainer();
-  const {
-    cdpId,
-    setCdpId,
-    cdpStats,
-    isGettingCdpStats,
-  } = useSelectedCdp.useContainer();
 
   const [leverage, setLeverage] = useState<number>(95);
-  const [selectedTab, setSelectedTab] = useState<Tabs>(Tabs.OPEN);
+  const [selectedTab, setSelectedTab] = useState<Tabs>(Tabs.CREATE);
 
   return (
     <Box minHeight="100vh" pt={20}>
       <Box mx="auto" width={450} maxWidth="80%" position="relative" zIndex={1}>
-        <img
-          className={classes.pickle}
-          src="/pickle.png"
-          alt="pickle"
-          style={{
-            transform: `translate(${32 * (leverage / 110)}%, -${
-              30 * (leverage / 110)
-            }%)`,
-          }}
-        />
-
         <Box
           width="100%"
           bgcolor={theme.palette.background.paper}
@@ -76,46 +52,55 @@ const Main = () => {
             </Typography>
           </Box>
 
-          <Box marginBottom={1.5} mt={2} display="flex">
-            <Button
-              className={
-                selectedTab === Tabs.OPEN
-                  ? classes.tabButtonActive
-                  : classes.tabButton
-              }
-              onClick={() => setSelectedTab(Tabs.OPEN)}
-              size="small"
-              fullWidth
-            >
-              OPEN
-            </Button>
-
-            <Box width={32} />
-
-            <Button
-              className={
-                selectedTab === Tabs.CLOSE
-                  ? classes.tabButtonActive
-                  : classes.tabButton
-              }
-              onClick={() => setSelectedTab(Tabs.CLOSE)}
-              size="small"
-              fullWidth
-            >
-              CLOSE
-            </Button>
-          </Box>
-
-          {selectedTab === Tabs.OPEN && (
+          {selectedTab === Tabs.CREATE && (
             <OpenShort leverage={leverage} setLeverage={setLeverage} />
           )}
 
-          {selectedTab === Tabs.CLOSE && <CloseShort />}
+          {selectedTab === Tabs.MANAGE && <CloseShort />}
+        </Box>
+
+        <img
+          className={classes.pickle}
+          src="/pickle.png"
+          alt="pickle"
+          style={{
+            transform: `translate(${30 * (leverage / 100)}%, -${
+              28 * (leverage / 100)
+            }%)`,
+          }}
+        />
+
+        <Box className={cn(classes.drawer, classes.topDrawer)} display="flex">
+          <Box display="flex">
+            <Button
+              variant="outlined"
+              onClick={() => setSelectedTab(Tabs.CREATE)}
+              size="large"
+              fullWidth
+              className={cn(classes.tabButton, {
+                [classes.tabButtonActive]: selectedTab === Tabs.CREATE,
+              })}
+            >
+              CREATE
+            </Button>
+
+            <Button
+              variant="outlined"
+              onClick={() => setSelectedTab(Tabs.MANAGE)}
+              size="large"
+              fullWidth
+              className={cn(classes.tabButton, {
+                [classes.tabButtonActive]: selectedTab === Tabs.MANAGE,
+              })}
+            >
+              MANAGE
+            </Button>
+          </Box>
         </Box>
 
         <Paper
           variant="outlined"
-          className={cn(classes.bottomDrawer, {
+          className={cn(classes.drawer, classes.bottomDrawer, {
             [classes.bottomDrawerShow]: !connected,
           })}
         >
@@ -141,3 +126,62 @@ const Main = () => {
 };
 
 export default Main;
+
+export const useStyles = makeStyles((theme) =>
+  createStyles({
+    "@global": {
+      body: {
+        backgroundColor: "rgb(44, 47, 54)",
+        backgroundImage:
+          "radial-gradient(50% 50% at 50% 50%, rgba(33, 114, 229, 0.1) 0%, rgba(33, 36, 41, 0) 100%)",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: `0 -30vh`,
+      },
+    },
+    pickle: {
+      position: "absolute",
+      maxWidth: 300,
+      width: "50%",
+      top: 0,
+      left: "50%",
+      zIndex: -1,
+    },
+    drawer: {
+      position: "absolute",
+      transition: "transform 300ms ease-in-out",
+    },
+    topDrawer: {
+      top: -34,
+      left: 32,
+    },
+    bottomDrawer: {
+      backgroundColor: "transparent",
+      left: "50%",
+      width: "85%",
+      transform: "translate(-50%, -124px)",
+      height: "100px",
+      paddingTop: 24,
+    },
+    bottomDrawerShow: {
+      transform: "translate(-50%, -24px)",
+    },
+    tabButton: {
+      width: 120,
+      transition: "margin 300ms ease-in-out",
+      paddingTop: 6,
+      paddingBottom: 40,
+      borderRadius: 8,
+      "&:first-child": {
+        borderRightWidth: 0,
+      },
+      "&:last-child": {
+        borderLeftWidth: 0,
+      },
+    },
+    tabButtonActive: {
+      marginTop: -12,
+      border: 0,
+      backgroundColor: theme.palette.background.paper + " !important",
+    },
+  })
+);
