@@ -159,7 +159,7 @@ export const useStyles = makeStyles((theme) =>
       transition: "transform 300ms ease-in-out",
     },
     topDrawer: {
-      top: -34,
+      top: -36,
       left: 32,
     },
     bottomDrawer: {

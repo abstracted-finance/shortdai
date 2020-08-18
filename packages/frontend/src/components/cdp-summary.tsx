@@ -1,12 +1,19 @@
 import React from "react";
-import { Paper, makeStyles, Box } from "@material-ui/core";
+import { Paper, makeStyles, Box, Typography } from "@material-ui/core";
+import { Cdp } from "../containers/use-cdps";
 
-export const CdpSummary: React.FC = () => {
+interface CdpSummaryProps {
+  cdp: Cdp;
+}
+
+export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
   const classes = useStyles();
 
   return (
     <Paper className={classes.root} variant="outlined">
-      <Box p={4}>lol</Box>
+      <Box p={4}>
+        <Typography>Vault ID: {cdp.cdpId}</Typography>
+      </Box>
     </Paper>
   );
 };

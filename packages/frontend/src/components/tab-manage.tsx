@@ -30,7 +30,7 @@ const TabManage = () => {
   return (
     <>
       {cdps.map((cdp) => (
-        <CdpSummary />
+        <CdpSummary key={cdp.cdpId} cdp={cdp} />
       ))}
     </>
   );
