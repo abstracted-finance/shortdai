@@ -160,7 +160,7 @@ const OpenShort = ({ leverage, setLeverage }) => {
               <Typography variant="h6">Collateralization Ratio</Typography>
               <Typography>{newCRStr}</Typography>
             </Box>
-            <Box mt={2} display="flex" alignItems="flex-end">
+            <Box mt={2} display="flex" alignItems="center">
               <Box flex={1} textAlign="center">
                 <Typography variant="h6">Supplying (USDC)</Typography>
                 <Typography color="primary">{supplyingStr}</Typography>
