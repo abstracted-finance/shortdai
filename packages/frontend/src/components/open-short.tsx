@@ -157,14 +157,14 @@ const OpenShort = ({ leverage, setLeverage }) => {
 
           <Box mt={2} display="flex">
             <Box flex={1} textAlign="center">
-              <Typography variant="h6">Supplying</Typography>
+              <Typography variant="h6">Supplying (USDC)</Typography>
               <Typography color="primary">{supplyingStr}</Typography>
             </Box>
 
             <img src="/maker.png" width={48} />
 
             <Box flex={1} textAlign="center">
-              <Typography variant="h6">Burrowing</Typography>
+              <Typography variant="h6">Burrowing (DAI)</Typography>
               <Typography color="error">{burrowingStr}</Typography>
             </Box>
           </Box>
