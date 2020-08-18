@@ -1,21 +1,21 @@
 import {
   Box,
   Button,
+  Collapse,
+  createStyles,
+  makeStyles,
   Paper,
   Typography,
   useTheme,
-  makeStyles,
-  createStyles,
-  Collapse,
 } from "@material-ui/core";
 import cn from "classnames";
 import { ethers } from "ethers";
 import { useState } from "react";
 import useUsdc from "../containers/use-usdc";
 import useWeb3 from "../containers/use-web3";
-import CloseShort from "./close-short";
 import { ConnectButton } from "./connect-button";
-import OpenShort from "./open-short";
+import TabCreate from "./tab-create";
+import TabManage from "./tab-manage";
 
 enum Tabs {
   CREATE,
@@ -54,11 +54,11 @@ const Main = () => {
           </Box>
 
           <Collapse in={selectedTab === Tabs.CREATE}>
-            <OpenShort leverage={leverage} setLeverage={setLeverage} />
+            <TabCreate leverage={leverage} setLeverage={setLeverage} />
           </Collapse>
 
           <Collapse in={selectedTab === Tabs.MANAGE}>
-            <CloseShort />
+            <TabManage />
           </Collapse>
         </Box>
 

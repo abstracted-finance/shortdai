@@ -23,7 +23,7 @@ import { theme } from "./theme";
 import { useStyles } from "./styles";
 import { CONSTANTS } from "@shortdai/smart-contracts";
 
-const OpenShort = ({ leverage, setLeverage }) => {
+const TabCreate = ({ leverage, setLeverage }) => {
   const classes = useStyles();
 
   const {
@@ -233,4 +233,4 @@ const OpenShort = ({ leverage, setLeverage }) => {
   );
 };
 
-export default OpenShort;
+export default TabCreate;
