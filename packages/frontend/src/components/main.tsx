@@ -12,12 +12,12 @@ import { ethers } from "ethers";
 import cn from "classnames";
 import { useState } from "react";
 
-import { CONSTANTS } from "@shortdai/smart-contracts";
-
 import useWeb3 from "../containers/use-web3";
 import useUsdc from "../containers/use-usdc";
 import useCdps from "../containers/use-cdps";
+import useSelectedCdp from "../containers/use-selected-cdp";
 
+import CloseShort from "./close-short";
 import OpenShort from "./open-short";
 import { ConnectButton } from "./connect-button";
 import { useStyles } from "./styles";
@@ -34,8 +34,13 @@ const Main = () => {
   const { isGettingCdps, cdps } = useCdps.useContainer();
   const { connected, isConnecting, connect } = useWeb3.useContainer();
   const { daiUsdcRatio6 } = useUsdc.useContainer();
+  const {
+    cdpId,
+    setCdpId,
+    cdpStats,
+    isGettingCdpStats,
+  } = useSelectedCdp.useContainer();
 
-  const [cdpId, setCdpId] = useState<number>(0);
   const [leverage, setLeverage] = useState<number>(80);
   const [selectedTab, setSelectedTab] = useState<Tabs>(Tabs.OPEN);
 
@@ -101,9 +106,14 @@ const Main = () => {
             </Button>
           </Box>
 
+          <Box height={1} />
+
           <Box mb={4}>
             <FormControl style={{ width: "100%" }}>
-              <Select value={cdpId} onChange={(e: any) => setCdpId(e.target.value)}>
+              <Select
+                value={cdpId}
+                onChange={(e: any) => setCdpId(e.target.value)}
+              >
                 {cdps.map((x) => {
                   return <MenuItem value={x.cdpId}>{x.cdpId}</MenuItem>;
                 })}
@@ -115,12 +125,10 @@ const Main = () => {
           </Box>
 
           {selectedTab === Tabs.OPEN ? (
-            <OpenShort
-              cdpId={cdpId}
-              leverage={leverage}
-              setLeverage={setLeverage}
-            />
+            <OpenShort leverage={leverage} setLeverage={setLeverage} />
           ) : null}
+
+          {selectedTab === Tabs.CLOSE ? <CloseShort /> : null}
         </Box>
 
         <Paper

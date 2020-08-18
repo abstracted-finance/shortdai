@@ -1,9 +1,3 @@
-// State of where we are with shorting dai
-
-// i.e.
-// Do we have a proxy?
-// Is our proxy approved to get USDC?
-
 import { createContainer } from "unstated-next";
 import { useEffect, useState } from "react";
 import { CONSTANTS } from "@shortdai/smart-contracts";
@@ -27,34 +21,6 @@ function useCdps() {
 
   const [isGettingCdps, setIsGettingCdps] = useState<boolean>(false);
   const [cdps, setCdps] = useState<Cdp[]>([]);
-
-  const getCdpBorrowedSuppied = async (cdpId: ethers.BigNumber) => {
-    const { IDssCdpManager, VatLike } = contracts;
-
-    const vat = await IDssCdpManager.vat();
-    const urn = await IDssCdpManager.urns(cdpId);
-    const ilk = await IDssCdpManager.ilks(cdpId);
-    const owner = await IDssCdpManager.owns(cdpId);
-
-    const IVatLike = VatLike.attach(vat);
-
-    const [_, rate] = await IVatLike.ilks(ilk);
-    const [supplied, art] = await IVatLike.urns(ilk, urn);
-    const dai = await IVatLike.dai(owner);
-
-    const RAY = ethers.utils.parseUnits("1", 27);
-    const rad = art.mul(rate).sub(dai);
-    const wad = rad.div(RAY);
-
-    const borrowed = wad.mul(RAY).lt(rad)
-      ? wad.add(ethers.BigNumber.from(1))
-      : wad;
-
-    return {
-      borrowed,
-      supplied,
-    };
-  };
 
   const getCdps = async () => {
     const { IGetCdps } = contracts;
@@ -94,8 +60,8 @@ function useCdps() {
 
   return {
     cdps,
+    getCdps,
     isGettingCdps,
-    getCdpBorrowedSuppied
   };
 }
 

@@ -1,21 +1,14 @@
-// State of where we are with shorting dai
-
-// i.e.
-// Do we have a proxy?
-// Is our proxy approved to get USDC?
-
 import { createContainer } from "unstated-next";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CONSTANTS } from "@shortdai/smart-contracts";
 
 import useUsdc from "./use-usdc";
-import useWeb3 from "./use-web3";
 import useProxy from "./use-proxy";
 import useContracts from "./use-contracts";
 
 import { ethers } from "ethers";
 
-function useShortDaiState() {
+function useOpenShort() {
   const { proxy } = useProxy.useContainer();
   const { contracts } = useContracts.useContainer();
   const { daiUsdcRatio6 } = useUsdc.useContainer();
@@ -23,14 +16,11 @@ function useShortDaiState() {
   const [isOpeningShort, setIsOpeningShort] = useState<boolean>(false);
 
   // initialUsdcMargin6: BigNumber of initial usdc margin
-  // leverage: number between 11-109
-  const openShortDaiPosition = async (
-    cdpId: number,
+  // leverage: number between 11-109 as we're using BigInt
+  const getFlashloanDaiAmount = (
     initialUsdcMargin6: ethers.BigNumber,
     leverage: number
   ) => {
-    const { ShortDAIActions, OpenShortDAI } = contracts;
-
     const tenBN = ethers.BigNumber.from("10");
     const leverageBN = ethers.BigNumber.from(leverage.toString());
 
@@ -49,6 +39,23 @@ function useShortDaiState() {
       .div(tenBN)
       .mul(daiUsdcRatio6)
       .div(bn6);
+
+    return flashloanDaiAmount;
+  };
+
+  // initialUsdcMargin6: BigNumber of initial usdc margin
+  // leverage: number between 11-109
+  const openShortDaiPosition = async (
+    cdpId: number,
+    initialUsdcMargin6: ethers.BigNumber,
+    leverage: number
+  ) => {
+    const { ShortDAIActions, OpenShortDAI } = contracts;
+
+    const flashloanDaiAmount = getFlashloanDaiAmount(
+      initialUsdcMargin6,
+      leverage
+    );
 
     const openCalldata = ShortDAIActions.interface.encodeFunctionData(
       "flashloanAndOpen",
@@ -77,9 +84,10 @@ function useShortDaiState() {
   };
 
   return {
+    getFlashloanDaiAmount,
     openShortDaiPosition,
     isOpeningShort,
   };
 }
 
-export default createContainer(useShortDaiState);
+export default createContainer(useOpenShort);

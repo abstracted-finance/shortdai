@@ -16,9 +16,11 @@ function useUsdc() {
   const [isGettingDaiUsdcRatio, setIsGettingDaiUsdcRatio] = useState<boolean>(
     false
   );
-  const [usdcBal6, setUsdcBal6] = useState<null | ethers.BigNumber>(null);
-  const [daiUsdcRatio6, setDaiUsdcRatio6] = useState<null | ethers.BigNumber>(
-    null
+  const [usdcBal6, setUsdcBal6] = useState<ethers.BigNumber>(
+    ethers.constants.Zero
+  );
+  const [daiUsdcRatio6, setDaiUsdcRatio6] = useState<ethers.BigNumber>(
+    ethers.constants.Zero
   );
   const [isApprovingUsdc, setIsApprovingUsdc] = useState<boolean>(false);
 

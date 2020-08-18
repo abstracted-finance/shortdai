@@ -9,43 +9,64 @@ import {
 import { ethers } from "ethers";
 import { ChangeEvent, useEffect, useState } from "react";
 
-import useCdps from "../containers/use-cdps";
-import useContracts from "../containers/use-contracts";
-import useWeb3 from "../containers/use-web3";
+import useSelectedCdp from "../containers/use-selected-cdp";
 import useProxy from "../containers/use-proxy";
 import useOpenShort from "../containers/use-open-short";
 import useUsdc from "../containers/use-usdc";
 import useShortDaiState, {
   ShortDaiState,
 } from "../containers/use-shortdai-state";
+import { prettyStringDecimals } from "./utils";
+import { theme } from "./theme";
 
 import { useStyles } from "./styles";
 import { CONSTANTS } from "@shortdai/smart-contracts";
 
-const OpenShort = ({ cdpId, leverage, setLeverage }) => {
+const OpenShort = ({ leverage, setLeverage }) => {
   const classes = useStyles();
 
-  const { connected } = useWeb3.useContainer();
-  const { contracts } = useContracts.useContainer();
-  const { getCdpBorrowedSuppied } = useCdps.useContainer();
-  const { openShortDaiPosition, isOpeningShort } = useOpenShort.useContainer();
+  const {
+    getFlashloanDaiAmount,
+    openShortDaiPosition,
+    isOpeningShort,
+  } = useOpenShort.useContainer();
   const { isCreatingProxy, createProxy } = useProxy.useContainer();
-  const { usdcBal6, isApprovingUsdc, approveUsdc } = useUsdc.useContainer();
+  const {
+    daiUsdcRatio6,
+    usdcBal6,
+    isApprovingUsdc,
+    approveUsdc,
+  } = useUsdc.useContainer();
   const { shortDaiState } = useShortDaiState.useContainer();
+  const { cdpId, isGettingCdpStats, cdpStats } = useSelectedCdp.useContainer();
 
-  const [isGettingStats, setIsGettingStats] = useState<boolean>(false);
-  const [borrowed, setBorrowed] = useState<ethers.BigNumber>(
-    ethers.constants.Zero
-  );
-  const [supplied, setSupplied] = useState<ethers.BigNumber>(
-    ethers.constants.Zero
-  );
   const [usdcPrincipal, setUsdcPrincipal] = useState("");
 
   const usdcPrincipalBN = ethers.utils.parseUnits(
     usdcPrincipal || "0",
     CONSTANTS.ERC20_DECIMALS.USDC
   );
+
+  const flashloanDaiAmount = getFlashloanDaiAmount(
+    usdcPrincipalBN,
+    leverage - 10
+  );
+  const toSupplyUsdcAmount = usdcPrincipalBN.add(
+    flashloanDaiAmount.mul(daiUsdcRatio6).div(ethers.utils.parseUnits("1", 18))
+  );
+
+  const newCR = cdpStats.borrowed18
+    .add(flashloanDaiAmount)
+    .eq(ethers.constants.Zero)
+    ? 0.0
+    : parseFloat(
+        cdpStats.supplied18
+          .add(toSupplyUsdcAmount.mul(ethers.utils.parseUnits("1", 12))) // Convert to 18 decimals
+          .mul(ethers.BigNumber.from(100000)) // Multiply by 100000 so we can get decimals (in bignumbers)
+          .div(cdpStats.borrowed18.add(flashloanDaiAmount))
+          .toString()
+      ) / 1000;
+
   const validUsdcPrincipal =
     usdcPrincipalBN.lte(usdcBal6 || ethers.constants.Zero) &&
     usdcPrincipalBN.gt(ethers.constants.Zero);
@@ -59,43 +80,63 @@ const OpenShort = ({ cdpId, leverage, setLeverage }) => {
     }
   }
 
-  const updateBorrowedSupplied = async () => {
-    setIsGettingStats(true);
-
-    if (cdpId === 0) {
-      setSupplied(ethers.constants.Zero);
-      setBorrowed(ethers.constants.Zero);
-      return;
-    }
-
-    const { borrowed, supplied } = await getCdpBorrowedSuppied(cdpId);
-    setSupplied(supplied);
-    setBorrowed(borrowed);
-    setIsGettingStats(false);
-  };
-
-  useEffect(() => {
-    if (contracts === null) return;
-    if (!connected) return;
-
-    updateBorrowedSupplied();
-  }, [connected, contracts, cdpId]);
-
   return (
     <>
       <Paper variant="outlined">
         <Box p={2.5}>
           <Box display="flex" justifyContent="space-between">
             <Typography variant="h6" component="p">
-              Supplied (USDC):
+              <span style={{ color: "#fff" }}>Supplied (USDC)</span>
               <br />
-              {isGettingStats ? "..." : ethers.utils.formatUnits(supplied, 18)}
+              {isGettingCdpStats ? "..." : null}
+              {!isGettingCdpStats
+                ? prettyStringDecimals(
+                    ethers.utils.formatUnits(cdpStats.supplied18, 18)
+                  )
+                : "..."}
+              <br />
+              <span style={{ color: theme.palette.success.main }}>
+                {!isGettingCdpStats && validUsdcPrincipal
+                  ? "+ " +
+                    prettyStringDecimals(
+                      ethers.utils.formatUnits(toSupplyUsdcAmount, 6)
+                    )
+                  : null}
+                &nbsp;
+              </span>
             </Typography>
 
             <Typography variant="h6" component="p">
-              Borrowed (DAI):
+              <span style={{ color: "#fff" }}>Collateralization Ratio</span>
               <br />
-              {isGettingStats ? "..." : ethers.utils.formatUnits(borrowed, 18)}
+              {isGettingCdpStats ? "..." : null}
+              {!isGettingCdpStats ? (cdpStats.cr || 0).toString() + "%" : "..."}
+              <br />
+              <span style={{ color: theme.palette.info.main }}>
+                {!isGettingCdpStats && validUsdcPrincipal
+                  ? "> " + prettyStringDecimals(newCR.toString()) + "%"
+                  : " "}
+              </span>
+            </Typography>
+
+            <Typography variant="h6" component="p">
+              <span style={{ color: "#fff" }}>Borrowed (DAI)</span>
+              <br />
+              {isGettingCdpStats ? "..." : null}
+              {!isGettingCdpStats
+                ? prettyStringDecimals(
+                    ethers.utils.formatUnits(cdpStats.borrowed18, 18)
+                  )
+                : "..."}
+              <br />
+              <span style={{ color: theme.palette.error.main }}>
+                {!isGettingCdpStats && validUsdcPrincipal
+                  ? "+ " +
+                    prettyStringDecimals(
+                      ethers.utils.formatUnits(flashloanDaiAmount, 18)
+                    )
+                  : " "}
+              </span>
             </Typography>
           </Box>
         </Box>
@@ -166,12 +207,6 @@ const OpenShort = ({ cdpId, leverage, setLeverage }) => {
             min={11}
             max={109}
           />
-          <Box textAlign="center">
-            <Typography variant="h5">
-              {((leverage / (leverage - 10)) * 100).toFixed(2)}%
-            </Typography>
-            <Typography variant="h6">Collateralization Ratio</Typography>
-          </Box>
         </Box>
       </Paper>
 
