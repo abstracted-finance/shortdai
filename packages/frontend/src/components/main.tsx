@@ -173,7 +173,7 @@ export const useStyles = makeStyles((theme) =>
     tabButton: {
       boxSizing: "content-box",
       transition: "margin 300ms ease-in-out",
-      padding: "6px 24px 40px",
+      paddingBottom: 16,
       borderRadius: 8,
       color: theme.palette.text.hint,
       "&:first-child": {
