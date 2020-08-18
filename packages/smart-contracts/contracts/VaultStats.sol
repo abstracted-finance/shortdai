@@ -8,16 +8,20 @@ import "./maker/IDssCdpManager.sol";
 import "./maker/IDssProxyActions.sol";
 import "./maker/DssActionsBase.sol";
 
-import "./curve/ICurveFiCurve.sol";
-
 import "./Constants.sol";
 
-contract VaultPositionReader {
-    using SafeMath for uint256;
-
+contract VaultStats {
     uint256 constant RAY = 10**27;
 
-    function _getSuppliedAndBorrowed(
+    using SafeMath for uint256;
+
+    // CDP ID => DAI/USDC Ratio in 6 decimals
+    // i.e. What was DAI/USDC ratio when CDP was opened
+    mapping(uint256 => uint256) public daiUsdcRatio6;
+
+    //** View functions for stats ** //
+
+    function _getCdpSuppliedAndBorrowed(
         address vat,
         address usr,
         address urn,
@@ -42,7 +46,8 @@ contract VaultPositionReader {
         return (supplied, borrowed);
     }
 
-    function getVaultStats(uint256 cdp)
+    // Get DAI borrow / supply stats
+    function getCdpStats(uint256 cdp)
         public
         view
         returns (
@@ -51,23 +56,34 @@ contract VaultPositionReader {
             uint256
         )
     {
-        IDssCdpManager manager = IDssCdpManager(Constants.CDP_MANAGER);
+        address vat = IDssCdpManager(Constants.CDP_MANAGER).vat();
+        address urn = IDssCdpManager(Constants.CDP_MANAGER).urns(cdp);
+        bytes32 ilk = IDssCdpManager(Constants.CDP_MANAGER).ilks(cdp);
+        address usr = IDssCdpManager(Constants.CDP_MANAGER).owns(cdp);
 
-        address vat = manager.vat();
-        address urn = manager.urns(cdp);
-        bytes32 ilk = manager.ilks(cdp);
-        address owner = manager.owns(cdp);
-
-        // Get global stability fee
-        (uint256 duty, ) = JugLike(Constants.MCD_JUG).ilks(ilk);
-
-        (uint256 supplied, uint256 borrowed) = _getSuppliedAndBorrowed(
+        (uint256 supplied, uint256 borrowed) = _getCdpSuppliedAndBorrowed(
             vat,
-            owner,
+            usr,
             urn,
             ilk
         );
 
-        return (duty, supplied, borrowed);
+        uint256 ratio = daiUsdcRatio6[cdp];
+
+        // Note that supplied and borrowed are in 18 decimals
+        // while DAI USDC ratio is in 6 decimals
+        return (supplied, borrowed, ratio);
+    }
+
+    function setDaiUsdcRatio6(uint256 _cdp, uint256 _daiUsdcRatio6) public {
+        IDssCdpManager manager = IDssCdpManager(Constants.CDP_MANAGER);
+        address owner = manager.owns(_cdp);
+
+        require(
+            owner == msg.sender || manager.cdpCan(owner, _cdp, msg.sender) == 1,
+            "cdp-not-allowed"
+        );
+
+        daiUsdcRatio6[_cdp] = _daiUsdcRatio6;
     }
 }

@@ -13,6 +13,7 @@ import "./maker/DssActionsBase.sol";
 
 import "./OpenShortDAI.sol";
 import "./CloseShortDAI.sol";
+import "./VaultStats.sol";
 
 import "./curve/ICurveFiCurve.sol";
 
@@ -36,7 +37,9 @@ contract ShortDAIActions {
         address _curvePool,
         uint256 _cdpId, // Set 0 for new vault
         uint256 _initialMargin, // Initial amount of USDC
-        uint256 _flashloanAmount // Amount of DAI to flashloan
+        uint256 _flashloanAmount, // Amount of DAI to flashloan
+        address _vaultStats,
+        uint256 _daiUsdcRatio6
     ) external {
         // Tries and get USDC from msg.sender to proxy
         require(
@@ -75,6 +78,9 @@ contract ShortDAIActions {
 
         // Forbids LSD contract to manage vault on behalf of user
         IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(cdpId, _osd, 0);
+
+        // Save stats
+        VaultStats(_vaultStats).setDaiUsdcRatio6(cdpId, _daiUsdcRatio6);
     }
 
     function flashloanAndClose(
