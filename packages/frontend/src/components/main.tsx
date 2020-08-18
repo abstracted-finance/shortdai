@@ -106,24 +106,6 @@ const Main = () => {
             </Button>
           </Box>
 
-          <Box height={1} />
-
-          <Box mb={4}>
-            <FormControl style={{ width: "100%" }}>
-              <Select
-                value={cdpId}
-                onChange={(e: any) => setCdpId(e.target.value)}
-              >
-                {cdps.map((x) => {
-                  return <MenuItem value={x.cdpId}>{x.cdpId}</MenuItem>;
-                })}
-                {selectedTab === Tabs.OPEN ? (
-                  <MenuItem value={0}>New CDP</MenuItem>
-                ) : null}
-              </Select>
-            </FormControl>
-          </Box>
-
           {selectedTab === Tabs.OPEN ? (
             <OpenShort leverage={leverage} setLeverage={setLeverage} />
           ) : null}

@@ -241,7 +241,7 @@ const OpenShort = ({ leverage, setLeverage }) => {
               // (Leverage - 10) because we're using "cents"
               // i.e. leverage 15 = x1.5
               // And because we wanna minus initial usdcPrincipal6
-              openShortDaiPosition(cdpId, usdcPrincipal6, leverage - 10);
+              openShortDaiPosition(0, usdcPrincipal6, leverage - 10);
               return;
             }
           }}

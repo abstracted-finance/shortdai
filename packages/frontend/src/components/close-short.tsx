@@ -1,33 +1,54 @@
-import { Box, Button, Paper, Typography } from "@material-ui/core";
+import {
+  Box,
+  Button,
+  FormControl,
+  MenuItem,
+  Paper,
+  Select,
+  Typography,
+} from "@material-ui/core";
 import { ethers } from "ethers";
-
-import useSelectedCdp from "../containers/use-selected-cdp";
-import useProxy from "../containers/use-proxy";
-import useCloseShort from "../containers/use-close-short";
-import useUsdc from "../containers/use-usdc";
 import useCdps from "../containers/use-cdps";
+import useCloseShort from "../containers/use-close-short";
+import useProxy from "../containers/use-proxy";
+import useSelectedCdp from "../containers/use-selected-cdp";
 import useShortDaiState, {
   ShortDaiState,
 } from "../containers/use-shortdai-state";
+import useUsdc from "../containers/use-usdc";
 import { prettyStringDecimals } from "./utils";
-
-import { useStyles } from "./styles";
 
 const CloseShort = () => {
   const {
     closeShortDaiPosition,
     isClosingShort,
   } = useCloseShort.useContainer();
-  const { getCdps } = useCdps.useContainer();
   const { isCreatingProxy, createProxy } = useProxy.useContainer();
   const { isApprovingUsdc, approveUsdc } = useUsdc.useContainer();
   const { shortDaiState } = useShortDaiState.useContainer();
-  const { cdpId, isGettingCdpStats, cdpStats } = useSelectedCdp.useContainer();
+  const { getCdps, isGettingCdps, cdps } = useCdps.useContainer();
+  const {
+    cdpId,
+    isGettingCdpStats,
+    cdpStats,
+    setCdpId,
+  } = useSelectedCdp.useContainer();
 
   const validCdpId = cdpId !== 0;
 
   return (
     <>
+      <Box height={1} />
+
+      <Box mb={4}>
+        <FormControl style={{ width: "100%" }}>
+          <Select value={cdpId} onChange={(e: any) => setCdpId(e.target.value)}>
+            {cdps.map((x) => {
+              return <MenuItem value={x.cdpId}>{x.cdpId}</MenuItem>;
+            })}
+          </Select>
+        </FormControl>
+      </Box>
       <Paper variant="outlined">
         <Box p={2.5}>
           <Box display="flex" justifyContent="space-between">
