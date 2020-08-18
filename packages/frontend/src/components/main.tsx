@@ -34,7 +34,7 @@ const Main = () => {
 
   return (
     <Box minHeight="100vh" pt={20}>
-      <Box mx="auto" width={450} maxWidth="80%" position="relative" zIndex={1}>
+      <Box mx="auto" width={450} maxWidth="90%" position="relative" zIndex={1}>
         <Box
           width="100%"
           bgcolor={theme.palette.background.paper}
