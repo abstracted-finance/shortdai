@@ -45,7 +45,7 @@ const Main = () => {
   const [selectedTab, setSelectedTab] = useState<Tabs>(Tabs.OPEN);
 
   return (
-    <Box height="100vh" pt={20} overflow="hidden">
+    <Box minHeight="100vh" pt={20}>
       <Box mx="auto" width={450} maxWidth="80%" position="relative" zIndex={1}>
         <img
           className={classes.pickle}
