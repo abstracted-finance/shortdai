@@ -6,12 +6,13 @@ import {
   makeStyles,
   Paper,
   Typography,
-  useTheme,
   useMediaQuery,
+  useTheme,
 } from "@material-ui/core";
 import cn from "classnames";
 import { ethers } from "ethers";
 import { useState } from "react";
+import useCdps from "../containers/use-cdps";
 import useUsdc from "../containers/use-usdc";
 import useWeb3 from "../containers/use-web3";
 import { ConnectButton } from "./connect-button";
@@ -28,6 +29,7 @@ const Main = () => {
   const theme = useTheme();
   const isDesktop = useMediaQuery("(min-width:800px)");
 
+  const { cdps } = useCdps.useContainer();
   const { connected, isConnecting, connect } = useWeb3.useContainer();
   const { daiUsdcRatio6 } = useUsdc.useContainer();
 
@@ -81,7 +83,6 @@ const Main = () => {
               variant="outlined"
               onClick={() => setSelectedTab(Tabs.CREATE)}
               size="large"
-              fullWidth
               className={cn(classes.tabButton, {
                 [classes.tabButtonActive]: selectedTab === Tabs.CREATE,
               })}
@@ -93,12 +94,11 @@ const Main = () => {
               variant="outlined"
               onClick={() => setSelectedTab(Tabs.MANAGE)}
               size="large"
-              fullWidth
               className={cn(classes.tabButton, {
                 [classes.tabButtonActive]: selectedTab === Tabs.MANAGE,
               })}
             >
-              MANAGE
+              MANAGE{cdps.length ? ` (${cdps.length})` : ""}
             </Button>
           </Box>
         </Box>
@@ -171,10 +171,9 @@ export const useStyles = makeStyles((theme) =>
       transform: "translate(-50%, -24px)",
     },
     tabButton: {
-      width: 120,
+      boxSizing: "content-box",
       transition: "margin 300ms ease-in-out",
-      paddingTop: 6,
-      paddingBottom: 40,
+      paddingBottom: 16,
       borderRadius: 8,
       color: theme.palette.text.hint,
       "&:first-child": {
