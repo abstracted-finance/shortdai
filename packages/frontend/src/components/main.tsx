@@ -37,7 +37,7 @@ const Main = () => {
   const [selectedTab, setSelectedTab] = useState<Tabs>(Tabs.CREATE);
 
   return (
-    <Box minHeight="100vh" pt={isDesktop ? 20 : 8}>
+    <Box className={classes.root} minHeight="100vh" pt={isDesktop ? 20 : 8}>
       <Box mx="auto" width={450} maxWidth="90%" position="relative" zIndex={1}>
         <Box
           width="100%"
@@ -142,6 +142,9 @@ export const useStyles = makeStyles((theme) =>
         backgroundRepeat: "no-repeat",
         backgroundPosition: `0 -30vh`,
       },
+    },
+    root: {
+      overflowX: "hidden",
     },
     pickle: {
       position: "absolute",
