@@ -41,7 +41,7 @@ const Main = () => {
     isGettingCdpStats,
   } = useSelectedCdp.useContainer();
 
-  const [leverage, setLeverage] = useState<number>(80);
+  const [leverage, setLeverage] = useState<number>(95);
   const [selectedTab, setSelectedTab] = useState<Tabs>(Tabs.OPEN);
 
   return (
@@ -106,11 +106,11 @@ const Main = () => {
             </Button>
           </Box>
 
-          {selectedTab === Tabs.OPEN ? (
+          {selectedTab === Tabs.OPEN && (
             <OpenShort leverage={leverage} setLeverage={setLeverage} />
-          ) : null}
+          )}
 
-          {selectedTab === Tabs.CLOSE ? <CloseShort /> : null}
+          {selectedTab === Tabs.CLOSE && <CloseShort />}
         </Box>
 
         <Paper
