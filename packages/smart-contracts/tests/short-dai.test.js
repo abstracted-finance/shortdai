@@ -16,13 +16,19 @@ let ShortDAIActions;
 let CloseShortDAI;
 let OpenShortDAI;
 let IDSProxy;
+let VatLike;
 let USDC;
-let VaultPositionReader;
 
 const user = wallets[2];
 
 beforeAll(async function () {
   try {
+    VatLike = await setupContract({
+      signer: user,
+      wallets,
+      name: "VatLike",
+      address: ethers.constants.AddressZero,
+    });
     ShortDAIActions = await setupContract({
       signer: user,
       wallets,
@@ -50,16 +56,37 @@ beforeAll(async function () {
       name: "IERC20",
       address: ERC20_ADDRESSES.USDC,
     });
-    VaultPositionReader = await setupContract({
-      signer: user,
-      wallets,
-      name: "VaultPositionReader",
-    });
     IDSProxy = await setupIDSProxy({ user });
   } catch (e) {
     console.log(e);
   }
 });
+
+const getCdpBorrowedSuppied = async (cdpId) => {
+  const vat = await IDssCdpManager.vat();
+  const urn = await IDssCdpManager.urns(cdpId);
+  const ilk = await IDssCdpManager.ilks(cdpId);
+  const owner = await IDssCdpManager.owns(cdpId);
+
+  const IVatLike = VatLike.attach(vat);
+
+  const [_, rate] = await IVatLike.ilks(ilk);
+  const [supplied, art] = await IVatLike.urns(ilk, urn);
+  const dai = await IVatLike.dai(owner);
+
+  const RAY = ethers.utils.parseUnits("1", 27);
+  const rad = art.mul(rate).sub(dai);
+  const wad = rad.div(RAY);
+
+  const borrowed = wad.mul(RAY).lt(rad)
+    ? wad.add(ethers.BigNumber.from(1))
+    : wad;
+
+  return {
+    borrowed,
+    supplied,
+  };
+};
 
 test("open and close short (new) vault position", async function () {
   // Initial cdpId
@@ -90,7 +117,7 @@ test("open and close short (new) vault position", async function () {
 
   const openTx = await IDSProxy[
     "execute(address,bytes)"
-  ](ShortDAIActions.address, openCalldata, { gasLimit: 1000000 });
+  ](ShortDAIActions.address, openCalldata, { gasLimit: 1200000 });
   await openTx.wait();
 
   // Gets cdpId
@@ -98,7 +125,7 @@ test("open and close short (new) vault position", async function () {
   expect(newCdpId).not.toEqual(initialCdpId);
 
   // Makes sure vault debt is equal to borrowedDaiAmount
-  const openVaultState = await VaultPositionReader.getVaultStats(newCdpId);
+  const openVaultState = await getCdpBorrowedSuppied(newCdpId);
 
   // Example on calculating stability rates
   // https://docs.makerdao.com/smart-contract-modules/rates-module
@@ -125,10 +152,10 @@ test("open and close short (new) vault position", async function () {
 
   const closeTx = await IDSProxy[
     "execute(address,bytes)"
-  ](ShortDAIActions.address, closeCalldata, { gasLimit: 1000000 });
+  ](ShortDAIActions.address, closeCalldata, { gasLimit: 1200000 });
   await closeTx.wait();
 
-  const closeVaultState = await VaultPositionReader.getVaultStats(newCdpId);
+  const closeVaultState = await getCdpBorrowedSuppied(newCdpId);
 
   // In Wei
   expect(parseInt(closeVaultState.borrowed.toString())).toBeLessThan(
@@ -144,16 +171,13 @@ test("open short for existing vault", async function () {
     ethers.utils.formatBytes32String("USDC-A"),
     IDSProxy.address
   );
-  
+
   const newCdpIdRaw = await IDssCdpManager.last(IDSProxy.address);
   const newCdpId = parseInt(newCdpIdRaw.toString(), 10);
-  
-  const openVaultState = await VaultPositionReader.getVaultStats(newCdpId);
-  console.log("openVaultState", openVaultState);
 
   expect(newCdpId).toBeGreaterThan(oldCdpId);
 
-  const initialVaultState = await VaultPositionReader.getVaultStats(newCdpId);
+  const initialVaultState = await getCdpBorrowedSuppied(newCdpId);
   expect(parseInt(initialVaultState.borrowed.toString())).toBeCloseTo(0, 10);
 
   // Leverage short
@@ -184,7 +208,7 @@ test("open short for existing vault", async function () {
   ](ShortDAIActions.address, openCalldata, { gasLimit: 1000000 });
   await openTx.wait();
 
-  const newVaultState = await VaultPositionReader.getVaultStats(newCdpId);
+  const newVaultState = await getCdpBorrowedSuppied(newCdpId);
   expect(parseInt(newVaultState.borrowed.toString())).toBeCloseTo(
     parseInt(flashloanDaiAmount.toString()),
     10

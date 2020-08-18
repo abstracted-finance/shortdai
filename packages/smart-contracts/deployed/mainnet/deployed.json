@@ -130,7 +130,7 @@
         ]
     },
     "ShortDAIActions": {
-        "address": "0x89E8c4Fa9dEe9Aa6Ea718699ad755C2d68DBF43c",
+        "address": "0xF97C4b1225e0d60D5774eC25F6c4Ccec5082779f",
         "abi": [
             {
                 "type": "function",
