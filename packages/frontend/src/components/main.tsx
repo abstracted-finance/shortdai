@@ -46,7 +46,7 @@ const Main = () => {
 
   return (
     <Box height="100vh" pt={20} overflow="hidden">
-      <Box mx="auto" width={500} maxWidth="80%" position="relative" zIndex={1}>
+      <Box mx="auto" width={450} maxWidth="80%" position="relative" zIndex={1}>
         <img
           className={classes.pickle}
           src="/pickle.png"
