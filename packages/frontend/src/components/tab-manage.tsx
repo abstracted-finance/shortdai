@@ -1,22 +1,11 @@
-import {
-  Box,
-  Button,
-  FormControl,
-  MenuItem,
-  Paper,
-  Select,
-  Typography,
-} from "@material-ui/core";
-import { ethers } from "ethers";
+import { Box } from "@material-ui/core";
 import useCdps from "../containers/use-cdps";
 import useCloseShort from "../containers/use-close-short";
 import useProxy from "../containers/use-proxy";
 import useSelectedCdp from "../containers/use-selected-cdp";
-import useShortDaiState, {
-  ShortDaiState,
-} from "../containers/use-shortdai-state";
+import useShortDaiState from "../containers/use-shortdai-state";
 import useUsdc from "../containers/use-usdc";
-import { prettyStringDecimals } from "./utils";
+import { CdpSummary } from "./cdp-summary";
 
 const TabManage = () => {
   const {
@@ -38,7 +27,13 @@ const TabManage = () => {
 
   console.log(cdps);
 
-  return <></>;
+  return (
+    <Box minHeight={320}>
+      {cdps.map((cdp) => (
+        <CdpSummary key={cdp.cdpId} cdp={cdp} />
+      ))}
+    </Box>
+  );
 };
 
 export default TabManage;
