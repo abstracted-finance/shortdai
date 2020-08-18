@@ -7,6 +7,7 @@ import {
   Paper,
   Typography,
   useTheme,
+  useMediaQuery,
 } from "@material-ui/core";
 import cn from "classnames";
 import { ethers } from "ethers";
@@ -25,6 +26,7 @@ enum Tabs {
 const Main = () => {
   const classes = useStyles();
   const theme = useTheme();
+  const isDesktop = useMediaQuery("(min-width:800px)");
 
   const { connected, isConnecting, connect } = useWeb3.useContainer();
   const { daiUsdcRatio6 } = useUsdc.useContainer();
@@ -33,7 +35,7 @@ const Main = () => {
   const [selectedTab, setSelectedTab] = useState<Tabs>(Tabs.CREATE);
 
   return (
-    <Box minHeight="100vh" pt={20}>
+    <Box minHeight="100vh" pt={isDesktop ? 20 : 8}>
       <Box mx="auto" width={450} maxWidth="90%" position="relative" zIndex={1}>
         <Box
           width="100%"
