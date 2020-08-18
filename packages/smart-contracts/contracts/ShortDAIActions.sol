@@ -93,5 +93,6 @@ contract ShortDAIActions {
         );
 
         IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(_cdpId, _csd, 0);
+        IDssCdpManager(Constants.CDP_MANAGER).give(_cdpId, address(1));
     }
 }
