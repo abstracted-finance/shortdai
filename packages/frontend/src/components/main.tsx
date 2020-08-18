@@ -1,20 +1,22 @@
 import {
   Box,
   Button,
+  Collapse,
+  createStyles,
+  makeStyles,
   Paper,
   Typography,
   useTheme,
-  makeStyles,
-  createStyles,
+  useMediaQuery,
 } from "@material-ui/core";
 import cn from "classnames";
 import { ethers } from "ethers";
 import { useState } from "react";
 import useUsdc from "../containers/use-usdc";
 import useWeb3 from "../containers/use-web3";
-import CloseShort from "./close-short";
 import { ConnectButton } from "./connect-button";
-import OpenShort from "./open-short";
+import TabCreate from "./tab-create";
+import TabManage from "./tab-manage";
 
 enum Tabs {
   CREATE,
@@ -24,16 +26,17 @@ enum Tabs {
 const Main = () => {
   const classes = useStyles();
   const theme = useTheme();
+  const isDesktop = useMediaQuery("(min-width:800px)");
 
   const { connected, isConnecting, connect } = useWeb3.useContainer();
   const { daiUsdcRatio6 } = useUsdc.useContainer();
 
-  const [leverage, setLeverage] = useState<number>(95);
+  const [leverage, setLeverage] = useState<number>(79);
   const [selectedTab, setSelectedTab] = useState<Tabs>(Tabs.CREATE);
 
   return (
-    <Box minHeight="100vh" pt={20}>
-      <Box mx="auto" width={450} maxWidth="80%" position="relative" zIndex={1}>
+    <Box minHeight="100vh" pt={isDesktop ? 20 : 8}>
+      <Box mx="auto" width={450} maxWidth="90%" position="relative" zIndex={1}>
         <Box
           width="100%"
           bgcolor={theme.palette.background.paper}
@@ -52,11 +55,13 @@ const Main = () => {
             </Typography>
           </Box>
 
-          {selectedTab === Tabs.CREATE && (
-            <OpenShort leverage={leverage} setLeverage={setLeverage} />
-          )}
+          <Collapse in={selectedTab === Tabs.CREATE}>
+            <TabCreate leverage={leverage} setLeverage={setLeverage} />
+          </Collapse>
 
-          {selectedTab === Tabs.MANAGE && <CloseShort />}
+          <Collapse in={selectedTab === Tabs.MANAGE}>
+            <TabManage />
+          </Collapse>
         </Box>
 
         <img
@@ -64,8 +69,8 @@ const Main = () => {
           src="/pickle.png"
           alt="pickle"
           style={{
-            transform: `translate(${30 * (leverage / 100)}%, -${
-              28 * (leverage / 100)
+            transform: `translate(${41 * ((leverage - 11) / 99)}%, -${
+              37 * ((leverage - 11) / 99)
             }%)`,
           }}
         />
@@ -171,6 +176,7 @@ export const useStyles = makeStyles((theme) =>
       paddingTop: 6,
       paddingBottom: 40,
       borderRadius: 8,
+      color: theme.palette.text.hint,
       "&:first-child": {
         borderRightWidth: 0,
       },

@@ -18,7 +18,7 @@ import useShortDaiState, {
 import useUsdc from "../containers/use-usdc";
 import { prettyStringDecimals } from "./utils";
 
-const CloseShort = () => {
+const TabManage = () => {
   const {
     closeShortDaiPosition,
     isClosingShort,
@@ -131,4 +131,4 @@ const CloseShort = () => {
   );
 };
 
-export default CloseShort;
+export default TabManage;

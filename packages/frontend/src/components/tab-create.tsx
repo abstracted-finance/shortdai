@@ -5,6 +5,7 @@ import {
   Paper,
   Slider,
   Typography,
+  Collapse,
 } from "@material-ui/core";
 import { ethers } from "ethers";
 import { ChangeEvent, useEffect, useState } from "react";
@@ -22,7 +23,7 @@ import { theme } from "./theme";
 import { useStyles } from "./styles";
 import { CONSTANTS } from "@shortdai/smart-contracts";
 
-const OpenShort = ({ leverage, setLeverage }) => {
+const TabCreate = ({ leverage, setLeverage }) => {
   const classes = useStyles();
 
   const {
@@ -142,32 +143,37 @@ const OpenShort = ({ leverage, setLeverage }) => {
               {(leverage / 10).toString()}
             </Typography>
 
-            <Slider
-              value={leverage}
-              onChange={(_, newValue: number) => {
-                setLeverage(newValue);
-              }}
-              min={11}
-              max={109}
-            />
-
-            <Typography variant="h6">Collateralization Ratio</Typography>
-            <Typography>{newCRStr}</Typography>
-          </Box>
-
-          <Box mt={2} display="flex">
-            <Box flex={1} textAlign="center">
-              <Typography variant="h6">Supplying</Typography>
-              <Typography color="primary">{supplyingStr}</Typography>
-            </Box>
-
-            <img src="/maker.png" width={48} />
-
-            <Box flex={1} textAlign="center">
-              <Typography variant="h6">Burrowing</Typography>
-              <Typography color="error">{burrowingStr}</Typography>
+            <Box px={2}>
+              <Slider
+                value={leverage}
+                onChange={(_, newValue: number) => {
+                  setLeverage(newValue);
+                }}
+                min={11}
+                max={109}
+              />
             </Box>
           </Box>
+
+          <Collapse in={validUsdcPrincipal}>
+            <Box textAlign="center">
+              <Typography variant="h6">Collateralization Ratio</Typography>
+              <Typography>{newCRStr}</Typography>
+            </Box>
+            <Box mt={2} display="flex" alignItems="center">
+              <Box flex={1} textAlign="center">
+                <Typography variant="h6">Supplying (USDC)</Typography>
+                <Typography color="primary">{supplyingStr}</Typography>
+              </Box>
+
+              <img src="/maker.png" width={48} />
+
+              <Box flex={1} textAlign="center">
+                <Typography variant="h6">Burrowing (DAI)</Typography>
+                <Typography color="error">{burrowingStr}</Typography>
+              </Box>
+            </Box>
+          </Collapse>
         </Box>
       </Paper>
 
@@ -227,4 +233,4 @@ const OpenShort = ({ leverage, setLeverage }) => {
   );
 };
 
-export default OpenShort;
+export default TabCreate;
