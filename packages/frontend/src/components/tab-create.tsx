@@ -38,7 +38,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
     isApprovingUsdc,
     approveUsdc,
   } = useUsdc.useContainer();
-  const { shortDaiState } = useShortDaiState.useContainer();
+  const { getShortDaiState, shortDaiState } = useShortDaiState.useContainer();
   const { cdpId, isGettingCdpStats, cdpStats } = useSelectedCdp.useContainer();
 
   const [usdcPrincipal, setUsdcPrincipal] = useState("");
@@ -187,18 +187,18 @@ const TabCreate = ({ leverage, setLeverage }) => {
             isApprovingUsdc ||
             isCreatingProxy ||
             isOpeningShort ||
-            !validUsdcPrincipal
+            (shortDaiState === ShortDaiState.READY && !validUsdcPrincipal)
           }
           size="large"
           fullWidth
           onClick={() => {
             if (shortDaiState === ShortDaiState.SETUP_PROXY) {
-              createProxy();
+              createProxy().then(() => getShortDaiState());
               return;
             }
 
             if (shortDaiState === ShortDaiState.APPROVE_USDC) {
-              approveUsdc();
+              approveUsdc().then(() => getShortDaiState());
               return;
             }
 
