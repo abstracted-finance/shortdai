@@ -1,27 +1,24 @@
 import {
   Box,
   Button,
+  Collapse,
   InputBase,
+  makeStyles,
   Paper,
   Slider,
   Typography,
-  Collapse,
 } from "@material-ui/core";
+import { CONSTANTS } from "@shortdai/smart-contracts";
 import { ethers } from "ethers";
-import { ChangeEvent, useEffect, useState } from "react";
-
-import useSelectedCdp from "../containers/use-selected-cdp";
-import useProxy from "../containers/use-proxy";
+import { ChangeEvent, useState } from "react";
 import useOpenShort from "../containers/use-open-short";
-import useUsdc from "../containers/use-usdc";
+import useProxy from "../containers/use-proxy";
+import useSelectedCdp from "../containers/use-selected-cdp";
 import useShortDaiState, {
   ShortDaiState,
 } from "../containers/use-shortdai-state";
+import useUsdc from "../containers/use-usdc";
 import { prettyStringDecimals } from "./utils";
-import { theme } from "./theme";
-
-import { useStyles } from "./styles";
-import { CONSTANTS } from "@shortdai/smart-contracts";
 
 const TabCreate = ({ leverage, setLeverage }) => {
   const classes = useStyles();
@@ -177,7 +174,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
         </Box>
       </Paper>
 
-      <Box mt={2} display="flex">
+      <Box mt={2}>
         <Button
           variant="contained"
           color="primary"
@@ -234,3 +231,20 @@ const TabCreate = ({ leverage, setLeverage }) => {
 };
 
 export default TabCreate;
+
+export const useStyles = makeStyles({
+  leverage: {
+    position: "relative",
+    "&:after": {
+      position: "absolute",
+      content: "'x'",
+      top: 0,
+      right: -20,
+      height: "100%",
+      fontSize: 24,
+      color: "grey",
+      display: "flex",
+      alignItems: "center",
+    },
+  },
+});

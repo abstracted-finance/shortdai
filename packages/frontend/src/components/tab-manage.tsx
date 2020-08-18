@@ -1,22 +1,10 @@
-import {
-  Box,
-  Button,
-  FormControl,
-  MenuItem,
-  Paper,
-  Select,
-  Typography,
-} from "@material-ui/core";
-import { ethers } from "ethers";
+import { makeStyles } from "@material-ui/core";
 import useCdps from "../containers/use-cdps";
 import useCloseShort from "../containers/use-close-short";
 import useProxy from "../containers/use-proxy";
 import useSelectedCdp from "../containers/use-selected-cdp";
-import useShortDaiState, {
-  ShortDaiState,
-} from "../containers/use-shortdai-state";
+import useShortDaiState from "../containers/use-shortdai-state";
 import useUsdc from "../containers/use-usdc";
-import { prettyStringDecimals } from "./utils";
 
 const TabManage = () => {
   const {
