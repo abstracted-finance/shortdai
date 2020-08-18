@@ -171,6 +171,7 @@ export const useStyles = makeStyles((theme) =>
       paddingTop: 6,
       paddingBottom: 40,
       borderRadius: 8,
+      color: theme.palette.text.hint,
       "&:first-child": {
         borderRightWidth: 0,
       },
