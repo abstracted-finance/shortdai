@@ -5,6 +5,7 @@ import useProxy from "../containers/use-proxy";
 import useSelectedCdp from "../containers/use-selected-cdp";
 import useShortDaiState from "../containers/use-shortdai-state";
 import useUsdc from "../containers/use-usdc";
+import { CdpSummary } from "./cdp-summary";
 
 const TabManage = () => {
   const {
@@ -26,7 +27,13 @@ const TabManage = () => {
 
   console.log(cdps);
 
-  return <></>;
+  return (
+    <>
+      {cdps.map((cdp) => (
+        <CdpSummary />
+      ))}
+    </>
+  );
 };
 
 export default TabManage;
