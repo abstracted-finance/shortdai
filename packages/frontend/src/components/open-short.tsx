@@ -5,6 +5,7 @@ import {
   Paper,
   Slider,
   Typography,
+  Collapse,
 } from "@material-ui/core";
 import { ethers } from "ethers";
 import { ChangeEvent, useEffect, useState } from "react";
@@ -142,32 +143,37 @@ const OpenShort = ({ leverage, setLeverage }) => {
               {(leverage / 10).toString()}
             </Typography>
 
-            <Slider
-              value={leverage}
-              onChange={(_, newValue: number) => {
-                setLeverage(newValue);
-              }}
-              min={11}
-              max={109}
-            />
-
-            <Typography variant="h6">Collateralization Ratio</Typography>
-            <Typography>{newCRStr}</Typography>
-          </Box>
-
-          <Box mt={2} display="flex">
-            <Box flex={1} textAlign="center">
-              <Typography variant="h6">Supplying (USDC)</Typography>
-              <Typography color="primary">{supplyingStr}</Typography>
-            </Box>
-
-            <img src="/maker.png" width={48} />
-
-            <Box flex={1} textAlign="center">
-              <Typography variant="h6">Burrowing (DAI)</Typography>
-              <Typography color="error">{burrowingStr}</Typography>
+            <Box px={2}>
+              <Slider
+                value={leverage}
+                onChange={(_, newValue: number) => {
+                  setLeverage(newValue);
+                }}
+                min={11}
+                max={109}
+              />
             </Box>
           </Box>
+
+          <Collapse in={validUsdcPrincipal}>
+            <Box textAlign="center">
+              <Typography variant="h6">Collateralization Ratio</Typography>
+              <Typography>{newCRStr}</Typography>
+            </Box>
+            <Box mt={2} display="flex" alignItems="flex-end">
+              <Box flex={1} textAlign="center">
+                <Typography variant="h6">Supplying (USDC)</Typography>
+                <Typography color="primary">{supplyingStr}</Typography>
+              </Box>
+
+              <img src="/maker.png" width={48} />
+
+              <Box flex={1} textAlign="center">
+                <Typography variant="h6">Burrowing (DAI)</Typography>
+                <Typography color="error">{burrowingStr}</Typography>
+              </Box>
+            </Box>
+          </Collapse>
         </Box>
       </Paper>
 

@@ -6,6 +6,7 @@ import {
   useTheme,
   makeStyles,
   createStyles,
+  Collapse,
 } from "@material-ui/core";
 import cn from "classnames";
 import { ethers } from "ethers";
@@ -28,7 +29,7 @@ const Main = () => {
   const { connected, isConnecting, connect } = useWeb3.useContainer();
   const { daiUsdcRatio6 } = useUsdc.useContainer();
 
-  const [leverage, setLeverage] = useState<number>(95);
+  const [leverage, setLeverage] = useState<number>(79);
   const [selectedTab, setSelectedTab] = useState<Tabs>(Tabs.CREATE);
 
   return (
@@ -52,11 +53,13 @@ const Main = () => {
             </Typography>
           </Box>
 
-          {selectedTab === Tabs.CREATE && (
+          <Collapse in={selectedTab === Tabs.CREATE}>
             <OpenShort leverage={leverage} setLeverage={setLeverage} />
-          )}
+          </Collapse>
 
-          {selectedTab === Tabs.MANAGE && <CloseShort />}
+          <Collapse in={selectedTab === Tabs.MANAGE}>
+            <CloseShort />
+          </Collapse>
         </Box>
 
         <img
@@ -64,8 +67,8 @@ const Main = () => {
           src="/pickle.png"
           alt="pickle"
           style={{
-            transform: `translate(${30 * (leverage / 100)}%, -${
-              28 * (leverage / 100)
+            transform: `translate(${41 * ((leverage - 11) / 99)}%, -${
+              37 * ((leverage - 11) / 99)
             }%)`,
           }}
         />
