@@ -1,4 +1,4 @@
-import { makeStyles } from "@material-ui/core";
+import { Box } from "@material-ui/core";
 import useCdps from "../containers/use-cdps";
 import useCloseShort from "../containers/use-close-short";
 import useProxy from "../containers/use-proxy";
@@ -28,11 +28,11 @@ const TabManage = () => {
   console.log(cdps);
 
   return (
-    <>
+    <Box minHeight={320}>
       {cdps.map((cdp) => (
         <CdpSummary key={cdp.cdpId} cdp={cdp} />
       ))}
-    </>
+    </Box>
   );
 };
 
