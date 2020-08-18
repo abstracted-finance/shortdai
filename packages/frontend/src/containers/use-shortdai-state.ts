@@ -68,6 +68,7 @@ function useShortDaiState() {
 
   return {
     shortDaiState,
+    getShortDaiState,
   };
 }
 

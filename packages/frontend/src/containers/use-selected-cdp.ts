@@ -69,10 +69,11 @@ function useCdps() {
         ethers.BigNumber.from(cdpId)
       );
 
-      const cr =
-        parseFloat(
-          supplied.mul(ethers.BigNumber.from(100000)).div(borrowed).toString()
-        ) / 1000;
+      const cr = borrowed.eq(ethers.constants.Zero)
+        ? 0.0
+        : parseFloat(
+            supplied.mul(ethers.BigNumber.from(100000)).div(borrowed).toString()
+          ) / 1000;
 
       setCdpStats({
         cdpId,
