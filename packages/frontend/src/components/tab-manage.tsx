@@ -25,8 +25,6 @@ const TabManage = () => {
 
   const validCdpId = cdpId !== 0;
 
-  console.log(cdps);
-
   return (
     <Box minHeight={320}>
       {cdps.map((cdp) => (

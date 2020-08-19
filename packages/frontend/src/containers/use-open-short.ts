@@ -50,7 +50,7 @@ function useOpenShort() {
     initialUsdcMargin6: ethers.BigNumber,
     leverage: number
   ) => {
-    const { ShortDAIActions, OpenShortDAI } = contracts;
+    const { VaultStats, ShortDAIActions, OpenShortDAI } = contracts;
 
     const flashloanDaiAmount = getFlashloanDaiAmount(
       initialUsdcMargin6,
@@ -66,6 +66,8 @@ function useOpenShort() {
         cdpId,
         initialUsdcMargin6,
         flashloanDaiAmount,
+        VaultStats.address,
+        daiUsdcRatio6,
       ]
     );
 
