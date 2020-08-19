@@ -130,7 +130,7 @@
         ]
     },
     "ShortDAIActions": {
-        "address": "0xF97C4b1225e0d60D5774eC25F6c4Ccec5082779f",
+        "address": "0x7a241132bfBF2E3d5Ba3b6112166373B02B83892",
         "abi": [
             {
                 "type": "function",
@@ -186,6 +186,77 @@
                     {
                         "type": "uint256",
                         "name": "_flashloanAmount"
+                    },
+                    {
+                        "type": "address",
+                        "name": "_vaultStats"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_daiUsdcRatio6"
+                    }
+                ],
+                "ouputs": []
+            }
+        ]
+    },
+    "VaultStats": {
+        "address": "0x5101aE0715fC5b0fcd33c574A15D0047A8f6E1a1",
+        "abi": [
+            {
+                "type": "function",
+                "name": "daiUsdcRatio6",
+                "constant": true,
+                "stateMutability": "view",
+                "payble": false,
+                "inputs": [
+                    {
+                        "type": "uint256"
+                    }
+                ],
+                "ouputs": [
+                    {
+                        "type": "uint256"
+                    }
+                ]
+            },
+            {
+                "type": "function",
+                "name": "getCdpStats",
+                "constant": true,
+                "stateMutability": "view",
+                "payble": false,
+                "inputs": [
+                    {
+                        "type": "uint256",
+                        "name": "cdp"
+                    }
+                ],
+                "ouputs": [
+                    {
+                        "type": "uint256"
+                    },
+                    {
+                        "type": "uint256"
+                    },
+                    {
+                        "type": "uint256"
+                    }
+                ]
+            },
+            {
+                "type": "function",
+                "name": "setDaiUsdcRatio6",
+                "constant": false,
+                "payble": false,
+                "inputs": [
+                    {
+                        "type": "uint256",
+                        "name": "_cdp"
+                    },
+                    {
+                        "type": "uint256",
+                        "name": "_daiUsdcRatio6"
                     }
                 ],
                 "ouputs": []
