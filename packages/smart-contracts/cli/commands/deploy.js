@@ -94,10 +94,16 @@ async function deploy({
         );
       }
 
+      const { abi } = require(`../../artifacts/${contractName}.json`);
+
+      if (!abi) {
+        throw new Error(`Unable to find abi for contract ${contractName}`);
+      }
+
       // Write to deployed.json
       deployedConfig[contractName] = {
         address: deployedContract.address,
-        abi: JSON.parse(deployedContract.interface.format("json")),
+        abi,
       };
       fs.writeFileSync(
         deployedFilePath,

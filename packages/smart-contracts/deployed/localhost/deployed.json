@@ -1,223 +1,299 @@
 {
     "OpenShortDAI": {
-        "address": "0xDb56f2e9369E0D7bD191099125a3f6C370F8ed15",
+        "address": "0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab",
         "abi": [
             {
-                "type": "function",
-                "name": "callFunction",
-                "constant": false,
-                "payble": false,
                 "inputs": [
                     {
-                        "type": "address",
-                        "name": "sender"
+                        "internalType": "address",
+                        "name": "sender",
+                        "type": "address"
                     },
                     {
-                        "type": "tuple",
-                        "name": "account",
                         "components": [
                             {
-                                "type": "address",
-                                "name": "owner"
+                                "internalType": "address",
+                                "name": "owner",
+                                "type": "address"
                             },
                             {
-                                "type": "uint256",
-                                "name": "number"
+                                "internalType": "uint256",
+                                "name": "number",
+                                "type": "uint256"
                             }
-                        ]
+                        ],
+                        "internalType": "struct Account.Info",
+                        "name": "account",
+                        "type": "tuple"
                     },
                     {
-                        "type": "bytes",
-                        "name": "data"
+                        "internalType": "bytes",
+                        "name": "data",
+                        "type": "bytes"
                     }
                 ],
-                "ouputs": []
+                "name": "callFunction",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
             },
             {
-                "type": "function",
-                "name": "flashloanAndOpen",
-                "constant": false,
-                "payble": false,
                 "inputs": [
                     {
-                        "type": "address",
-                        "name": "_sender"
+                        "internalType": "address",
+                        "name": "_sender",
+                        "type": "address"
                     },
                     {
-                        "type": "address",
-                        "name": "_solo"
+                        "internalType": "address",
+                        "name": "_solo",
+                        "type": "address"
                     },
                     {
-                        "type": "address",
-                        "name": "_curvePool"
+                        "internalType": "address",
+                        "name": "_curvePool",
+                        "type": "address"
                     },
                     {
-                        "type": "uint256",
-                        "name": "_cdpId"
+                        "internalType": "uint256",
+                        "name": "_cdpId",
+                        "type": "uint256"
                     },
                     {
-                        "type": "uint256",
-                        "name": "_initialMargin"
+                        "internalType": "uint256",
+                        "name": "_initialMargin",
+                        "type": "uint256"
                     },
                     {
-                        "type": "uint256",
-                        "name": "_flashloanAmount"
+                        "internalType": "uint256",
+                        "name": "_flashloanAmount",
+                        "type": "uint256"
                     }
                 ],
-                "ouputs": []
+                "name": "flashloanAndOpen",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
             }
         ]
     },
     "CloseShortDAI": {
-        "address": "0xA94B7f0465E98609391C623d0560C5720a3f2D33",
+        "address": "0x5b1869D9A4C187F2EAa108f3062412ecf0526b24",
         "abi": [
             {
-                "type": "function",
-                "name": "callFunction",
-                "constant": false,
-                "payble": false,
                 "inputs": [
                     {
-                        "type": "address",
-                        "name": "sender"
+                        "internalType": "address",
+                        "name": "sender",
+                        "type": "address"
                     },
                     {
-                        "type": "tuple",
-                        "name": "account",
                         "components": [
                             {
-                                "type": "address",
-                                "name": "owner"
+                                "internalType": "address",
+                                "name": "owner",
+                                "type": "address"
                             },
                             {
-                                "type": "uint256",
-                                "name": "number"
+                                "internalType": "uint256",
+                                "name": "number",
+                                "type": "uint256"
                             }
-                        ]
+                        ],
+                        "internalType": "struct Account.Info",
+                        "name": "account",
+                        "type": "tuple"
                     },
                     {
-                        "type": "bytes",
-                        "name": "data"
+                        "internalType": "bytes",
+                        "name": "data",
+                        "type": "bytes"
                     }
                 ],
-                "ouputs": []
+                "name": "callFunction",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
             },
             {
-                "type": "function",
-                "name": "flashloanAndClose",
-                "constant": false,
-                "payble": false,
                 "inputs": [
                     {
-                        "type": "address",
-                        "name": "_sender"
+                        "internalType": "address",
+                        "name": "_sender",
+                        "type": "address"
                     },
                     {
-                        "type": "address",
-                        "name": "_solo"
+                        "internalType": "address",
+                        "name": "_solo",
+                        "type": "address"
                     },
                     {
-                        "type": "address",
-                        "name": "_curvePool"
+                        "internalType": "address",
+                        "name": "_curvePool",
+                        "type": "address"
                     },
                     {
-                        "type": "uint256",
-                        "name": "_cdpId"
+                        "internalType": "uint256",
+                        "name": "_cdpId",
+                        "type": "uint256"
                     }
                 ],
-                "ouputs": []
+                "name": "flashloanAndClose",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
             }
         ]
     },
     "ShortDAIActions": {
-        "address": "0x6eD79Aa1c71FD7BdBC515EfdA3Bd4e26394435cC",
+        "address": "0xCfEB869F69431e42cdB54A4F4f105C19C080A601",
         "abi": [
             {
-                "type": "function",
-                "name": "flashloanAndClose",
-                "constant": false,
-                "payble": false,
                 "inputs": [
                     {
-                        "type": "address",
-                        "name": "_csd"
+                        "internalType": "address",
+                        "name": "_csd",
+                        "type": "address"
                     },
                     {
-                        "type": "address",
-                        "name": "_solo"
+                        "internalType": "address",
+                        "name": "_solo",
+                        "type": "address"
                     },
                     {
-                        "type": "address",
-                        "name": "_curvePool"
+                        "internalType": "address",
+                        "name": "_curvePool",
+                        "type": "address"
                     },
                     {
-                        "type": "uint256",
-                        "name": "_cdpId"
+                        "internalType": "uint256",
+                        "name": "_cdpId",
+                        "type": "uint256"
                     }
                 ],
-                "ouputs": []
+                "name": "flashloanAndClose",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
             },
             {
-                "type": "function",
-                "name": "flashloanAndOpen",
-                "constant": false,
-                "payble": false,
                 "inputs": [
                     {
-                        "type": "address",
-                        "name": "_osd"
+                        "internalType": "address",
+                        "name": "_osd",
+                        "type": "address"
                     },
                     {
-                        "type": "address",
-                        "name": "_solo"
+                        "internalType": "address",
+                        "name": "_solo",
+                        "type": "address"
                     },
                     {
-                        "type": "address",
-                        "name": "_curvePool"
+                        "internalType": "address",
+                        "name": "_curvePool",
+                        "type": "address"
                     },
                     {
-                        "type": "uint256",
-                        "name": "_cdpId"
+                        "internalType": "uint256",
+                        "name": "_cdpId",
+                        "type": "uint256"
                     },
                     {
-                        "type": "uint256",
-                        "name": "_initialMargin"
+                        "internalType": "uint256",
+                        "name": "_initialMargin",
+                        "type": "uint256"
                     },
                     {
-                        "type": "uint256",
-                        "name": "_flashloanAmount"
+                        "internalType": "uint256",
+                        "name": "_flashloanAmount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "_vaultStats",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "_daiUsdcRatio6",
+                        "type": "uint256"
                     }
                 ],
-                "ouputs": []
+                "name": "flashloanAndOpen",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
             }
         ]
     },
-    "VaultPositionReader": {
-        "address": "0xb09bCc172050fBd4562da8b229Cf3E45Dc3045A6",
+    "VaultStats": {
+        "address": "0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B",
         "abi": [
             {
-                "type": "function",
-                "name": "getVaultStats",
-                "constant": true,
-                "stateMutability": "view",
-                "payble": false,
                 "inputs": [
                     {
-                        "type": "uint256",
-                        "name": "cdp"
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
                     }
                 ],
-                "ouputs": [
+                "name": "daiUsdcRatio6",
+                "outputs": [
                     {
-                        "type": "uint256"
-                    },
-                    {
-                        "type": "uint256"
-                    },
-                    {
+                        "internalType": "uint256",
+                        "name": "",
                         "type": "uint256"
                     }
-                ]
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "cdp",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "getCdpStats",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_cdp",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "_daiUsdcRatio6",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "setDaiUsdcRatio6",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
             }
         ]
     }

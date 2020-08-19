@@ -8,7 +8,7 @@
   "ShortDAIActions": {
     "deploy": true
   },
-  "VaultPositionReader": {
+  "VaultStats": {
     "deploy": true
   }
 }
