@@ -172,17 +172,19 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
     <Paper className={classes.root} variant="outlined">
       <Box p={2.5}>
         <Box mb={2} display="flex" justifyContent="space-between">
-          <LabelValue label="CDP ID">{cdp.cdpId}</LabelValue>
-          <LabelValue label="Collateralization Ratio" textAlign="right">{crString}</LabelValue>
+          <LabelValue label="CDP ID" textAlign="left">
+            {cdp.cdpId}
+          </LabelValue>
+          <LabelValue label="CR" textAlign="right">
+            {crString}
+          </LabelValue>
         </Box>
 
         <Box display="flex" alignItems="center" justifyContent="space-between">
-          <LabelValue label="Initial Capital" icon="usdc">
+          <LabelValue label="Initial Capital" icon="usdc" textAlign="left">
             {initialCapString}
           </LabelValue>
-          <LabelValue label="Leverage" textAlign="center">
-            {leverageString}
-          </LabelValue>
+          <LabelValue label="Leverage">{leverageString}</LabelValue>
           <LabelValue label="Total Exposure" icon="dai" textAlign="right">
             {borrowedDaiString}
           </LabelValue>
