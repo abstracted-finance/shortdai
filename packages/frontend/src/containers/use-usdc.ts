@@ -58,20 +58,23 @@ function useUsdc() {
       CONSTANTS.CONTRACT_ADDRESSES.CurveFiSUSDv2
     );
 
-    // Get 100k Tokens
+    // Get 1mil Tokens
     // index 0 = DAI
     // index 1 = USDC
     const daiUsdcRatio = await ICurveFiSUSDv2.get_dy_underlying(
       0,
       1,
-      ethers.utils.parseUnits("100000", CONSTANTS.ERC20_DECIMALS.DAI)
+      ethers.utils.parseUnits("1000000", CONSTANTS.ERC20_DECIMALS.DAI)
     );
 
-    const daiUsdcRatio6 = daiUsdcRatio.div(ethers.BigNumber.from(100000));
+    const daiUsdcRatio6 = daiUsdcRatio.div(ethers.BigNumber.from(1000000));
 
     // setDaiUsdcRatio6(ethers.utils.parseUnits("1.0302", 6));
     setDaiUsdcRatio6(daiUsdcRatio6);
     setIsGettingDaiUsdcRatio(false);
+
+    // Get DAI USDC rates every 15 seconds
+    setTimeout(() => getDaiUsdcRates(), 15000);
   };
 
   useEffect(() => {
