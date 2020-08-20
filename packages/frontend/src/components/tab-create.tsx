@@ -18,11 +18,13 @@ import useShortDaiState, {
 } from "../containers/use-shortdai-state";
 import useUsdc from "../containers/use-usdc";
 import useCdps from "../containers/use-cdps";
+import useMakerStats from "../containers/use-maker-stats";
 import { prettyStringDecimals } from "./utils";
 
 const TabCreate = ({ leverage, setLeverage }) => {
   const classes = useStyles();
 
+  const { stabilityApy } = useMakerStats.useContainer();
   const {
     getFlashloanDaiAmount,
     openShortDaiPosition,
@@ -75,6 +77,9 @@ const TabCreate = ({ leverage, setLeverage }) => {
           .toString()
       ) / 1000;
   const newCRStr = prettyStringDecimals(newCR.toString()) + "%";
+
+  const stabilityApyStr =
+    stabilityApy === null ? "..." : (stabilityApy * 100).toFixed(2) + "%";
 
   const validUsdcPrincipal =
     usdcPrincipalBN.lte(usdcBal6 || ethers.constants.Zero) &&
@@ -172,6 +177,11 @@ const TabCreate = ({ leverage, setLeverage }) => {
                 <Typography variant="h6">Borrowing (DAI)</Typography>
                 <Typography color="error">{borrowingStr}</Typography>
               </Box>
+            </Box>
+
+            <Box mt={2} textAlign="center">
+              <Typography variant="h6">Stability Fee</Typography>
+              <Typography>{stabilityApyStr}</Typography>
             </Box>
           </Collapse>
         </Box>

@@ -10,6 +10,7 @@ import ShortDaiStateContainer from "../containers/use-shortdai-state";
 import OpenShortContainer from "../containers/use-open-short";
 import CloseShortContainer from "../containers/use-close-short";
 import CdpsContainer from "../containers/use-cdps";
+import MakerStatsContainer from "../containers/use-maker-stats";
 import SelectedCdpContainer from "../containers/use-selected-cdp";
 
 import { theme } from "../components/theme";
@@ -20,34 +21,36 @@ function App({ Component, pageProps }: AppProps) {
       <CssBaseline>
         <Web3Container.Provider>
           <ContractsContainer.Provider>
-            <ProxyContainer.Provider>
-              <UsdcContainer.Provider>
-                <CdpsContainer.Provider>
-                  <SelectedCdpContainer.Provider>
-                    <ShortDaiStateContainer.Provider>
-                      <OpenShortContainer.Provider>
-                        <CloseShortContainer.Provider>
-                          <Head>
-                            <meta
-                              name="description"
-                              content="DAI trading at a premium? Open a short position. DAI back to peg? Close short position."
-                            />
-                            <link rel="shortcut icon" href="/favicon.ico" />
-                            <meta
-                              name="viewport"
-                              content="width=device-width, initial-scale=1.0"
-                            />
-                            <title>PICKLE SHORT</title>
-                          </Head>
+            <MakerStatsContainer.Provider>
+              <ProxyContainer.Provider>
+                <UsdcContainer.Provider>
+                  <CdpsContainer.Provider>
+                    <SelectedCdpContainer.Provider>
+                      <ShortDaiStateContainer.Provider>
+                        <OpenShortContainer.Provider>
+                          <CloseShortContainer.Provider>
+                            <Head>
+                              <meta
+                                name="description"
+                                content="DAI trading at a premium? Open a short position. DAI back to peg? Close short position."
+                              />
+                              <link rel="shortcut icon" href="/favicon.ico" />
+                              <meta
+                                name="viewport"
+                                content="width=device-width, initial-scale=1.0"
+                              />
+                              <title>PICKLE SHORT</title>
+                            </Head>
 
-                          <Component {...pageProps} />
-                        </CloseShortContainer.Provider>
-                      </OpenShortContainer.Provider>
-                    </ShortDaiStateContainer.Provider>
-                  </SelectedCdpContainer.Provider>
-                </CdpsContainer.Provider>
-              </UsdcContainer.Provider>
-            </ProxyContainer.Provider>
+                            <Component {...pageProps} />
+                          </CloseShortContainer.Provider>
+                        </OpenShortContainer.Provider>
+                      </ShortDaiStateContainer.Provider>
+                    </SelectedCdpContainer.Provider>
+                  </CdpsContainer.Provider>
+                </UsdcContainer.Provider>
+              </ProxyContainer.Provider>
+            </MakerStatsContainer.Provider>
           </ContractsContainer.Provider>
         </Web3Container.Provider>
       </CssBaseline>
