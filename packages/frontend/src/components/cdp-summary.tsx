@@ -126,7 +126,10 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
       : supplied.mul(daiUsdcRatio6DeltaPercentage6).div(decimal6);
 
   // Collateralization Ratio 18 decimals
-  const cr18 = supplied === null ? null : borrowed.mul(decimal18).div(supplied);
+  const cr18 =
+    supplied === null || supplied.eq(ethers.constants.Zero)
+      ? null
+      : borrowed.mul(decimal18).div(supplied);
 
   // Pretty strings
   const suppliedUsdcString = supplied
