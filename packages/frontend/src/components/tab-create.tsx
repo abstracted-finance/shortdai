@@ -7,6 +7,7 @@ import {
   Paper,
   Slider,
   Typography,
+  createStyles,
 } from "@material-ui/core";
 import { CONSTANTS } from "@shortdai/smart-contracts";
 import { ethers } from "ethers";
@@ -20,6 +21,7 @@ import useUsdc from "../containers/use-usdc";
 import useCdps from "../containers/use-cdps";
 import useMakerStats from "../containers/use-maker-stats";
 import { prettyStringDecimals } from "./utils";
+import { theme } from "./theme";
 
 const TabCreate = ({ leverage, setLeverage }) => {
   const classes = useStyles();
@@ -94,8 +96,35 @@ const TabCreate = ({ leverage, setLeverage }) => {
     }
   }
 
+  // < 1% difference
+  const daiUsdcBalApproximated6 =
+    daiUsdcRatio6 === null
+      ? null
+      : daiUsdcRatio6
+          .div(ethers.utils.parseUnits("1", 4))
+          .mul(ethers.utils.parseUnits("1", 4));
+
+  const isDaiCloseToUsdc =
+    daiUsdcBalApproximated6 === null
+      ? false
+      : daiUsdcBalApproximated6.eq(ethers.utils.parseUnits("1", 6));
+
   return (
     <>
+      <Collapse in={isDaiCloseToUsdc}>
+        <Paper className={classes.warningPaper} variant="outlined">
+          <Box p={2.5}>
+            <Typography variant="h6" component="p">
+              <Box color={theme.palette.warning.main}>WARNING</Box>
+              DAI is close to its peg. Opening a short position will likely
+              result in losses.
+            </Typography>
+          </Box>
+        </Paper>
+      </Collapse>
+
+      <Box height={16} />
+
       <Paper variant="outlined">
         <Box p={2.5}>
           <Box display="flex" justifyContent="space-between">
@@ -258,19 +287,24 @@ const TabCreate = ({ leverage, setLeverage }) => {
 
 export default TabCreate;
 
-export const useStyles = makeStyles({
-  leverage: {
-    position: "relative",
-    "&:after": {
-      position: "absolute",
-      content: "'x'",
-      top: 0,
-      right: -20,
-      height: "100%",
-      fontSize: 24,
-      color: "grey",
-      display: "flex",
-      alignItems: "center",
+export const useStyles = makeStyles((theme) =>
+  createStyles({
+    leverage: {
+      position: "relative",
+      "&:after": {
+        position: "absolute",
+        content: "'x'",
+        top: 0,
+        right: -20,
+        height: "100%",
+        fontSize: 24,
+        color: "grey",
+        display: "flex",
+        alignItems: "center",
+      },
     },
-  },
-});
+    warningPaper: {
+      border: `1px solid ${theme.palette.warning.main}`,
+    },
+  })
+);
