@@ -6,7 +6,7 @@ const TabManage = () => {
   const { cdps } = useCdps.useContainer();
 
   return (
-    <Box minHeight={320}>
+    <Box minHeight={160}>
       {cdps.map((cdp) => (
         <CdpSummary key={cdp.cdpId} cdp={cdp} />
       ))}

@@ -1,0 +1,52 @@
+import { Box, Typography, useTheme, BoxProps } from "@material-ui/core";
+
+interface LabelValueProps extends BoxProps {
+  label: string;
+  children: string | number;
+  inline?: boolean;
+  icon?: "dai" | "usdc";
+}
+
+const LabelValue: React.FC<LabelValueProps> = ({
+  label,
+  children,
+  inline,
+  icon,
+  ...props
+}) => {
+  const theme = useTheme();
+  return (
+    <Box {...props}>
+      {inline ? (
+        <Typography variant="h6">
+          {label}:{" "}
+          <Box color={theme.palette.text.primary} component="span">
+            {children}
+          </Box>
+        </Typography>
+      ) : (
+        <>
+          <Typography variant="h6">{label}</Typography>
+          <Typography component="span">
+            <Box
+              height={24}
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+            >
+              {children}
+              {icon && (
+                <>
+                  <Box width={4} />
+                  <img src={`/${icon}.png`} width={18} />
+                </>
+              )}
+            </Box>
+          </Typography>
+        </>
+      )}
+    </Box>
+  );
+};
+
+export default LabelValue;

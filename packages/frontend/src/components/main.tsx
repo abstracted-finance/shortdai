@@ -27,7 +27,7 @@ enum Tabs {
 const Main = () => {
   const classes = useStyles();
   const theme = useTheme();
-  const isDesktop = useMediaQuery("(min-width:800px)");
+  const isDesktop = useMediaQuery("(min-width:600px)");
 
   const { cdps } = useCdps.useContainer();
   const { connected, isConnecting, connect } = useWeb3.useContainer();

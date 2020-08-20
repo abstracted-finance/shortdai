@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Paper, makeStyles, Box, Typography, Button } from "@material-ui/core";
+import {
+  Paper,
+  makeStyles,
+  Box,
+  Typography,
+  Button,
+  darken,
+} from "@material-ui/core";
 import ethers from "ethers";
 import { CONSTANTS } from "@shortdai/smart-contracts";
 
@@ -9,6 +16,8 @@ import useWeb3 from "../containers/use-web3";
 import useContracts from "../containers/use-contracts";
 import useUsdc from "../containers/use-usdc";
 import useProxy from "../containers/use-proxy";
+import { theme } from "./theme";
+import LabelValue from "./labelValue";
 
 interface CdpSummaryProps {
   cdp: Cdp;
@@ -73,8 +82,8 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
     const { VaultStats } = contracts;
 
     const [
-      _borrowed,
       _supplied,
+      _borrowed,
       _openedDaiUsdcRatio6,
     ] = await VaultStats.getCdpStats(cdp.cdpId);
 
@@ -114,6 +123,18 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
     }
   }
 
+  const totalExposureUsdc =
+    borrowed &&
+    openedDaiUsdcRatio6 &&
+    borrowed.mul(openedDaiUsdcRatio6).div(ethers.utils.parseUnits("1", 6));
+
+  // Initial Capital
+  const initialCap =
+    totalExposureUsdc && supplied && supplied.sub(totalExposureUsdc);
+
+  // Leverage
+  const leverage = initialCap && totalExposureUsdc.div(initialCap);
+
   // Percentage difference in 6 decimal places
   const daiUsdcRatio6DeltaPercentage6 = daiUsdcRatio6Delta
     .mul(decimal6)
@@ -129,80 +150,52 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
   const cr18 =
     supplied === null || supplied.eq(ethers.constants.Zero)
       ? null
-      : borrowed.mul(decimal18).div(supplied);
+      : supplied.mul(decimal18).div(borrowed);
 
   // Pretty strings
-  const suppliedUsdcString = supplied
-    ? prettyStringDecimals(ethers.utils.formatUnits(supplied, 18))
-    : "...";
+  const initialCapString = bigIntToString(initialCap);
+  const borrowedDaiString = bigIntToString(borrowed);
+  const plString = (negative ? "-" : "+") + "$" + bigIntToString(pl18, 18);
+  const crString = bigIntToString(cr18, 16) + "%";
+  const leverageString = leverage && leverage.toNumber().toFixed(1) + "x";
 
-  const plString =
-    pl18 === null
-      ? "..."
-      : prettyStringDecimals(ethers.utils.formatUnits(pl18, 18));
-
-  const crString =
-    cr18 === null
-      ? "..."
-      : prettyStringDecimals(ethers.utils.formatUnits(cr18, 16)) + "%";
+  function bigIntToString(x: null | ethers.ethers.BigNumberish, dec = 18) {
+    return x ? prettyStringDecimals(ethers.utils.formatUnits(x, dec)) : "...";
+  }
 
   return (
     <Paper className={classes.root} variant="outlined">
       <Box p={2.5}>
-        <Box mb={1}>
-          <Typography color="textPrimary" variant="h6">
-            USDC&nbsp;&nbsp;|&nbsp;&nbsp;CDP ID: {cdp.cdpId}
-          </Typography>
+        <Box mb={2} display="flex" justifyContent="space-between">
+          <LabelValue label="CDP ID" inline>
+            {cdp.cdpId}
+          </LabelValue>
+          <LabelValue label="CR" inline>
+            {crString}
+          </LabelValue>
         </Box>
 
-        <Box display="flex" alignItems="center">
-          <Box flex={1.5}>
-            <Typography variant="h6">Amount</Typography>
-            <Typography color="textSecondary">{suppliedUsdcString}</Typography>
-          </Box>
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <LabelValue label="Initial Capital" icon="usdc">
+            {initialCapString}
+          </LabelValue>
+          <LabelValue label="Leverage">{leverageString}</LabelValue>
+          <LabelValue label="Total Exposure" icon="dai">
+            {borrowedDaiString}
+          </LabelValue>
+        </Box>
 
-          <Box flex={1}>
-            <Typography variant="h6">P/L</Typography>
-            <Typography
-              color={
-                (pl18 || ethers.constants.Zero).lt(
-                  ethers.utils.parseUnits("0.01", 18)
-                )
-                  ? "textSecondary"
-                  : negative
-                  ? "error"
-                  : "primary"
-              }
-            >
-              {plString}
-            </Typography>
-          </Box>
-
-          <Box flex={1}>
-            <Typography variant="h6">CR</Typography>
-            <Typography
-              color={
-                (cr18 || ethers.constants.MaxUint256).lt(
-                  ethers.utils.parseUnits("115", 16)
-                )
-                  ? "error"
-                  : "textSecondary"
-              }
-            >
-              {crString}
-            </Typography>
-          </Box>
-
-          <Box flex={1} textAlign="right">
-            <Button
-              disabled={isClosingShort}
-              onClick={() => closeShortDaiPosition()}
-              color="secondary"
-              fullWidth
-            >
-              CLOSE
-            </Button>
-          </Box>
+        <Box mt={2}>
+          <Button
+            disabled={isClosingShort}
+            onClick={() => closeShortDaiPosition()}
+            color={negative ? "secondary" : "primary"}
+            variant="contained"
+            fullWidth
+          >
+            close position:&nbsp;
+            <strong>{plString}</strong>
+          </Button>
         </Box>
       </Box>
     </Paper>
@@ -211,6 +204,7 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
 
 const useStyles = makeStyles({
   root: {
+    position: "relative",
     "&:not(:last-child)": {
       marginBottom: 16,
     },
