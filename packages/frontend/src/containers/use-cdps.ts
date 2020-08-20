@@ -59,6 +59,7 @@ function useCdps() {
   }, [contracts, signer, proxyAddress, connected]);
 
   return {
+    setCdps,
     cdps,
     getCdps,
     isGettingCdps,

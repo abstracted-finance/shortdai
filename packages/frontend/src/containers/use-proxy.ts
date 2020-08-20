@@ -44,7 +44,7 @@ function useProxy() {
     if (contracts === null) return;
 
     getProxy();
-  }, [connected, contracts]);
+  }, [ethAddress, connected, contracts]);
 
   return {
     hasProxy,

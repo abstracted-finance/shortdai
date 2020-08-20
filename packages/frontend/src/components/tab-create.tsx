@@ -13,11 +13,11 @@ import { ethers } from "ethers";
 import { ChangeEvent, useState } from "react";
 import useOpenShort from "../containers/use-open-short";
 import useProxy from "../containers/use-proxy";
-import useSelectedCdp from "../containers/use-selected-cdp";
 import useShortDaiState, {
   ShortDaiState,
 } from "../containers/use-shortdai-state";
 import useUsdc from "../containers/use-usdc";
+import useCdps from "../containers/use-cdps";
 import { prettyStringDecimals } from "./utils";
 
 const TabCreate = ({ leverage, setLeverage }) => {
@@ -34,9 +34,11 @@ const TabCreate = ({ leverage, setLeverage }) => {
     usdcBal6,
     isApprovingUsdc,
     approveUsdc,
+    getDaiUsdcRates,
+    getUsdcBalances,
   } = useUsdc.useContainer();
   const { getShortDaiState, shortDaiState } = useShortDaiState.useContainer();
-  const { cdpId, isGettingCdpStats, cdpStats } = useSelectedCdp.useContainer();
+  const { getCdps } = useCdps.useContainer();
 
   const [usdcPrincipal, setUsdcPrincipal] = useState("");
 
@@ -49,8 +51,11 @@ const TabCreate = ({ leverage, setLeverage }) => {
     usdcPrincipalBN,
     leverage - 10
   );
-  const burrowingStr = prettyStringDecimals(
+  const borrowingStr = prettyStringDecimals(
     ethers.utils.formatUnits(flashloanDaiAmount, 18)
+  );
+  const hasMinDaiAmount = flashloanDaiAmount.gte(
+    ethers.utils.parseUnits("100", 18)
   );
 
   const toSupplyUsdcAmount = usdcPrincipalBN.add(
@@ -60,15 +65,13 @@ const TabCreate = ({ leverage, setLeverage }) => {
     ethers.utils.formatUnits(toSupplyUsdcAmount, 6)
   );
 
-  const newCR = cdpStats.borrowed18
-    .add(flashloanDaiAmount)
-    .eq(ethers.constants.Zero)
+  const newCR = flashloanDaiAmount.eq(ethers.constants.Zero)
     ? 0.0
     : parseFloat(
-        cdpStats.supplied18
-          .add(toSupplyUsdcAmount.mul(ethers.utils.parseUnits("1", 12))) // Convert to 18 decimals
+        toSupplyUsdcAmount
+          .mul(ethers.utils.parseUnits("1", 12)) // Convert to 18 decimals
           .mul(ethers.BigNumber.from(100000)) // Multiply by 100000 so we can get decimals (in bignumbers)
-          .div(cdpStats.borrowed18.add(flashloanDaiAmount))
+          .div(flashloanDaiAmount)
           .toString()
       ) / 1000;
   const newCRStr = prettyStringDecimals(newCR.toString()) + "%";
@@ -166,8 +169,8 @@ const TabCreate = ({ leverage, setLeverage }) => {
               <img src="/maker.png" width={48} />
 
               <Box flex={1} textAlign="center">
-                <Typography variant="h6">Burrowing (DAI)</Typography>
-                <Typography color="error">{burrowingStr}</Typography>
+                <Typography variant="h6">Borrowing (DAI)</Typography>
+                <Typography color="error">{borrowingStr}</Typography>
               </Box>
             </Box>
           </Collapse>
@@ -184,18 +187,21 @@ const TabCreate = ({ leverage, setLeverage }) => {
             isApprovingUsdc ||
             isCreatingProxy ||
             isOpeningShort ||
-            (shortDaiState === ShortDaiState.READY && !validUsdcPrincipal)
+            (shortDaiState === ShortDaiState.READY &&
+              (!validUsdcPrincipal || !hasMinDaiAmount))
           }
           size="large"
           fullWidth
-          onClick={() => {
+          onClick={async () => {
             if (shortDaiState === ShortDaiState.SETUP_PROXY) {
-              createProxy().then(() => getShortDaiState());
+              await createProxy();
+              await getShortDaiState();
               return;
             }
 
             if (shortDaiState === ShortDaiState.APPROVE_USDC) {
-              approveUsdc().then(() => getShortDaiState());
+              await approveUsdc();
+              await getShortDaiState();
               return;
             }
 
@@ -205,25 +211,35 @@ const TabCreate = ({ leverage, setLeverage }) => {
               // (Leverage - 10) because we're using "cents"
               // i.e. leverage 15 = x1.5
               // And because we wanna minus initial usdcPrincipal6
-              openShortDaiPosition(0, usdcPrincipal6, leverage - 10);
+              await openShortDaiPosition(0, usdcPrincipal6, leverage - 10);
+              await Promise.all([
+                getShortDaiState(),
+                getUsdcBalances(),
+                getDaiUsdcRates(),
+                getCdps(),
+              ]);
               return;
             }
           }}
         >
-          {shortDaiState === ShortDaiState.PENDING ? "INTIALIZING" : null}
-          {shortDaiState === ShortDaiState.NOT_CONNECTED
-            ? "CONNECT WALLET TO CONTINUE"
-            : null}
-          {shortDaiState === ShortDaiState.SETUP_PROXY ? "SETUP" : null}
-          {shortDaiState === ShortDaiState.APPROVE_USDC ? "APPROVE" : null}
+          {shortDaiState === ShortDaiState.PENDING && "INTIALIZING"}
+          {shortDaiState === ShortDaiState.NOT_CONNECTED &&
+            "CONNECT WALLET TO CONTINUE"}
+          {shortDaiState === ShortDaiState.SETUP_PROXY && "SETUP"}
+          {shortDaiState === ShortDaiState.APPROVE_USDC && "APPROVE"}
           {shortDaiState === ShortDaiState.READY && !validUsdcPrincipal
             ? usdcPrincipal === ""
               ? "ENTER PRINCIPAL AMOUNT"
               : "INVALID PRINCIPAL AMOUNT"
             : null}
-          {shortDaiState === ShortDaiState.READY && validUsdcPrincipal
-            ? "OPEN"
-            : null}
+          {shortDaiState === ShortDaiState.READY &&
+            validUsdcPrincipal &&
+            !hasMinDaiAmount &&
+            "MIN BORROW IS 100 DAI"}
+          {shortDaiState === ShortDaiState.READY &&
+            validUsdcPrincipal &&
+            hasMinDaiAmount &&
+            "OPEN"}
         </Button>
       </Box>
     </>

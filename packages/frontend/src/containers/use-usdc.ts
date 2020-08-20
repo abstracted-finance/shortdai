@@ -89,6 +89,8 @@ function useUsdc() {
     daiUsdcRatio6,
     usdcBal6,
     isGettingDaiUsdcRatio,
+    getDaiUsdcRates,
+    getUsdcBalances,
   };
 }
 
