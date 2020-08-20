@@ -123,17 +123,22 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
     }
   }
 
-  const totalExposureUsdc =
+  const borrowedUsdc =
     borrowed &&
     openedDaiUsdcRatio6 &&
     borrowed.mul(openedDaiUsdcRatio6).div(ethers.utils.parseUnits("1", 6));
 
+  console.log("borrowedUsdc", borrowedUsdc && borrowedUsdc.toString());
+
   // Initial Capital
-  const initialCap =
-    totalExposureUsdc && supplied && supplied.sub(totalExposureUsdc);
+  const initialCap = borrowedUsdc && supplied && supplied.sub(borrowedUsdc);
+
+  console.log("initialCap", initialCap && initialCap.toString());
 
   // Leverage
-  const leverage = initialCap && totalExposureUsdc.div(initialCap);
+  const leverage = initialCap && borrowedUsdc.div(initialCap);
+
+  console.log("leverage", leverage && leverage.toString());
 
   // Percentage difference in 6 decimal places
   const daiUsdcRatio6DeltaPercentage6 = daiUsdcRatio6Delta
@@ -167,20 +172,18 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
     <Paper className={classes.root} variant="outlined">
       <Box p={2.5}>
         <Box mb={2} display="flex" justifyContent="space-between">
-          <LabelValue label="CDP ID" inline>
-            {cdp.cdpId}
-          </LabelValue>
-          <LabelValue label="CR" inline>
-            {crString}
-          </LabelValue>
+          <LabelValue label="CDP ID">{cdp.cdpId}</LabelValue>
+          <LabelValue label="Collateralization Ratio" textAlign="right">{crString}</LabelValue>
         </Box>
 
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <LabelValue label="Initial Capital" icon="usdc">
             {initialCapString}
           </LabelValue>
-          <LabelValue label="Leverage">{leverageString}</LabelValue>
-          <LabelValue label="Total Exposure" icon="dai">
+          <LabelValue label="Leverage" textAlign="center">
+            {leverageString}
+          </LabelValue>
+          <LabelValue label="Total Exposure" icon="dai" textAlign="right">
             {borrowedDaiString}
           </LabelValue>
         </Box>

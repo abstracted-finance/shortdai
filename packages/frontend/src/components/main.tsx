@@ -71,8 +71,8 @@ const Main = () => {
           src="/pickle.png"
           alt="pickle"
           style={{
-            transform: `translate(${41 * ((leverage - 11) / 99)}%, -${
-              37 * ((leverage - 11) / 99)
+            transform: `translate(${41 * ((leverage - 11) / 89)}%, -${
+              37 * ((leverage - 11) / 89)
             }%)`,
           }}
         />

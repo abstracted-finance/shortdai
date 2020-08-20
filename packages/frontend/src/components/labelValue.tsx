@@ -12,11 +12,12 @@ const LabelValue: React.FC<LabelValueProps> = ({
   children,
   inline,
   icon,
+  textAlign = "center",
   ...props
 }) => {
   const theme = useTheme();
   return (
-    <Box {...props}>
+    <Box textAlign={textAlign} {...props}>
       {inline ? (
         <Typography variant="h6">
           {label}:{" "}
@@ -31,7 +32,13 @@ const LabelValue: React.FC<LabelValueProps> = ({
             <Box
               height={24}
               display="flex"
-              justifyContent="center"
+              justifyContent={
+                textAlign === "left"
+                  ? "flex-start"
+                  : textAlign === "right"
+                  ? "flex-end"
+                  : "center"
+              }
               alignItems="center"
             >
               {children}
