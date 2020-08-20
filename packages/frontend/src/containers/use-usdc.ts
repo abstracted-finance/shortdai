@@ -81,7 +81,7 @@ function useUsdc() {
 
     getUsdcBalances();
     getDaiUsdcRates();
-  }, [connected, signer, contracts]);
+  }, [connected, proxyAddress, signer, contracts]);
 
   return {
     approveUsdc,

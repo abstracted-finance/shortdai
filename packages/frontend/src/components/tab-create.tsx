@@ -7,6 +7,7 @@ import {
   Paper,
   Slider,
   Typography,
+  createStyles,
 } from "@material-ui/core";
 import { CONSTANTS } from "@shortdai/smart-contracts";
 import { ethers } from "ethers";
@@ -18,11 +19,14 @@ import useShortDaiState, {
 } from "../containers/use-shortdai-state";
 import useUsdc from "../containers/use-usdc";
 import useCdps from "../containers/use-cdps";
+import useMakerStats from "../containers/use-maker-stats";
 import { prettyStringDecimals } from "./utils";
+import { theme } from "./theme";
 
 const TabCreate = ({ leverage, setLeverage }) => {
   const classes = useStyles();
 
+  const { stabilityApy } = useMakerStats.useContainer();
   const {
     getFlashloanDaiAmount,
     openShortDaiPosition,
@@ -49,7 +53,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
 
   const flashloanDaiAmount = getFlashloanDaiAmount(
     usdcPrincipalBN,
-    leverage - 10
+    leverage
   );
   const borrowingStr = prettyStringDecimals(
     ethers.utils.formatUnits(flashloanDaiAmount, 18)
@@ -76,6 +80,9 @@ const TabCreate = ({ leverage, setLeverage }) => {
       ) / 1000;
   const newCRStr = prettyStringDecimals(newCR.toString()) + "%";
 
+  const stabilityApyStr =
+    stabilityApy === null ? "..." : (stabilityApy * 100).toFixed(2) + "%";
+
   const validUsdcPrincipal =
     usdcPrincipalBN.lte(usdcBal6 || ethers.constants.Zero) &&
     usdcPrincipalBN.gt(ethers.constants.Zero);
@@ -89,8 +96,35 @@ const TabCreate = ({ leverage, setLeverage }) => {
     }
   }
 
+  // < 1% difference
+  const daiUsdcBalApproximated6 =
+    daiUsdcRatio6 === null
+      ? null
+      : daiUsdcRatio6
+          .div(ethers.utils.parseUnits("1", 4))
+          .mul(ethers.utils.parseUnits("1", 4));
+
+  const isDaiCloseToUsdc =
+    daiUsdcBalApproximated6 === null
+      ? false
+      : daiUsdcBalApproximated6.eq(ethers.utils.parseUnits("1", 6));
+
   return (
     <>
+      <Collapse in={isDaiCloseToUsdc}>
+        <Paper className={classes.warningPaper} variant="outlined">
+          <Box p={2.5}>
+            <Typography variant="h6" component="p">
+              <Box color={theme.palette.warning.main}>WARNING</Box>
+              DAI is close to its peg. Opening a short position will likely
+              result in losses.
+            </Typography>
+          </Box>
+        </Paper>
+      </Collapse>
+
+      <Box height={16} />
+
       <Paper variant="outlined">
         <Box p={2.5}>
           <Box display="flex" justifyContent="space-between">
@@ -150,7 +184,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
                   setLeverage(newValue);
                 }}
                 min={11}
-                max={109}
+                max={100}
               />
             </Box>
           </Box>
@@ -172,6 +206,11 @@ const TabCreate = ({ leverage, setLeverage }) => {
                 <Typography variant="h6">Borrowing (DAI)</Typography>
                 <Typography color="error">{borrowingStr}</Typography>
               </Box>
+            </Box>
+
+            <Box mt={2} textAlign="center">
+              <Typography variant="h6">Stability Fee</Typography>
+              <Typography>{stabilityApyStr}</Typography>
             </Box>
           </Collapse>
         </Box>
@@ -208,10 +247,9 @@ const TabCreate = ({ leverage, setLeverage }) => {
             if (shortDaiState === ShortDaiState.READY) {
               const usdcPrincipal6 = ethers.utils.parseUnits(usdcPrincipal, 6);
 
-              // (Leverage - 10) because we're using "cents"
               // i.e. leverage 15 = x1.5
               // And because we wanna minus initial usdcPrincipal6
-              await openShortDaiPosition(0, usdcPrincipal6, leverage - 10);
+              await openShortDaiPosition(0, usdcPrincipal6, leverage);
               await Promise.all([
                 getShortDaiState(),
                 getUsdcBalances(),
@@ -248,19 +286,24 @@ const TabCreate = ({ leverage, setLeverage }) => {
 
 export default TabCreate;
 
-export const useStyles = makeStyles({
-  leverage: {
-    position: "relative",
-    "&:after": {
-      position: "absolute",
-      content: "'x'",
-      top: 0,
-      right: -20,
-      height: "100%",
-      fontSize: 24,
-      color: "grey",
-      display: "flex",
-      alignItems: "center",
+export const useStyles = makeStyles((theme) =>
+  createStyles({
+    leverage: {
+      position: "relative",
+      "&:after": {
+        position: "absolute",
+        content: "'x'",
+        top: 0,
+        right: -20,
+        height: "100%",
+        fontSize: 24,
+        color: "grey",
+        display: "flex",
+        alignItems: "center",
+      },
     },
-  },
-});
+    warningPaper: {
+      border: `1px solid ${theme.palette.warning.main}`,
+    },
+  })
+);

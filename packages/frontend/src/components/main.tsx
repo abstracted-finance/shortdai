@@ -33,7 +33,7 @@ const Main = () => {
   const { connected, isConnecting, connect } = useWeb3.useContainer();
   const { daiUsdcRatio6 } = useUsdc.useContainer();
 
-  const [leverage, setLeverage] = useState<number>(79);
+  const [leverage, setLeverage] = useState<number>(69);
   const [selectedTab, setSelectedTab] = useState<Tabs>(Tabs.CREATE);
 
   return (
