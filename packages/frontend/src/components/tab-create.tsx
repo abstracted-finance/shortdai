@@ -53,7 +53,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
 
   const flashloanDaiAmount = getFlashloanDaiAmount(
     usdcPrincipalBN,
-    leverage - 10
+    leverage
   );
   const borrowingStr = prettyStringDecimals(
     ethers.utils.formatUnits(flashloanDaiAmount, 18)
@@ -184,7 +184,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
                   setLeverage(newValue);
                 }}
                 min={11}
-                max={109}
+                max={100}
               />
             </Box>
           </Box>
@@ -247,10 +247,9 @@ const TabCreate = ({ leverage, setLeverage }) => {
             if (shortDaiState === ShortDaiState.READY) {
               const usdcPrincipal6 = ethers.utils.parseUnits(usdcPrincipal, 6);
 
-              // (Leverage - 10) because we're using "cents"
               // i.e. leverage 15 = x1.5
               // And because we wanna minus initial usdcPrincipal6
-              await openShortDaiPosition(0, usdcPrincipal6, leverage - 10);
+              await openShortDaiPosition(0, usdcPrincipal6, leverage);
               await Promise.all([
                 getShortDaiState(),
                 getUsdcBalances(),
