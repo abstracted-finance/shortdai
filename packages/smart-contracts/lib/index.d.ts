@@ -12,6 +12,7 @@ export interface EthersContracts {
     IProxyRegistry: ethers.Contract;
     IDssCdpManager: ethers.Contract;
     IGetCdps: ethers.Contract;
+    JugLike: ethers.Contract;
     VatLike: ethers.Contract;
     OpenShortDAI: ethers.Contract;
     CloseShortDAI: ethers.Contract;
