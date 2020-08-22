@@ -22,6 +22,7 @@ import useCdps from "../containers/use-cdps";
 import useMakerStats from "../containers/use-maker-stats";
 import { prettyStringDecimals } from "./utils";
 import { theme } from "./theme";
+import LabelValue from "./label-value";
 
 const TabCreate = ({ leverage, setLeverage }) => {
   const classes = useStyles();
@@ -209,40 +210,35 @@ const TabCreate = ({ leverage, setLeverage }) => {
           </Box>
 
           <Collapse in={validUsdcPrincipal}>
-            <Box textAlign="center">
-              <Typography variant="h6">Collateralization Ratio</Typography>
-              <Typography>{newCRStr}</Typography>
+            <Box display="flex" width="80%" mx="auto">
+              <LabelValue flex={1} label="Collat. Ratio">
+                {newCRStr}
+              </LabelValue>
+              <LabelValue flex={1} label="Stability Fee">
+                {stabilityApyStr}
+              </LabelValue>
             </Box>
 
             <Box mt={2} display="flex" alignItems="center">
-              <Box flex={1} textAlign="center">
-                <Typography variant="h6">Supplying (USDC)</Typography>
-                <Typography color="primary">{supplyingStr}</Typography>
-              </Box>
+              <LabelValue flex={1} label="Collateral" icon="usdc">
+                {supplyingStr}
+              </LabelValue>
 
               <img src="/maker.png" width={48} />
 
-              <Box flex={1} textAlign="center">
-                <Typography variant="h6">Borrowing (DAI)</Typography>
-                <Typography color="error">{borrowingStr}</Typography>
-              </Box>
+              <LabelValue flex={1} label="Total Exposure" icon="dai">
+                {borrowingStr}
+              </LabelValue>
             </Box>
 
-            <Box mt={2} textAlign="center">
-              <Typography variant="h6">Stability Fee</Typography>
-              <Typography>{stabilityApyStr}</Typography>
-            </Box>
-
-            <Box mt={2}>
-              <Typography variant="h6" component="p">
-                <Box color={theme.palette.text.secondary}>
-                  Estimated Returns
-                </Box>
-                <Box color={theme.palette.text.primary}>
-                  If 1 DAI = 1 USDC, ROI is{" "}
-                  {prettyStringDecimals(estimatedReturnsString, 2)} USDC
-                </Box>
-              </Typography>
+            <Box mt={3}>
+              <LabelValue
+                color={theme.palette.primary.main}
+                label="Estimated returns, if 1:1"
+                icon="usdc"
+              >
+                {prettyStringDecimals(estimatedReturnsString, 2)}
+              </LabelValue>
             </Box>
           </Collapse>
         </Box>
@@ -356,6 +352,11 @@ export const useStyles = makeStyles((theme) =>
     },
     successPaper: {
       border: `1px solid ${theme.palette.success.main}`,
+    },
+    tokenIcon: {
+      width: 15,
+      height: 15,
+      marginLeft: 4,
     },
   })
 );
