@@ -8,7 +8,7 @@ export const theme = createMuiTheme({
       main: "#2e7d32",
     },
     secondary: {
-      main: "#ff3d00",
+      main: defaultTheme.palette.error.main,
     },
     background: {
       paper: "rgb(33, 36, 41)",
