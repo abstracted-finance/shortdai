@@ -47,15 +47,23 @@ const Main = () => {
           position="relative"
           zIndex={1}
         >
-          <Box p={1} mb={4} textAlign="center">
-            <Typography variant="h5">
-              1.000 DAI ={" "}
+          <Typography variant="h5">
+            <Box
+              p={1}
+              mb={4}
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+            >
+              1
+              <img src="/dai.png" className={classes.tokenIcon} />{" "}
+              <Box mx={1.5}>=</Box>
               {daiUsdcRatio6 === null || daiUsdcRatio6.eq(ethers.constants.Zero)
                 ? "..."
                 : ethers.utils.formatUnits(daiUsdcRatio6, 6)}{" "}
-              USDC
-            </Typography>
-          </Box>
+              <img src="/usdc.png" className={classes.tokenIcon} />
+            </Box>
+          </Typography>
 
           <Collapse in={selectedTab === Tabs.CREATE}>
             <TabCreate leverage={leverage} setLeverage={setLeverage} />
@@ -190,6 +198,11 @@ export const useStyles = makeStyles((theme) =>
       marginTop: -12,
       border: 0,
       backgroundColor: theme.palette.background.paper + " !important",
+    },
+    tokenIcon: {
+      marginLeft: 4,
+      width: 24,
+      height: 24,
     },
   })
 );
