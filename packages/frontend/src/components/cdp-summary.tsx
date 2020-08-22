@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Paper,
-  makeStyles,
-  Box,
-  Typography,
-  Button,
-  darken,
-} from "@material-ui/core";
+import { Paper, makeStyles, Box, Button } from "@material-ui/core";
 import ethers from "ethers";
 import { CONSTANTS } from "@shortdai/smart-contracts";
 
@@ -17,7 +10,7 @@ import useContracts from "../containers/use-contracts";
 import useUsdc from "../containers/use-usdc";
 import useProxy from "../containers/use-proxy";
 import { theme } from "./theme";
-import LabelValue from "./labelValue";
+import LabelValue from "./label-value";
 
 interface CdpSummaryProps {
   cdp: Cdp;
@@ -128,17 +121,11 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
     openedDaiUsdcRatio6 &&
     borrowed.mul(openedDaiUsdcRatio6).div(ethers.utils.parseUnits("1", 6));
 
-  console.log("borrowedUsdc", borrowedUsdc && borrowedUsdc.toString());
-
   // Initial Capital
   const initialCap = borrowedUsdc && supplied && supplied.sub(borrowedUsdc);
 
-  console.log("initialCap", initialCap && initialCap.toString());
-
   // Leverage
-  const leverage = initialCap && borrowedUsdc.div(initialCap);
-
-  console.log("leverage", leverage && leverage.toString());
+  const leverage = initialCap && borrowedUsdc.mul(decimal18).div(initialCap);
 
   // Percentage difference in 6 decimal places
   const daiUsdcRatio6DeltaPercentage6 = daiUsdcRatio6Delta
@@ -153,7 +140,10 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
 
   // Collateralization Ratio 18 decimals
   const cr18 =
-    supplied === null || supplied.eq(ethers.constants.Zero)
+    supplied === null ||
+    borrowed === null ||
+    supplied.eq(ethers.constants.Zero) ||
+    borrowed.eq(ethers.constants.Zero)
       ? null
       : supplied.mul(decimal18).div(borrowed);
 
@@ -162,10 +152,16 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
   const borrowedDaiString = bigIntToString(borrowed);
   const plString = (negative ? "-" : "+") + "$" + bigIntToString(pl18, 18);
   const crString = bigIntToString(cr18, 16) + "%";
-  const leverageString = leverage && leverage.toNumber().toFixed(1) + "x";
+  const leverageString = leverage && bigIntToString(leverage, 18, 1) + "x";
 
-  function bigIntToString(x: null | ethers.ethers.BigNumberish, dec = 18) {
-    return x ? prettyStringDecimals(ethers.utils.formatUnits(x, dec)) : "...";
+  function bigIntToString(
+    x: null | ethers.ethers.BigNumberish,
+    dec = 18,
+    fixed = 2
+  ) {
+    return x
+      ? prettyStringDecimals(ethers.utils.formatUnits(x, dec), fixed)
+      : "...";
   }
 
   return (

@@ -50,7 +50,7 @@ const Main = () => {
           <Box p={1} mb={4} textAlign="center">
             <Typography variant="h5">
               1.000 DAI ={" "}
-              {daiUsdcRatio6 === null
+              {daiUsdcRatio6 === null || daiUsdcRatio6.eq(ethers.constants.Zero)
                 ? "..."
                 : ethers.utils.formatUnits(daiUsdcRatio6, 6)}{" "}
               USDC

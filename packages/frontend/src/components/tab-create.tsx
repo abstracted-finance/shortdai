@@ -51,10 +51,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
     CONSTANTS.ERC20_DECIMALS.USDC
   );
 
-  const flashloanDaiAmount = getFlashloanDaiAmount(
-    usdcPrincipalBN,
-    leverage
-  );
+  const flashloanDaiAmount = getFlashloanDaiAmount(usdcPrincipalBN, leverage);
   const borrowingStr = prettyStringDecimals(
     ethers.utils.formatUnits(flashloanDaiAmount, 18)
   );
@@ -87,6 +84,27 @@ const TabCreate = ({ leverage, setLeverage }) => {
     usdcPrincipalBN.lte(usdcBal6 || ethers.constants.Zero) &&
     usdcPrincipalBN.gt(ethers.constants.Zero);
 
+  // Estimated returns
+  const estimatedReturnsString = ethers.utils.formatUnits(
+    flashloanDaiAmount
+      .mul(daiUsdcRatio6)
+      .div(ethers.utils.parseUnits("1", 6))
+      .sub(flashloanDaiAmount),
+    18
+  );
+
+  // < 1% difference
+  const daiUsdcBalApproximated6 = daiUsdcRatio6.eq(ethers.constants.Zero)
+    ? null
+    : daiUsdcRatio6
+        .div(ethers.utils.parseUnits("1", 4))
+        .mul(ethers.utils.parseUnits("1", 4));
+
+  const isDaiCloseToUsdc =
+    daiUsdcBalApproximated6 === null
+      ? false
+      : daiUsdcBalApproximated6.eq(ethers.utils.parseUnits("1", 6));
+
   function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
     const {
       target: { value },
@@ -96,28 +114,29 @@ const TabCreate = ({ leverage, setLeverage }) => {
     }
   }
 
-  // < 1% difference
-  const daiUsdcBalApproximated6 =
-    daiUsdcRatio6 === null
-      ? null
-      : daiUsdcRatio6
-          .div(ethers.utils.parseUnits("1", 4))
-          .mul(ethers.utils.parseUnits("1", 4));
-
-  const isDaiCloseToUsdc =
-    daiUsdcBalApproximated6 === null
-      ? false
-      : daiUsdcBalApproximated6.eq(ethers.utils.parseUnits("1", 6));
-
   return (
     <>
+      <Collapse
+        in={!isDaiCloseToUsdc && !daiUsdcRatio6.eq(ethers.constants.Zero)}
+      >
+        <Paper className={classes.successPaper} variant="outlined">
+          <Box p={2.5}>
+            <Typography variant="h6" component="p">
+              <Box color={theme.palette.success.main}>INFO</Box>
+              DAI is trading at a premium. We recommend opening a short
+              position.
+            </Typography>
+          </Box>
+        </Paper>
+      </Collapse>
+
       <Collapse in={isDaiCloseToUsdc}>
         <Paper className={classes.warningPaper} variant="outlined">
           <Box p={2.5}>
             <Typography variant="h6" component="p">
               <Box color={theme.palette.warning.main}>WARNING</Box>
-              DAI is close to its peg. Opening a short position will likely
-              result in losses.
+              DAI is close to its peg. We recommend that you close any existing
+              positions and avoid opening new ones.
             </Typography>
           </Box>
         </Paper>
@@ -194,6 +213,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
               <Typography variant="h6">Collateralization Ratio</Typography>
               <Typography>{newCRStr}</Typography>
             </Box>
+
             <Box mt={2} display="flex" alignItems="center">
               <Box flex={1} textAlign="center">
                 <Typography variant="h6">Supplying (USDC)</Typography>
@@ -212,9 +232,35 @@ const TabCreate = ({ leverage, setLeverage }) => {
               <Typography variant="h6">Stability Fee</Typography>
               <Typography>{stabilityApyStr}</Typography>
             </Box>
+
+            <Box mt={2}>
+              <Typography variant="h6" component="p">
+                <Box color={theme.palette.text.secondary}>
+                  Estimated Returns
+                </Box>
+                <Box color={theme.palette.text.primary}>
+                  If 1 DAI = 1 USDC, ROI is{" "}
+                  {prettyStringDecimals(estimatedReturnsString, 2)} USDC
+                </Box>
+              </Typography>
+            </Box>
           </Collapse>
         </Box>
       </Paper>
+
+      <Collapse in={leverage > 80 && stabilityApy > 0}>
+        <Box mt={2}>
+          <Paper className={classes.errorPaper} variant="outlined">
+            <Box p={2.5}>
+              <Typography variant="h6" component="p">
+                <Box color={theme.palette.error.main}>DANGER</Box>
+                Stability fees are non-zero. Potential liquidation penalties
+                might apply if position is left opened for too long.
+              </Typography>
+            </Box>
+          </Paper>
+        </Box>
+      </Collapse>
 
       <Box mt={2}>
         <Button
@@ -304,6 +350,12 @@ export const useStyles = makeStyles((theme) =>
     },
     warningPaper: {
       border: `1px solid ${theme.palette.warning.main}`,
+    },
+    errorPaper: {
+      border: `1px solid ${theme.palette.error.main}`,
+    },
+    successPaper: {
+      border: `1px solid ${theme.palette.success.main}`,
     },
   })
 );
