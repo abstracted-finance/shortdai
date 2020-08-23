@@ -224,7 +224,9 @@ const TabCreate = ({ leverage, setLeverage }) => {
                 {supplyingStr}
               </LabelValue>
 
-              <img src="/maker.png" width={48} />
+              <Box px={2}>
+                <img src="/maker.png" width={48} />
+              </Box>
 
               <LabelValue flex={1} label="Total Exposure" icon="dai">
                 {borrowingStr}
