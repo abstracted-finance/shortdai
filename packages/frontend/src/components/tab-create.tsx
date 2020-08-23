@@ -239,7 +239,9 @@ const TabCreate = ({ leverage, setLeverage }) => {
                 label="Estimated returns, if 1:1"
                 icon="usdc"
               >
-                {prettyStringDecimals(estimatedReturnsString, 2)}
+                <Box fontSize={22}>
+                  {prettyStringDecimals(estimatedReturnsString, 2)}
+                </Box>
               </LabelValue>
             </Box>
           </Collapse>
