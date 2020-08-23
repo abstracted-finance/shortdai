@@ -1,6 +1,6 @@
 import { Box, Typography, useTheme, BoxProps } from "@material-ui/core";
 
-interface LabelValueProps extends BoxProps {
+export interface LabelValueProps extends BoxProps {
   label: string;
   children: string | number;
   inline?: boolean;

@@ -149,7 +149,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
         <Box p={2.5}>
           <Box display="flex" justifyContent="space-between">
             <Typography variant="h6" component="p">
-              Principal
+              Initial Capital
             </Typography>
 
             <Typography variant="h6" component="p">
@@ -304,24 +304,24 @@ const TabCreate = ({ leverage, setLeverage }) => {
             }
           }}
         >
-          {shortDaiState === ShortDaiState.PENDING && "INTIALIZING"}
+          {shortDaiState === ShortDaiState.PENDING && "Initializing..."}
           {shortDaiState === ShortDaiState.NOT_CONNECTED &&
-            "CONNECT WALLET TO CONTINUE"}
-          {shortDaiState === ShortDaiState.SETUP_PROXY && "SETUP"}
-          {shortDaiState === ShortDaiState.APPROVE_USDC && "APPROVE"}
+            "Connect wallet to continue"}
+          {shortDaiState === ShortDaiState.SETUP_PROXY && "Setup"}
+          {shortDaiState === ShortDaiState.APPROVE_USDC && "Approve USDC"}
           {shortDaiState === ShortDaiState.READY && !validUsdcPrincipal
             ? usdcPrincipal === ""
-              ? "ENTER PRINCIPAL AMOUNT"
-              : "INVALID PRINCIPAL AMOUNT"
+              ? "Enter initial capital"
+              : "Invalid initial capital"
             : null}
           {shortDaiState === ShortDaiState.READY &&
             validUsdcPrincipal &&
             !hasMinDaiAmount &&
-            "MIN BORROW IS 100 DAI"}
+            "Min. burrow is 100 DAI"}
           {shortDaiState === ShortDaiState.READY &&
             validUsdcPrincipal &&
             hasMinDaiAmount &&
-            "OPEN"}
+            "Open short position"}
         </Button>
       </Box>
     </>
