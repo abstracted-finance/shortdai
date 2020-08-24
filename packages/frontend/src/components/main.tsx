@@ -3,26 +3,26 @@ import {
   Button,
   Collapse,
   createStyles,
+  Fade,
+  ListItemIcon,
   makeStyles,
   Menu,
   MenuItem,
   Paper,
   Typography,
-  useMediaQuery,
   useTheme,
-  ListItemIcon,
-  Fade,
 } from "@material-ui/core";
+import Contracts from "@shortdai/smart-contracts/deployed/mainnet/deployed.json";
 import cn from "classnames";
 import { ethers } from "ethers";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import useCdps from "../containers/use-cdps";
 import useUsdc from "../containers/use-usdc";
 import useWeb3 from "../containers/use-web3";
 import { ConnectButton } from "./connect-button";
+import { useDesktop } from "./hooks";
 import TabCreate from "./tab-create";
 import TabManage from "./tab-manage";
-import Contracts from "@shortdai/smart-contracts/deployed/mainnet/deployed.json";
 
 enum Tabs {
   CREATE,
@@ -32,7 +32,7 @@ enum Tabs {
 const Main = () => {
   const classes = useStyles();
   const theme = useTheme();
-  const isDesktop = useMediaQuery("(min-width:600px)");
+  const isDesktop = useDesktop();
 
   const { cdps } = useCdps.useContainer();
   const { connected, isConnecting, connect } = useWeb3.useContainer();
@@ -102,7 +102,8 @@ const Main = () => {
           </Box>
         </Button>
       </Box>
-      <Box className={classes.root} minHeight="100vh" py={isDesktop ? 20 : 8}>
+
+      <Box className={classes.root} minHeight="100vh" py={isDesktop ? 20 : 16}>
         <Box
           mx="auto"
           width={450}
@@ -114,14 +115,14 @@ const Main = () => {
             width="100%"
             bgcolor={theme.palette.background.paper}
             borderRadius={30}
-            p={4}
+            p={isDesktop ? 4 : 2}
             position="relative"
             zIndex={1}
           >
             <Typography variant="h5">
               <Box
                 p={1}
-                mb={4}
+                mb={isDesktop ? 4 : 2}
                 display="flex"
                 justifyContent="center"
                 alignItems="center"
