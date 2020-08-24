@@ -45,11 +45,10 @@ export const theme = createMuiTheme({
     },
     MuiInputBase: {
       input: {
-        height: 32,
+        lineHeight: "32px",
         fontSize: 32,
         textOverflow: "ellipsis",
         padding: 0,
-        verticalAlign: "middle",
       },
     },
   },
