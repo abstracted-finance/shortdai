@@ -25,6 +25,9 @@ export const theme = createMuiTheme({
   },
   overrides: {
     MuiButton: {
+      text: {
+        paddingLeft: 14,
+      },
       contained: {
         boxShadow: defaultTheme.shadows[0],
         "&:hover, &:active": {
