@@ -249,7 +249,6 @@ export const useStyles = makeStyles((theme) =>
       left: "50%",
       width: "85%",
       transform: "translate(-50%, -124px)",
-      height: "100px",
       paddingTop: 24,
     },
     bottomDrawerShow: {
