@@ -3,6 +3,7 @@ import {
   Button,
   Collapse,
   createStyles,
+  IconButton,
   makeStyles,
   Paper,
   Typography,
@@ -37,104 +38,125 @@ const Main = () => {
   const [selectedTab, setSelectedTab] = useState<Tabs>(Tabs.CREATE);
 
   return (
-    <Box className={classes.root} minHeight="100vh" py={isDesktop ? 20 : 8}>
-      <Box mx="auto" width={450} maxWidth="90%" position="relative" zIndex={1}>
+    <>
+      <Box position="absolute" right={0} p={2}>
+        <IconButton
+          onClick={() =>
+            window.open(
+              "https://github.com/abstracted-finance/shortdai",
+              "_blank"
+            )
+          }
+        >
+          <img src="/github.png" width={24} height={24} />
+        </IconButton>
+      </Box>
+      <Box className={classes.root} minHeight="100vh" py={isDesktop ? 20 : 8}>
         <Box
-          width="100%"
-          bgcolor={theme.palette.background.paper}
-          borderRadius={30}
-          p={4}
+          mx="auto"
+          width={450}
+          maxWidth="90%"
           position="relative"
           zIndex={1}
         >
-          <Typography variant="h5">
-            <Box
-              p={1}
-              mb={4}
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-            >
-              1
-              <img src="/dai.png" className={classes.tokenIcon} />{" "}
-              <Box mx={1.5}>=</Box>
-              {daiUsdcRatio6 === null || daiUsdcRatio6.eq(ethers.constants.Zero)
-                ? "..."
-                : ethers.utils.formatUnits(daiUsdcRatio6, 6)}{" "}
-              <img src="/usdc.png" className={classes.tokenIcon} />
+          <Box
+            width="100%"
+            bgcolor={theme.palette.background.paper}
+            borderRadius={30}
+            p={4}
+            position="relative"
+            zIndex={1}
+          >
+            <Typography variant="h5">
+              <Box
+                p={1}
+                mb={4}
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+              >
+                1
+                <img src="/dai.png" className={classes.tokenIcon} />{" "}
+                <Box mx={1.5}>=</Box>
+                {daiUsdcRatio6 === null ||
+                daiUsdcRatio6.eq(ethers.constants.Zero)
+                  ? "..."
+                  : ethers.utils.formatUnits(daiUsdcRatio6, 6)}{" "}
+                <img src="/usdc.png" className={classes.tokenIcon} />
+              </Box>
+            </Typography>
+
+            <Collapse in={selectedTab === Tabs.CREATE}>
+              <TabCreate leverage={leverage} setLeverage={setLeverage} />
+            </Collapse>
+
+            <Collapse in={selectedTab === Tabs.MANAGE}>
+              <TabManage />
+            </Collapse>
+          </Box>
+
+          <img
+            className={classes.pickle}
+            src="/pickle.png"
+            alt="pickle"
+            style={{
+              transform: `translate(${41 * ((leverage - 11) / 89)}%, -${
+                37 * ((leverage - 11) / 89)
+              }%)`,
+            }}
+          />
+
+          <Box className={cn(classes.drawer, classes.topDrawer)} display="flex">
+            <Box display="flex">
+              <Button
+                variant="outlined"
+                onClick={() => setSelectedTab(Tabs.CREATE)}
+                size="large"
+                className={cn(classes.tabButton, {
+                  [classes.tabButtonActive]: selectedTab === Tabs.CREATE,
+                })}
+              >
+                CREATE
+              </Button>
+
+              <Button
+                variant="outlined"
+                onClick={() => setSelectedTab(Tabs.MANAGE)}
+                size="large"
+                className={cn(classes.tabButton, {
+                  [classes.tabButtonActive]: selectedTab === Tabs.MANAGE,
+                })}
+              >
+                MANAGE{cdps.length ? ` (${cdps.length})` : ""}
+              </Button>
             </Box>
-          </Typography>
-
-          <Collapse in={selectedTab === Tabs.CREATE}>
-            <TabCreate leverage={leverage} setLeverage={setLeverage} />
-          </Collapse>
-
-          <Collapse in={selectedTab === Tabs.MANAGE}>
-            <TabManage />
-          </Collapse>
-        </Box>
-
-        <img
-          className={classes.pickle}
-          src="/pickle.png"
-          alt="pickle"
-          style={{
-            transform: `translate(${41 * ((leverage - 11) / 89)}%, -${
-              37 * ((leverage - 11) / 89)
-            }%)`,
-          }}
-        />
-
-        <Box className={cn(classes.drawer, classes.topDrawer)} display="flex">
-          <Box display="flex">
-            <Button
-              variant="outlined"
-              onClick={() => setSelectedTab(Tabs.CREATE)}
-              size="large"
-              className={cn(classes.tabButton, {
-                [classes.tabButtonActive]: selectedTab === Tabs.CREATE,
-              })}
-            >
-              CREATE
-            </Button>
-
-            <Button
-              variant="outlined"
-              onClick={() => setSelectedTab(Tabs.MANAGE)}
-              size="large"
-              className={cn(classes.tabButton, {
-                [classes.tabButtonActive]: selectedTab === Tabs.MANAGE,
-              })}
-            >
-              MANAGE{cdps.length ? ` (${cdps.length})` : ""}
-            </Button>
           </Box>
-        </Box>
 
-        <Paper
-          variant="outlined"
-          className={cn(classes.drawer, classes.bottomDrawer, {
-            [classes.bottomDrawerShow]: !connected,
-          })}
-        >
-          <Box p={2}>
-            <ConnectButton
-              fullWidth
-              name="metamask"
-              variant="outlined"
-              disabled={isConnecting}
-              onClick={connect}
-            >
-              {connected
-                ? "CONNECTED!"
-                : isConnecting
-                ? "CONNECTING ..."
-                : "CONNECT"}
-            </ConnectButton>
-          </Box>
-        </Paper>
+          <Paper
+            variant="outlined"
+            className={cn(classes.drawer, classes.bottomDrawer, {
+              [classes.bottomDrawerShow]: !connected,
+            })}
+          >
+            <Box p={2}>
+              <ConnectButton
+                fullWidth
+                name="metamask"
+                variant="outlined"
+                disabled={isConnecting}
+                onClick={connect}
+              >
+                {connected
+                  ? "CONNECTED!"
+                  : isConnecting
+                  ? "CONNECTING ..."
+                  : "CONNECT"}
+              </ConnectButton>
+            </Box>
+          </Paper>
+        </Box>
       </Box>
-    </Box>
+    </>
   );
 };
 
