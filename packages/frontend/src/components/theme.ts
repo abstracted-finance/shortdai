@@ -45,6 +45,7 @@ export const theme = createMuiTheme({
     },
     MuiInputBase: {
       input: {
+        height: 32,
         fontSize: 32,
         textOverflow: "ellipsis",
         padding: 0,

@@ -120,30 +120,34 @@ const TabCreate = ({ leverage, setLeverage }) => {
       <Collapse
         in={!isDaiCloseToUsdc && !daiUsdcRatio6.eq(ethers.constants.Zero)}
       >
-        <Paper className={classes.successPaper} variant="outlined">
-          <Box p={2.5}>
-            <Typography variant="h6" component="p">
-              <Box color={theme.palette.success.main}>INFO</Box>
-              DAI is trading at a premium. We recommend opening a short
-              position.
-            </Typography>
-          </Box>
-        </Paper>
+        <>
+          <Paper className={classes.successPaper} variant="outlined">
+            <Box p={2.5}>
+              <Typography variant="h6" component="p">
+                <Box color={theme.palette.success.main}>INFO</Box>
+                DAI is trading at a premium. We recommend opening a short
+                position.
+              </Typography>
+            </Box>
+          </Paper>
+          <Box height={16} />
+        </>
       </Collapse>
 
       <Collapse in={isDaiCloseToUsdc}>
-        <Paper className={classes.warningPaper} variant="outlined">
-          <Box p={2.5}>
-            <Typography variant="h6" component="p">
-              <Box color={theme.palette.warning.main}>WARNING</Box>
-              DAI is close to its peg. We recommend that you close any existing
-              positions and avoid opening new ones.
-            </Typography>
-          </Box>
-        </Paper>
+        <>
+          <Paper className={classes.warningPaper} variant="outlined">
+            <Box p={2.5}>
+              <Typography variant="h6" component="p">
+                <Box color={theme.palette.warning.main}>WARNING</Box>
+                DAI is close to its peg. We recommend that you close any
+                existing positions and avoid opening new ones.
+              </Typography>
+            </Box>
+          </Paper>
+          <Box height={16} />
+        </>
       </Collapse>
-
-      <Box height={16} />
 
       <Paper variant="outlined">
         <Box p={2.5}>
