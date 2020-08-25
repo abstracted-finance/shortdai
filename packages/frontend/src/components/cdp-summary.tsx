@@ -10,7 +10,7 @@ import useContracts from "../containers/use-contracts";
 import useUsdc from "../containers/use-usdc";
 import useProxy from "../containers/use-proxy";
 import { theme } from "./theme";
-import LabelValue from "./label-value";
+import LabelValue, { LabelValueProps } from "./label-value";
 
 interface CdpSummaryProps {
   cdp: Cdp;
@@ -148,6 +148,7 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
       : supplied.mul(decimal18).div(borrowed);
 
   // Pretty strings
+  const openedRatioString = bigIntToString(openedDaiUsdcRatio6, 6, 6);
   const initialCapString = bigIntToString(initialCap);
   const borrowedDaiString = bigIntToString(borrowed);
   const plString = (negative ? "-" : "+") + "$" + bigIntToString(pl18, 18);
@@ -164,40 +165,55 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
       : "...";
   }
 
+  function renderRow(
+    leftProps: LabelValueProps,
+    middleProps: LabelValueProps,
+    rightProps: LabelValueProps
+  ) {
+    return (
+      <Box mb={2} display="flex">
+        <Box flex={1}>
+          <LabelValue textAlign="left" {...leftProps} />
+        </Box>
+        <Box flex={1}>
+          <LabelValue {...middleProps} />
+        </Box>
+        <Box flex={1}>
+          <LabelValue textAlign="right" {...rightProps} />
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <Paper className={classes.root} variant="outlined">
       <Box p={2.5}>
-        <Box mb={2} display="flex" justifyContent="space-between">
-          <LabelValue label="CDP ID" textAlign="left">
-            {cdp.cdpId}
-          </LabelValue>
-          <LabelValue label="CR" textAlign="right">
-            {crString}
-          </LabelValue>
-        </Box>
+        {renderRow(
+          { label: "CDP ID", children: cdp.cdpId },
+          { label: "Opened Ratio", children: openedRatioString },
+          { label: "Collat. Ratio", children: crString }
+        )}
 
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          <LabelValue label="Initial Capital" icon="usdc" textAlign="left">
-            {initialCapString}
-          </LabelValue>
-          <LabelValue label="Leverage">{leverageString}</LabelValue>
-          <LabelValue label="Total Exposure" icon="dai" textAlign="right">
-            {borrowedDaiString}
-          </LabelValue>
-        </Box>
+        {renderRow(
+          {
+            label: "Initial Capital",
+            children: initialCapString,
+            icon: "usdc",
+          },
+          { label: "Leverage", children: leverageString },
+          { label: "Total Exposure", children: borrowedDaiString, icon: "dai" }
+        )}
 
-        <Box mt={2}>
-          <Button
-            disabled={isClosingShort}
-            onClick={() => closeShortDaiPosition()}
-            color={negative ? "secondary" : "primary"}
-            variant="contained"
-            fullWidth
-          >
-            close position:&nbsp;
-            <strong>{plString}</strong>
-          </Button>
-        </Box>
+        <Button
+          disabled={isClosingShort}
+          onClick={() => closeShortDaiPosition()}
+          color={negative ? "secondary" : "primary"}
+          variant="contained"
+          fullWidth
+        >
+          close position:&nbsp;
+          <strong>{plString}</strong>
+        </Button>
       </Box>
     </Paper>
   );

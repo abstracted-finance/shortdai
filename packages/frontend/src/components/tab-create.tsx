@@ -22,6 +22,7 @@ import useCdps from "../containers/use-cdps";
 import useMakerStats from "../containers/use-maker-stats";
 import { prettyStringDecimals } from "./utils";
 import { theme } from "./theme";
+import LabelValue from "./label-value";
 
 const TabCreate = ({ leverage, setLeverage }) => {
   const classes = useStyles();
@@ -119,36 +120,40 @@ const TabCreate = ({ leverage, setLeverage }) => {
       <Collapse
         in={!isDaiCloseToUsdc && !daiUsdcRatio6.eq(ethers.constants.Zero)}
       >
-        <Paper className={classes.successPaper} variant="outlined">
-          <Box p={2.5}>
-            <Typography variant="h6" component="p">
-              <Box color={theme.palette.success.main}>INFO</Box>
-              DAI is trading at a premium. We recommend opening a short
-              position.
-            </Typography>
-          </Box>
-        </Paper>
+        <>
+          <Paper className={classes.successPaper} variant="outlined">
+            <Box p={2.5}>
+              <Typography variant="h6" component="p">
+                <Box color={theme.palette.success.main}>INFO</Box>
+                DAI is trading at a premium. We recommend opening a short
+                position.
+              </Typography>
+            </Box>
+          </Paper>
+          <Box height={16} />
+        </>
       </Collapse>
 
       <Collapse in={isDaiCloseToUsdc}>
-        <Paper className={classes.warningPaper} variant="outlined">
-          <Box p={2.5}>
-            <Typography variant="h6" component="p">
-              <Box color={theme.palette.warning.main}>WARNING</Box>
-              DAI is close to its peg. We recommend that you close any existing
-              positions and avoid opening new ones.
-            </Typography>
-          </Box>
-        </Paper>
+        <>
+          <Paper className={classes.warningPaper} variant="outlined">
+            <Box p={2.5}>
+              <Typography variant="h6" component="p">
+                <Box color={theme.palette.warning.main}>WARNING</Box>
+                DAI is close to its peg. We recommend that you close any
+                existing positions and avoid opening new ones.
+              </Typography>
+            </Box>
+          </Paper>
+          <Box height={16} />
+        </>
       </Collapse>
-
-      <Box height={16} />
 
       <Paper variant="outlined">
         <Box p={2.5}>
           <Box display="flex" justifyContent="space-between">
             <Typography variant="h6" component="p">
-              Principal
+              Initial Capital
             </Typography>
 
             <Typography variant="h6" component="p">
@@ -209,40 +214,39 @@ const TabCreate = ({ leverage, setLeverage }) => {
           </Box>
 
           <Collapse in={validUsdcPrincipal}>
-            <Box textAlign="center">
-              <Typography variant="h6">Collateralization Ratio</Typography>
-              <Typography>{newCRStr}</Typography>
+            <Box display="flex" width="80%" mx="auto">
+              <LabelValue flex={1} label="Collat. Ratio">
+                {newCRStr}
+              </LabelValue>
+              <LabelValue flex={1} label="Stability Fee">
+                {stabilityApyStr}
+              </LabelValue>
             </Box>
 
             <Box mt={2} display="flex" alignItems="center">
-              <Box flex={1} textAlign="center">
-                <Typography variant="h6">Supplying (USDC)</Typography>
-                <Typography color="primary">{supplyingStr}</Typography>
+              <LabelValue flex={1} label="Collateral" icon="usdc">
+                {supplyingStr}
+              </LabelValue>
+
+              <Box px={2}>
+                <img src="/maker.png" width={48} />
               </Box>
 
-              <img src="/maker.png" width={48} />
-
-              <Box flex={1} textAlign="center">
-                <Typography variant="h6">Borrowing (DAI)</Typography>
-                <Typography color="error">{borrowingStr}</Typography>
-              </Box>
+              <LabelValue flex={1} label="Total Exposure" icon="dai">
+                {borrowingStr}
+              </LabelValue>
             </Box>
 
-            <Box mt={2} textAlign="center">
-              <Typography variant="h6">Stability Fee</Typography>
-              <Typography>{stabilityApyStr}</Typography>
-            </Box>
-
-            <Box mt={2}>
-              <Typography variant="h6" component="p">
-                <Box color={theme.palette.text.secondary}>
-                  Estimated Returns
+            <Box mt={3}>
+              <LabelValue
+                color={theme.palette.primary.main}
+                label="Estimated returns, if 1:1"
+                icon="usdc"
+              >
+                <Box fontSize={22}>
+                  {prettyStringDecimals(estimatedReturnsString, 2)}
                 </Box>
-                <Box color={theme.palette.text.primary}>
-                  If 1 DAI = 1 USDC, ROI is{" "}
-                  {prettyStringDecimals(estimatedReturnsString, 2)} USDC
-                </Box>
-              </Typography>
+              </LabelValue>
             </Box>
           </Collapse>
         </Box>
@@ -306,24 +310,24 @@ const TabCreate = ({ leverage, setLeverage }) => {
             }
           }}
         >
-          {shortDaiState === ShortDaiState.PENDING && "INTIALIZING"}
+          {shortDaiState === ShortDaiState.PENDING && "Initializing..."}
           {shortDaiState === ShortDaiState.NOT_CONNECTED &&
-            "CONNECT WALLET TO CONTINUE"}
-          {shortDaiState === ShortDaiState.SETUP_PROXY && "SETUP"}
-          {shortDaiState === ShortDaiState.APPROVE_USDC && "APPROVE"}
+            "Connect wallet to continue"}
+          {shortDaiState === ShortDaiState.SETUP_PROXY && "Setup"}
+          {shortDaiState === ShortDaiState.APPROVE_USDC && "Approve USDC"}
           {shortDaiState === ShortDaiState.READY && !validUsdcPrincipal
             ? usdcPrincipal === ""
-              ? "ENTER PRINCIPAL AMOUNT"
-              : "INVALID PRINCIPAL AMOUNT"
+              ? "Enter initial capital"
+              : "Invalid initial capital"
             : null}
           {shortDaiState === ShortDaiState.READY &&
             validUsdcPrincipal &&
             !hasMinDaiAmount &&
-            "MIN BORROW IS 100 DAI"}
+            "Min. burrow is 100 DAI"}
           {shortDaiState === ShortDaiState.READY &&
             validUsdcPrincipal &&
             hasMinDaiAmount &&
-            "OPEN"}
+            "Open short position"}
         </Button>
       </Box>
     </>
@@ -356,6 +360,11 @@ export const useStyles = makeStyles((theme) =>
     },
     successPaper: {
       border: `1px solid ${theme.palette.success.main}`,
+    },
+    tokenIcon: {
+      width: 15,
+      height: 15,
+      marginLeft: 4,
     },
   })
 );

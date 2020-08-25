@@ -69,7 +69,7 @@ function useUsdc() {
 
     const daiUsdcRatio6 = daiUsdcRatio.div(ethers.BigNumber.from(1000000));
 
-    // setDaiUsdcRatio6(ethers.utils.parseUnits("1.0302", 6));
+    // setDaiUsdcRatio6(ethers.utils.parseUnits("0.999623", 6));
     setDaiUsdcRatio6(daiUsdcRatio6);
     setIsGettingDaiUsdcRatio(false);
 
