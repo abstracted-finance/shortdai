@@ -23,6 +23,9 @@ When DAI is back on peg:
 ## Addresses
 
 OpenShortDAI - [0xDa61467Ecd8566c67eB6d85E248dD1a91F804C30](https://etherscan.io/address/0xDa61467Ecd8566c67eB6d85E248dD1a91F804C30)
+
 CloseShortDAI - [0xd3522f3bEcf460DDCad3476fFc8539dD55664CEc](https://etherscan.io/address/0xd3522f3bEcf460DDCad3476fFc8539dD55664CEc)
+
 ShortDAIActions - [0x7a241132bfBF2E3d5Ba3b6112166373B02B83892](https://etherscan.io/address/0x7a241132bfBF2E3d5Ba3b6112166373B02B83892)
+
 VaultStats - [0x5101aE0715fC5b0fcd33c574A15D0047A8f6E1a1](https://etherscan.io/address/0x5101aE0715fC5b0fcd33c574A15D0047A8f6E1a1)
