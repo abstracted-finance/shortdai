@@ -39,7 +39,7 @@ function App({ Component, pageProps }: AppProps) {
                                 name="viewport"
                                 content="width=device-width, initial-scale=1.0"
                               />
-                              <title>PICKLE SHORT</title>
+                              <title>SHORT DAI</title>
                             </Head>
 
                             <Component {...pageProps} />
