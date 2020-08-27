@@ -279,6 +279,11 @@ const TabCreate = ({ leverage, setLeverage }) => {
             (shortDaiState === ShortDaiState.READY &&
               (!validUsdcPrincipal || !hasMinDaiAmount))
           }
+          startIcon={
+            shortDaiState === ShortDaiState.SETUP_PROXY && (
+              <img src="/maker-white.png" height={32} />
+            )
+          }
           size="large"
           fullWidth
           onClick={async () => {
@@ -313,7 +318,8 @@ const TabCreate = ({ leverage, setLeverage }) => {
           {shortDaiState === ShortDaiState.PENDING && "Initializing..."}
           {shortDaiState === ShortDaiState.NOT_CONNECTED &&
             "Connect wallet to continue"}
-          {shortDaiState === ShortDaiState.SETUP_PROXY && "Setup"}
+          {shortDaiState === ShortDaiState.SETUP_PROXY &&
+            "Setup Vault"}
           {shortDaiState === ShortDaiState.APPROVE_USDC && "Approve USDC"}
           {shortDaiState === ShortDaiState.READY && !validUsdcPrincipal
             ? usdcPrincipal === ""
