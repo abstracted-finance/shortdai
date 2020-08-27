@@ -9,7 +9,8 @@
     "clean": "buidler clean",
     "deploy:localhost": "node cli/index.js deploy -d deployed/localhost",
     "test": "yarn compile && jest",
-    "build:ts": "tsc && cp -r artifacts dist && cp -r deployed dist"
+    "build:ts": "tsc && cp -r artifacts dist && cp -r deployed dist",
+    "run:ganache": "ganache-cli -f https://mainnet.infura.io/v3/84842078b09946638c03157f83405213 -d -e 10000 --networkId 1"
   },
   "dependencies": {
     "@nomiclabs/buidler": "^1.4.3",

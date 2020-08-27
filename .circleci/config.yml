@@ -1,0 +1,24 @@
+version: 2
+jobs:
+  build-and-test:
+    docker:
+      - image: node:12.18.2
+    steps:
+      - checkout
+      - run:
+          name: "Test Smart Contracts"
+          no_output_timeout: 30m
+          command: |
+            mkdir ~/.npm-global
+            npm config set prefix '~/.npm-global'
+            export PATH=~/.npm-global/bin:$PATH
+            source ~/.profile
+            npx lerna bootstrap
+            cd packages/smart-contracts
+            yarn run:ganache &> ganache-output.log &
+            yarn test
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build-and-test

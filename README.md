@@ -1,5 +1,19 @@
 # Short DAI
 
+---
+
+| Package         |                                                                  Status                                                                   |
+| --------------- | :---------------------------------------------------------------------------------------------------------------------------------------: |
+| smart-contracts | [![CircleCI](https://circleci.com/gh/abstracted-finance/shortdai.svg?style=svg)](https://circleci.com/gh/abstracted-finance/shortdai) |
+
+
+---
+
+- [Frontend 1](http://shortdai.com/)
+- [Frontend 2](https://shortdai.netlify.app/).
+
+---
+
 Short DAI (with USDC) when DAI is trading at a premium. 0% fees.
 
 ## Description
