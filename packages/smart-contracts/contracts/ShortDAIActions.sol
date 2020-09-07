@@ -36,17 +36,18 @@ contract ShortDAIActions {
         address _solo,
         address _curvePool,
         uint256 _cdpId, // Set 0 for new vault
-        uint256 _initialMargin, // Initial amount of USDC
-        uint256 _flashloanAmount, // Amount of DAI to flashloan
+        uint256 _initialMarginUSDC, // Initial USDC margin
+        uint256 _mintAmountDAI, // Amount of DAI to mint
+        uint256 _flashloanAmountWETH, // Amount of WETH to flashloan
         address _vaultStats,
         uint256 _daiUsdcRatio6
-    ) external {
+    ) external payable {
         // Tries and get USDC from msg.sender to proxy
         require(
             IERC20(Constants.USDC).transferFrom(
                 msg.sender,
                 address(this),
-                _initialMargin
+                _initialMarginUSDC
             ),
             "initial-margin-transferFrom-failed"
         );
@@ -63,17 +64,17 @@ contract ShortDAIActions {
 
         // Transfers the initial margin (in USDC) to lsd contract
         require(
-            IERC20(Constants.USDC).transfer(_osd, _initialMargin),
+            IERC20(Constants.USDC).transfer(_osd, _initialMarginUSDC),
             "initial-margin-transfer-failed"
         );
         // Flashloan and shorts DAI
-        OpenShortDAI(_osd).flashloanAndOpen(
+        OpenShortDAI(_osd).flashloanAndOpen{value: msg.value}(
             msg.sender,
             _solo,
             _curvePool,
             cdpId,
-            _initialMargin,
-            _flashloanAmount
+            _mintAmountDAI,
+            _flashloanAmountWETH
         );
 
         // Forbids LSD contract to manage vault on behalf of user
@@ -83,22 +84,22 @@ contract ShortDAIActions {
         VaultStats(_vaultStats).setDaiUsdcRatio6(cdpId, _daiUsdcRatio6);
     }
 
-    function flashloanAndClose(
-        address _csd,
-        address _solo,
-        address _curvePool,
-        uint256 _cdpId
-    ) external {
-        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(_cdpId, _csd, 1);
+    // function flashloanAndClose(
+    //     address _csd,
+    //     address _solo,
+    //     address _curvePool,
+    //     uint256 _cdpId
+    // ) external {
+    //     IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(_cdpId, _csd, 1);
 
-        CloseShortDAI(_csd).flashloanAndClose(
-            msg.sender,
-            _solo,
-            _curvePool,
-            _cdpId
-        );
+    //     CloseShortDAI(_csd).flashloanAndClose(
+    //         msg.sender,
+    //         _solo,
+    //         _curvePool,
+    //         _cdpId
+    //     );
 
-        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(_cdpId, _csd, 0);
-        IDssCdpManager(Constants.CDP_MANAGER).give(_cdpId, address(1));
-    }
+    //     IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(_cdpId, _csd, 0);
+    //     IDssCdpManager(Constants.CDP_MANAGER).give(_cdpId, address(1));
+    // }
 }

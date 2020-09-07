@@ -4,6 +4,8 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
+import "./weth/WETH.sol";
+
 import "./dydx/DydxFlashloanBase.sol";
 import "./dydx/IDydx.sol";
 
@@ -19,8 +21,8 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
     // LeveragedShortDAI Params
     struct OSDParams {
         uint256 cdpId; // CDP Id to leverage
-        uint256 initialMargin; // Initial amount of USDC
-        uint256 flashloanAmount; // Amount of DAI flashloaned
+        uint256 mintAmountDAI; // Amount of DAI to mint
+        uint256 flashloanAmountWETH; // Amount of WETH flashloaned
         address curvePool;
     }
 
@@ -31,26 +33,46 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
     ) public override {
         OSDParams memory osdp = abi.decode(data, (OSDParams));
 
-        // Step 1.
-        // Converts Flashloaned DAI to USDC on CurveFi
-        // DAI = 0 index, USDC = 1 index
-        require(
-            IERC20(Constants.DAI).approve(osdp.curvePool, osdp.flashloanAmount),
-            "erc20-approve-curvepool-failed"
-        );
-
-        ICurveFiCurve(osdp.curvePool).exchange_underlying(
-            int128(0),
-            int128(1),
-            osdp.flashloanAmount,
-            0
+        // Step 1. Have Flashloaned WETH
+        // Open WETH CDP in Maker, then Mint out some DAI
+        uint256 wethCdp = _openLockGemAndDraw(
+            Constants.MCD_JOIN_ETH_A,
+            Constants.ETH_A_ILK,
+            osdp.flashloanAmountWETH,
+            osdp.mintAmountDAI
         );
 
         // Step 2.
-        // Locks up USDC and borrow just enough DAI to repay flashloan
+        // Converts Flashloaned DAI to USDC on CurveFi
+        // DAI = 0 index, USDC = 1 index
+        require(
+            IERC20(Constants.DAI).approve(osdp.curvePool, osdp.mintAmountDAI),
+            "!curvepool-approved"
+        );
+        ICurveFiCurve(osdp.curvePool).exchange_underlying(
+            int128(0),
+            int128(1),
+            osdp.mintAmountDAI,
+            0
+        );
+
+        // Step 3.
+        // Locks up USDC and borrow just enough DAI to repay WETH CDP
         uint256 supplyAmount = IERC20(Constants.USDC).balanceOf(address(this));
-        uint256 borrowAmount = osdp.flashloanAmount.add(_getRepaymentAmount());
-        _lockGemAndDraw(osdp.cdpId, supplyAmount, borrowAmount);
+        _lockGemAndDraw(
+            Constants.MCD_JOIN_USDC_A,
+            osdp.cdpId,
+            supplyAmount,
+            osdp.mintAmountDAI
+        );
+
+        // Step 4.
+        // Repay DAI loan back to WETH CDP and FREE WETH
+        _wipeAllAndFreeGem(
+            Constants.MCD_JOIN_ETH_A,
+            wethCdp,
+            osdp.flashloanAmountWETH
+        );
     }
 
     function flashloanAndOpen(
@@ -58,37 +80,41 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
         address _solo,
         address _curvePool,
         uint256 _cdpId,
-        uint256 _initialMargin,
-        uint256 _flashloanAmount
-    ) external {
+        uint256 _mintAmountDAI,
+        uint256 _flashloanAmountWETH
+    ) external payable {
+        require(msg.value == 2, "!fee");
+
         ISoloMargin solo = ISoloMargin(_solo);
 
         // Get marketId from token address
-        uint256 marketId = _getMarketIdFromTokenAddress(_solo, Constants.DAI);
+        uint256 marketId = _getMarketIdFromTokenAddress(_solo, Constants.WETH);
 
-        // Calculate repay amount (_flashloanAmount + (2 wei))
-        // Approve transfer from
-        uint256 repayAmount = _flashloanAmount.add(_getRepaymentAmount());
-        IERC20(Constants.DAI).approve(_solo, repayAmount);
+        // Wrap ETH into WETH
+        WETH(Constants.WETH).deposit{value: msg.value}();
+        WETH(Constants.WETH).approve(_solo, _flashloanAmountWETH.add(msg.value));
 
         // 1. Withdraw $
         // 2. Call callFunction(...)
         // 3. Deposit back $
         Actions.ActionArgs[] memory operations = new Actions.ActionArgs[](3);
 
-        operations[0] = _getWithdrawAction(marketId, _flashloanAmount);
+        operations[0] = _getWithdrawAction(marketId, _flashloanAmountWETH);
         operations[1] = _getCallAction(
             // Encode OSDParams for callFunction
             abi.encode(
                 OSDParams({
-                    initialMargin: _initialMargin,
-                    flashloanAmount: _flashloanAmount,
+                    mintAmountDAI: _mintAmountDAI,
+                    flashloanAmountWETH: _flashloanAmountWETH,
                     cdpId: _cdpId,
                     curvePool: _curvePool
                 })
             )
         );
-        operations[2] = _getDepositAction(marketId, repayAmount);
+        operations[2] = _getDepositAction(
+            marketId,
+            _flashloanAmountWETH.add(msg.value)
+        );
 
         Account.Info[] memory accountInfos = new Account.Info[](1);
         accountInfos[0] = _getAccountInfo();

@@ -11,6 +11,8 @@ const { setupContract, setupIDSProxy } = require("../cli/utils/setup");
 
 const { swapOnOneSplit, wallets } = require("./common");
 
+const fetch = require("node-fetch");
+
 let IDssCdpManager;
 let ShortDAIActions;
 let CloseShortDAI;
@@ -62,21 +64,43 @@ beforeAll(async function () {
 });
 
 test("open and close short (new) vault position", async function () {
+  // Get Price
+  const gecko = await fetch(
+    "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd",
+    {
+      referrer: "https://www.coingecko.com/",
+      body: null,
+      method: "GET",
+      mode: "cors",
+      credentials: "omit",
+    }
+  );
+  const geckoData = await gecko.json();
+  const ethDaiRatio = geckoData.ethereum.usd / 2; // Just to make sure we have deposited enough ETH
+  const ethDaiRatio18 = ethers.utils.parseUnits(ethDaiRatio.toString(), 18);
+
   // Initial cdpId
   const initialCdpId = await IDssCdpManager.last(IDSProxy.address);
 
   // Open parameters
-  const flashloanDaiAmount = ethers.utils.parseUnits("101", ERC20_DECIMALS.DAI);
-  const initialUsdcMargin = ethers.utils.parseUnits("100", ERC20_DECIMALS.USDC);
+  const mintAmountDai = ethers.utils.parseUnits("900000", ERC20_DECIMALS.DAI);
+  const initialUsdcMargin = ethers.utils.parseUnits(
+    "100000",
+    ERC20_DECIMALS.USDC
+  );
+  const flashloanAmountWeth = mintAmountDai
+    .mul(ethers.utils.parseUnits("1", 18))
+    .div(ethDaiRatio18);
 
   // Stats
-  const daiUsdcRatio6 = ethers.utils.parseUnits("1.03", ERC20_DECIMALS.USDC);
+  const daiUsdcRatio6 = ethers.utils.parseUnits("1.02", ERC20_DECIMALS.USDC);
 
   await swapOnOneSplit(user, {
     fromToken: ETH_ADDRESS,
     toToken: ERC20_ADDRESSES.USDC,
-    amountWei: ethers.utils.parseUnits("1"),
+    amountWei: ethers.utils.parseUnits("1000"),
   });
+
   await USDC.approve(IDSProxy.address, initialUsdcMargin);
 
   const openCalldata = ShortDAIActions.interface.encodeFunctionData(
@@ -87,7 +111,8 @@ test("open and close short (new) vault position", async function () {
       CONTRACT_ADDRESSES.CurveFiSUSDv2,
       0,
       initialUsdcMargin,
-      flashloanDaiAmount,
+      mintAmountDai,
+      flashloanAmountWeth,
       VaultStats.address,
       daiUsdcRatio6,
     ]
@@ -95,7 +120,7 @@ test("open and close short (new) vault position", async function () {
 
   const openTx = await IDSProxy[
     "execute(address,bytes)"
-  ](ShortDAIActions.address, openCalldata, { gasLimit: 1200000 });
+  ](ShortDAIActions.address, openCalldata, { value: 2, gasLimit: 2000000 });
   await openTx.wait();
 
   // Gets cdpId
@@ -115,31 +140,44 @@ test("open and close short (new) vault position", async function () {
 
   expect(daiUsdcRatio6).toEqual(openVaultStateOpenDaiUsdcRatio6);
   expect(parseInt(openVaultStateBorrowed.toString())).toBeCloseTo(
-    parseInt(flashloanDaiAmount.toString()),
+    parseInt(mintAmountDai.toString()),
     10
   );
 
-  // Close CDP
-  const closeCalldata = ShortDAIActions.interface.encodeFunctionData(
-    "flashloanAndClose",
-    [
-      CloseShortDAI.address,
-      CONTRACT_ADDRESSES.ISoloMargin,
-      CONTRACT_ADDRESSES.CurveFiSUSDv2,
-      newCdpId,
-    ]
-  );
+  // // Close CDP
+  // const closeCalldata = ShortDAIActions.interface.encodeFunctionData(
+  //   "flashloanAndClose",
+  //   [
+  //     CloseShortDAI.address,
+  //     CONTRACT_ADDRESSES.ISoloMargin,
+  //     CONTRACT_ADDRESSES.CurveFiSUSDv2,
+  //     newCdpId,
+  //   ]
+  // );
 
-  const closeTx = await IDSProxy[
-    "execute(address,bytes)"
-  ](ShortDAIActions.address, closeCalldata, { gasLimit: 1200000 });
-  await closeTx.wait();
+  // const beforeUsdcBal = await USDC.balanceOf(user.address);
 
-  const closeVaultState = await VaultStats.getCdpStats(newCdpId);
-  const closeVaultStateBorrowed = closeVaultState[1];
+  // const closeTx = await IDSProxy[
+  //   "execute(address,bytes)"
+  // ](ShortDAIActions.address, closeCalldata, { gasLimit: 1200000 });
+  // await closeTx.wait();
 
-  // In Wei
-  expect(parseInt(closeVaultStateBorrowed.toString())).toBeLessThan(
-    parseInt(openVaultStateBorrowed.toString())
-  );
+  // const afterUsdcBal = await USDC.balanceOf(user.address);
+
+  // const closeVaultState = await VaultStats.getCdpStats(newCdpId);
+  // const closeVaultStateBorrowed = closeVaultState[1];
+
+  // // In Wei
+  // expect(parseInt(closeVaultStateBorrowed.toString())).toBeLessThan(
+  //   parseInt(openVaultStateBorrowed.toString())
+  // );
+
+  // console.log(
+  //   "Initial USDC margin ",
+  //   ethers.utils.formatUnits(initialUsdcMargin, 6)
+  // );
+  // console.log("Before USDC Bal ", ethers.utils.formatUnits(beforeUsdcBal, 6));
+  // console.log("After USDC Bal ", ethers.utils.formatUnits(afterUsdcBal, 6));
+
+  // expect(afterUsdcBal.gt(beforeUsdcBal)).toEqual(true);
 });
