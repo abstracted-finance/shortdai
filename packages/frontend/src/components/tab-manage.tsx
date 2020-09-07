@@ -24,9 +24,6 @@ const TabManage = () => {
           justifyContent="center"
           alignItems="center"
         >
-          1
-          <img src="/dai.png" className={classes.tokenIcon} />{" "}
-          <Box mx={1.5}>=</Box>
           {prices === null
             ? "..."
             : prettyStringDecimals(
@@ -44,6 +41,9 @@ const TabManage = () => {
                 4
               )}{" "}
           <img src="/usdc.png" className={classes.tokenIcon} />
+          <Box mx={1.5}>=</Box>
+          1
+          <img src="/dai.png" className={classes.tokenIcon} />{" "}
         </Box>
       </Typography>
 
@@ -94,8 +94,8 @@ export const useStyles = makeStyles((theme) =>
       border: `1px solid ${theme.palette.success.main}`,
     },
     tokenIcon: {
-      width: 15,
-      height: 15,
+      width: 20,
+      height: 20,
       marginLeft: 4,
     },
   })

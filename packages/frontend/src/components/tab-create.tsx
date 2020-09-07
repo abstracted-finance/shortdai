@@ -390,8 +390,8 @@ export const useStyles = makeStyles((theme) =>
       border: `1px solid ${theme.palette.success.main}`,
     },
     tokenIcon: {
-      width: 15,
-      height: 15,
+      width: 20,
+      height: 20,
       marginLeft: 4,
     },
   })
