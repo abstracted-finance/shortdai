@@ -8,10 +8,10 @@ import ProxyContainer from "../containers/use-proxy";
 import UsdcContainer from "../containers/use-usdc";
 import ShortDaiStateContainer from "../containers/use-shortdai-state";
 import OpenShortContainer from "../containers/use-open-short";
-import CloseShortContainer from "../containers/use-close-short";
 import CdpsContainer from "../containers/use-cdps";
 import MakerStatsContainer from "../containers/use-maker-stats";
 import SelectedCdpContainer from "../containers/use-selected-cdp";
+import PricesContainer from "../containers/use-prices";
 
 import { theme } from "../components/theme";
 
@@ -19,16 +19,16 @@ function App({ Component, pageProps }: AppProps) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline>
-        <Web3Container.Provider>
-          <ContractsContainer.Provider>
-            <MakerStatsContainer.Provider>
-              <ProxyContainer.Provider>
-                <UsdcContainer.Provider>
-                  <CdpsContainer.Provider>
-                    <SelectedCdpContainer.Provider>
-                      <ShortDaiStateContainer.Provider>
-                        <OpenShortContainer.Provider>
-                          <CloseShortContainer.Provider>
+        <PricesContainer.Provider>
+          <Web3Container.Provider>
+            <ContractsContainer.Provider>
+              <MakerStatsContainer.Provider>
+                <ProxyContainer.Provider>
+                  <UsdcContainer.Provider>
+                    <CdpsContainer.Provider>
+                      <SelectedCdpContainer.Provider>
+                        <ShortDaiStateContainer.Provider>
+                          <OpenShortContainer.Provider>
                             <Head>
                               <meta
                                 name="description"
@@ -43,16 +43,16 @@ function App({ Component, pageProps }: AppProps) {
                             </Head>
 
                             <Component {...pageProps} />
-                          </CloseShortContainer.Provider>
-                        </OpenShortContainer.Provider>
-                      </ShortDaiStateContainer.Provider>
-                    </SelectedCdpContainer.Provider>
-                  </CdpsContainer.Provider>
-                </UsdcContainer.Provider>
-              </ProxyContainer.Provider>
-            </MakerStatsContainer.Provider>
-          </ContractsContainer.Provider>
-        </Web3Container.Provider>
+                          </OpenShortContainer.Provider>
+                        </ShortDaiStateContainer.Provider>
+                      </SelectedCdpContainer.Provider>
+                    </CdpsContainer.Provider>
+                  </UsdcContainer.Provider>
+                </ProxyContainer.Provider>
+              </MakerStatsContainer.Provider>
+            </ContractsContainer.Provider>
+          </Web3Container.Provider>
+        </PricesContainer.Provider>
       </CssBaseline>
     </ThemeProvider>
   );

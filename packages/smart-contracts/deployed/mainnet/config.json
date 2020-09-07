@@ -1,12 +1,12 @@
 {
     "OpenShortDAI": {
-        "deploy": false
+        "deploy": true
     },
     "CloseShortDAI": {
-        "deploy": false
+        "deploy": true
     },
     "ShortDAIActions": {
-        "deploy": false
+        "deploy": true
     },
     "VaultStats": {
         "deploy": false

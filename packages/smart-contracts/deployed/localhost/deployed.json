@@ -1,6 +1,6 @@
 {
     "OpenShortDAI": {
-        "address": "0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab",
+        "address": "0xB1948CF5377f969f41194A208b3b9d9Eb1040C31",
         "abi": [
             {
                 "inputs": [
@@ -61,24 +61,29 @@
                     },
                     {
                         "internalType": "uint256",
-                        "name": "_initialMargin",
+                        "name": "_initialMarginUSDC",
                         "type": "uint256"
                     },
                     {
                         "internalType": "uint256",
-                        "name": "_flashloanAmount",
+                        "name": "_mintAmountDAI",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "_flashloanAmountWETH",
                         "type": "uint256"
                     }
                 ],
                 "name": "flashloanAndOpen",
                 "outputs": [],
-                "stateMutability": "nonpayable",
+                "stateMutability": "payable",
                 "type": "function"
             }
         ]
     },
     "CloseShortDAI": {
-        "address": "0x5b1869D9A4C187F2EAa108f3062412ecf0526b24",
+        "address": "0x2a592DfbCDb42Bb2d45d1809B6C715549C169b58",
         "abi": [
             {
                 "inputs": [
@@ -136,18 +141,46 @@
                         "internalType": "uint256",
                         "name": "_cdpId",
                         "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "_ethUsdRatio18",
+                        "type": "uint256"
                     }
                 ],
                 "name": "flashloanAndClose",
                 "outputs": [],
-                "stateMutability": "nonpayable",
+                "stateMutability": "payable",
                 "type": "function"
             }
         ]
     },
     "ShortDAIActions": {
-        "address": "0xCfEB869F69431e42cdB54A4F4f105C19C080A601",
+        "address": "0x8eB9210B680555922248B1381C4Fcc26b0C2b751",
         "abi": [
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "cdp",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "usr",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "ok",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "cdpAllow",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
             {
                 "inputs": [
                     {
@@ -169,11 +202,16 @@
                         "internalType": "uint256",
                         "name": "_cdpId",
                         "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "_ethUsdRatio18",
+                        "type": "uint256"
                     }
                 ],
                 "name": "flashloanAndClose",
                 "outputs": [],
-                "stateMutability": "nonpayable",
+                "stateMutability": "payable",
                 "type": "function"
             },
             {
@@ -200,12 +238,17 @@
                     },
                     {
                         "internalType": "uint256",
-                        "name": "_initialMargin",
+                        "name": "_initialMarginUSDC",
                         "type": "uint256"
                     },
                     {
                         "internalType": "uint256",
-                        "name": "_flashloanAmount",
+                        "name": "_mintAmountDAI",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "_flashloanAmountWETH",
                         "type": "uint256"
                     },
                     {
@@ -221,13 +264,13 @@
                 ],
                 "name": "flashloanAndOpen",
                 "outputs": [],
-                "stateMutability": "nonpayable",
+                "stateMutability": "payable",
                 "type": "function"
             }
         ]
     },
     "VaultStats": {
-        "address": "0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B",
+        "address": "0x0A733e83486c560cf98Bac31b30Eed8cF77DB63D",
         "abi": [
             {
                 "inputs": [

@@ -14,7 +14,7 @@ const TabManage = () => {
           justifyContent="center"
           alignItems="center"
         >
-          <Typography variant="h6">no positions found.</Typography>
+          <Typography variant="h6">No positions found.</Typography>
         </Box>
       )}
       {cdps.map((cdp) => (

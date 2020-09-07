@@ -220,7 +220,7 @@ const openShortDAIPosition = async (proxy: ethers.Contract, cdpId: number) => {
   const tx = await proxy["execute(address,bytes)"](
     ShortDAIActions.address,
     openCalldata,
-    { gasLimit: 1000000 }
+    { gasLimit: 1500000 }
   );
   const txRecp = await tx.wait();
 
@@ -256,7 +256,7 @@ const closeShortDAIPosition = async (proxy: ethers.Contract, cdpId: number) => {
   const tx = await proxy["execute(address,bytes)"](
     ShortDAIActions.address,
     closeCalldata,
-    { gasLimit: 1000000 }
+    { gasLimit: 1500000 }
   );
   const txRecp = await tx.wait();
 

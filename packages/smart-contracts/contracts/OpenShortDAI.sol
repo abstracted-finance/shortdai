@@ -86,6 +86,11 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
     ) external payable {
         require(msg.value == 2, "!fee");
 
+        require(
+            IERC20(Constants.WETH).balanceOf(_solo) >= _flashloanAmountWETH,
+            "!weth-supply"
+        );
+
         // Gets USDC
         require(
             IERC20(Constants.USDC).transferFrom(

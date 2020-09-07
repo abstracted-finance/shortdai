@@ -56,9 +56,7 @@ contract CloseShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
         ICurveFiCurve curve = ICurveFiCurve(csdp.curvePool);
         // Calculate amount of USDC needed to exchange to repay flashloaned DAI
         // Allow max of 5% slippage (otherwise no profits lmao)
-        uint256 usdcBal = IERC20(Constants.USDC).balanceOf(
-            address(this)
-        );
+        uint256 usdcBal = IERC20(Constants.USDC).balanceOf(address(this));
         require(
             IERC20(Constants.USDC).approve(address(curve), usdcBal),
             "erc20-approve-curvepool-failed"
@@ -98,6 +96,11 @@ contract CloseShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
         // Dividing by 2 to gives us 200% col ratio
         uint256 flashloanAmountWETH = mintAmountDAI.mul(1 ether).div(
             _ethUsdRatio18.div(2)
+        );
+
+        require(
+            IERC20(Constants.WETH).balanceOf(_solo) >= flashloanAmountWETH,
+            "!weth-supply"
         );
 
         // Wrap ETH into WETH

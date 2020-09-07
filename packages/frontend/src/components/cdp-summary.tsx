@@ -9,6 +9,7 @@ import useWeb3 from "../containers/use-web3";
 import useContracts from "../containers/use-contracts";
 import useUsdc from "../containers/use-usdc";
 import useProxy from "../containers/use-proxy";
+import usePrices from "../containers/use-prices";
 import { theme } from "./theme";
 import LabelValue, { LabelValueProps } from "./label-value";
 
@@ -24,6 +25,7 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
   const { connected } = useWeb3.useContainer();
   const { contracts } = useContracts.useContainer();
   const { proxy } = useProxy.useContainer();
+  const { prices } = usePrices.useContainer();
 
   const [isClosingShort, setIsClosingShort] = useState<boolean>(false);
 
@@ -43,6 +45,11 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
     const { ShortDAIActions, CloseShortDAI } = contracts;
     const { CONTRACT_ADDRESSES } = CONSTANTS;
 
+    const ethDaiRatio18 = ethers.utils.parseUnits(
+      prices.ethereum.usd.toString(),
+      18
+    );
+
     const closeCalldata = ShortDAIActions.interface.encodeFunctionData(
       "flashloanAndClose",
       [
@@ -50,6 +57,7 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
         CONTRACT_ADDRESSES.ISoloMargin,
         CONTRACT_ADDRESSES.CurveFiSUSDv2,
         cdp.cdpId,
+        ethDaiRatio18,
       ]
     );
 
@@ -58,7 +66,7 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
     try {
       const closeTx = await proxy[
         "execute(address,bytes)"
-      ](ShortDAIActions.address, closeCalldata, { gasLimit: 1200000 });
+      ](ShortDAIActions.address, closeCalldata, { value: 2, gasLimit: 2000000 });
       await closeTx.wait();
       await getUsdcBalances();
 
@@ -205,7 +213,7 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
         )}
 
         <Button
-          disabled={isClosingShort}
+          disabled={isClosingShort || prices === null}
           onClick={() => closeShortDaiPosition()}
           color={negative ? "secondary" : "primary"}
           variant="contained"

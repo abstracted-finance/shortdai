@@ -17,6 +17,7 @@ import useProxy from "../containers/use-proxy";
 import useShortDaiState, {
   ShortDaiState,
 } from "../containers/use-shortdai-state";
+import usePrices from "../containers/use-prices";
 import useUsdc from "../containers/use-usdc";
 import useCdps from "../containers/use-cdps";
 import useMakerStats from "../containers/use-maker-stats";
@@ -29,7 +30,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
 
   const { stabilityApy } = useMakerStats.useContainer();
   const {
-    getFlashloanDaiAmount,
+    getMintAmountDai,
     openShortDaiPosition,
     isOpeningShort,
   } = useOpenShort.useContainer();
@@ -44,6 +45,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
   } = useUsdc.useContainer();
   const { getShortDaiState, shortDaiState } = useShortDaiState.useContainer();
   const { getCdps } = useCdps.useContainer();
+  const { prices } = usePrices.useContainer();
 
   const [usdcPrincipal, setUsdcPrincipal] = useState("");
 
@@ -52,7 +54,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
     CONSTANTS.ERC20_DECIMALS.USDC
   );
 
-  const flashloanDaiAmount = getFlashloanDaiAmount(usdcPrincipalBN, leverage);
+  const flashloanDaiAmount = getMintAmountDai(usdcPrincipalBN, leverage);
   const borrowingStr = prettyStringDecimals(
     ethers.utils.formatUnits(flashloanDaiAmount, 18)
   );
@@ -271,6 +273,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
           variant="contained"
           color="primary"
           disabled={
+            prices === null ||
             shortDaiState === ShortDaiState.PENDING ||
             shortDaiState === ShortDaiState.NOT_CONNECTED ||
             isApprovingUsdc ||
@@ -318,8 +321,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
           {shortDaiState === ShortDaiState.PENDING && "Initializing..."}
           {shortDaiState === ShortDaiState.NOT_CONNECTED &&
             "Connect wallet to continue"}
-          {shortDaiState === ShortDaiState.SETUP_PROXY &&
-            "Setup Vault"}
+          {shortDaiState === ShortDaiState.SETUP_PROXY && "Setup Vault"}
           {shortDaiState === ShortDaiState.APPROVE_USDC && "Approve USDC"}
           {shortDaiState === ShortDaiState.READY && !validUsdcPrincipal
             ? usdcPrincipal === ""

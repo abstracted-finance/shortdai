@@ -2,6 +2,7 @@ import { createContainer } from "unstated-next";
 import { useState } from "react";
 import { CONSTANTS } from "@shortdai/smart-contracts";
 
+import usePrices from "./use-prices";
 import useUsdc from "./use-usdc";
 import useProxy from "./use-proxy";
 import useContracts from "./use-contracts";
@@ -9,6 +10,7 @@ import useContracts from "./use-contracts";
 import { ethers } from "ethers";
 
 function useOpenShort() {
+  const { prices } = usePrices.useContainer();
   const { proxy } = useProxy.useContainer();
   const { contracts } = useContracts.useContainer();
   const { daiUsdcRatio6 } = useUsdc.useContainer();
@@ -17,7 +19,7 @@ function useOpenShort() {
 
   // initialUsdcMargin6: BigNumber of initial usdc margin
   // leverage: number between 11-109 as we're using BigInt
-  const getFlashloanDaiAmount = (
+  const getMintAmountDai = (
     initialUsdcMargin6: ethers.BigNumber,
     leverage: number
   ) => {
@@ -52,10 +54,16 @@ function useOpenShort() {
   ) => {
     const { VaultStats, ShortDAIActions, OpenShortDAI } = contracts;
 
-    const flashloanDaiAmount = getFlashloanDaiAmount(
-      initialUsdcMargin6,
-      leverage
+    const mintAmountDai = getMintAmountDai(initialUsdcMargin6, leverage);
+
+    const ethDaiRatio18 = ethers.utils.parseUnits(
+      prices.ethereum.usd.toString(),
+      18
     );
+
+    const flashloanAmountWeth = mintAmountDai
+      .mul(ethers.utils.parseUnits("1", 18))
+      .div(ethDaiRatio18.div(2)); // Dividing by 2 to get 200% col ratio
 
     const openCalldata = ShortDAIActions.interface.encodeFunctionData(
       "flashloanAndOpen",
@@ -65,7 +73,8 @@ function useOpenShort() {
         CONSTANTS.CONTRACT_ADDRESSES.CurveFiSUSDv2,
         cdpId,
         initialUsdcMargin6,
-        flashloanDaiAmount,
+        mintAmountDai,
+        flashloanAmountWeth,
         VaultStats.address,
         daiUsdcRatio6,
       ]
@@ -76,7 +85,7 @@ function useOpenShort() {
     try {
       const openTx = await proxy[
         "execute(address,bytes)"
-      ](ShortDAIActions.address, openCalldata, { gasLimit: 1200000 });
+      ](ShortDAIActions.address, openCalldata, { value: 2, gasLimit: 2000000 });
       await openTx.wait();
     } catch (e) {
       // TODO: Toast
@@ -86,7 +95,7 @@ function useOpenShort() {
   };
 
   return {
-    getFlashloanDaiAmount,
+    getMintAmountDai,
     openShortDaiPosition,
     isOpeningShort,
   };

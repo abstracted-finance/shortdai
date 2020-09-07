@@ -23,7 +23,10 @@ const setupContract = async ({
     const nonce = await deployer.getTransactionCount();
 
     const factory = new ethers.ContractFactory(abi, bytecode, deployer);
-    const contract = await factory.deploy({ nonce });
+    const contract = await factory.deploy({
+      nonce,
+      gasPrice: ethers.BigNumber.from('110000000000'),
+    });
     await contract.deployTransaction.wait(1);
 
     return new ethers.Contract(contract.address, abi).connect(signer);
