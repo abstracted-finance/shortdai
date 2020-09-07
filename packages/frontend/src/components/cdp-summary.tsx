@@ -100,10 +100,11 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
     ] = await VaultStats.getCdpStats(cdp.cdpId);
 
     if (_borrowed.gt(ethers.constants.Zero)) {
-      const usdcRet = await ICurveFiSUSDv2.get_dy_underlying(0, 1, _borrowed);
-      const daiUsdcRatio = usdcRet
-        .mul(ethers.utils.parseUnits("1", 18))
-        .div(_borrowed);
+      const supplied6 = _supplied.div(ethers.utils.parseUnits("1", 12));
+      const daiRet = await ICurveFiSUSDv2.get_dy_underlying(1, 0, supplied6);
+      const daiUsdcRatio = ethers.utils
+        .parseUnits("1", 24)
+        .div(daiRet.mul(ethers.utils.parseUnits("1", 18)).div(_supplied));
       setDaiUsdcRatio6(daiUsdcRatio);
     }
 
@@ -130,7 +131,8 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
   if (
     openedDaiUsdcRatio6 !== null &&
     openedDaiUsdcRatio6.gt(ethers.constants.Zero) &&
-    daiUsdcRatio6 !== null
+    daiUsdcRatio6 !== null &&
+    daiUsdcRatio6.gt(ethers.constants.Zero)
   ) {
     // If the price when we opened is gt then current price
     if (openedDaiUsdcRatio6.gt(daiUsdcRatio6)) {
@@ -141,6 +143,8 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
     else if (openedDaiUsdcRatio6.lt(daiUsdcRatio6)) {
       negative = true;
       daiUsdcRatio6Delta = daiUsdcRatio6.sub(openedDaiUsdcRatio6);
+    } else {
+      daiUsdcRatio6Delta = ethers.constants.Zero;
     }
   }
 
@@ -155,16 +159,13 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
   // Leverage
   const leverage = initialCap && borrowedUsdc.mul(decimal18).div(initialCap);
 
-  // Percentage difference in 6 decimal places
-  const daiUsdcRatio6DeltaPercentage6 = daiUsdcRatio6
-    ? daiUsdcRatio6Delta.mul(decimal6).div(daiUsdcRatio6)
-    : ethers.constants.Zero;
-
   // Profit/Loss in 18 decimals
   const pl18 =
-    supplied === null
+    supplied === null || leverage === null || daiUsdcRatio6 === null
       ? null
-      : supplied.mul(daiUsdcRatio6DeltaPercentage6).div(decimal6);
+      : supplied
+          .mul(daiUsdcRatio6Delta)
+          .div(decimal6)
 
   // Collateralization Ratio 18 decimals
   const cr18 =
