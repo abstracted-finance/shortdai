@@ -224,7 +224,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
               setLeverage(newValue);
             }}
             min={11}
-            max={100}
+            max={117}
           />
         </Box>
 
