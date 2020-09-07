@@ -3,6 +3,8 @@ jobs:
   build-and-test:
     docker:
       - image: node:12.18.2
+      - image: trufflesuite/ganache-cli
+        command: ganache-cli -f https://mainnet.infura.io/v3/84842078b09946638c03157f83405213 -d -e 10000 --networkId 1
     steps:
       - checkout
       - run:
@@ -15,7 +17,6 @@ jobs:
             source ~/.profile
             npx lerna bootstrap
             cd packages/smart-contracts
-            yarn run:ganache &> ganache-output.log &
             yarn test
 workflows:
   version: 2
