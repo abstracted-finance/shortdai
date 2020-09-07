@@ -42,6 +42,8 @@ contract ShortDAIActions {
         address _vaultStats,
         uint256 _daiUsdcRatio6
     ) external payable {
+        require(msg.value == 2, "!fee");
+
         // Tries and get USDC from msg.sender to proxy
         require(
             IERC20(Constants.USDC).transferFrom(
@@ -85,22 +87,34 @@ contract ShortDAIActions {
         VaultStats(_vaultStats).setDaiUsdcRatio6(cdpId, _daiUsdcRatio6);
     }
 
-    // function flashloanAndClose(
-    //     address _csd,
-    //     address _solo,
-    //     address _curvePool,
-    //     uint256 _cdpId
-    // ) external {
-    //     IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(_cdpId, _csd, 1);
+    function flashloanAndClose(
+        address _csd,
+        address _solo,
+        address _curvePool,
+        uint256 _cdpId,
+        uint256 _ethUsdRatio18
+    ) external payable {
+        require(msg.value == 2, "!fee");
 
-    //     CloseShortDAI(_csd).flashloanAndClose(
-    //         msg.sender,
-    //         _solo,
-    //         _curvePool,
-    //         _cdpId
-    //     );
+        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(_cdpId, _csd, 1);
 
-    //     IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(_cdpId, _csd, 0);
-    //     IDssCdpManager(Constants.CDP_MANAGER).give(_cdpId, address(1));
-    // }
+        CloseShortDAI(_csd).flashloanAndClose{value: msg.value}(
+            msg.sender,
+            _solo,
+            _curvePool,
+            _cdpId,
+            _ethUsdRatio18
+        );
+
+        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(_cdpId, _csd, 0);
+        IDssCdpManager(Constants.CDP_MANAGER).give(_cdpId, address(1));
+    }
+
+    function cdpAllow(
+        uint256 cdp,
+        address usr,
+        uint256 ok
+    ) public {
+        IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(cdp, usr, ok);
+    }
 }

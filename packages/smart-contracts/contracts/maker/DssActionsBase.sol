@@ -197,23 +197,24 @@ contract DssActionsBase {
         wad = wad.mul(RAY) < rad ? wad + 1 : wad;
     }
 
-    function _getSuppliedAndBorrow(uint256 cdp)
+    function _getSuppliedAndBorrow(address gemJoin, uint256 cdp)
         internal
         returns (uint256, uint256)
     {
         IDssCdpManager manager = IDssCdpManager(Constants.CDP_MANAGER);
 
         address vat = manager.vat();
-        address urn = manager.urns(cdp);
         bytes32 ilk = manager.ilks(cdp);
-        address usr = manager.owns(cdp);
 
         // Gets actual rate from the vat
         (, uint256 rate, , , ) = VatLike(vat).ilks(ilk);
         // Gets actual art value of the urn
-        (uint256 supplied, uint256 art) = VatLike(vat).urns(ilk, urn);
+        (uint256 supplied, uint256 art) = VatLike(vat).urns(
+            ilk,
+            manager.urns(cdp)
+        );
         // Gets actual dai amount in the urn
-        uint256 dai = VatLike(vat).dai(usr);
+        uint256 dai = VatLike(vat).dai(manager.owns(cdp));
 
         uint256 rad = art.mul(rate).sub(dai);
         uint256 wad = rad / RAY;
@@ -221,10 +222,8 @@ contract DssActionsBase {
         // If the rad precision has some dust, it will need to request for 1 extra wad wei
         uint256 borrowed = wad.mul(RAY) < rad ? wad + 1 : wad;
 
-        // Convert back to native units (USDC has 6 decimals)
-        supplied = supplied.div(
-            10**(18 - GemJoinLike(Constants.MCD_JOIN_USDC_A).dec())
-        );
+        // Convert back to native units
+        supplied = supplied.div(10**(18 - GemJoinLike(gemJoin).dec()));
 
         return (supplied, borrowed);
     }

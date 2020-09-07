@@ -21,8 +21,9 @@ contract CloseShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
     struct CSDParams {
         uint256 cdpId; // CdpId to close
         address curvePool; // Which curve pool to use
-        uint256 mintAmountDAI; // Amount of DAI flashloaned
-        uint256 withdrawAmount; // Amount of USDC to withdraw from vault
+        uint256 mintAmountDAI; // Amount of DAI to mint
+        uint256 withdrawAmountUSDC; // Amount of USDC to withdraw from vault
+        uint256 flashloanAmountWETH; // Amount of WETH flashloaned
     }
 
     function callFunction(
@@ -30,91 +31,120 @@ contract CloseShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
         Account.Info memory account,
         bytes memory data
     ) public override {
-        // CSDParams memory csdp = abi.decode(data, (CSDParams));
+        CSDParams memory csdp = abi.decode(data, (CSDParams));
 
-        // // Step 1.
-        // // Use flashloaned DAI to repay entire vault and withdraw USDC
-        // _wipeAll(csdp.cdpId);
-        // _freeGem(csdp.cdpId, csdp.withdrawAmount);
+        // Step 1. Have Flashloaned WETH
+        // Open WETH CDP in Maker, then Mint out some DAI
+        uint256 wethCdp = _openLockGemAndDraw(
+            Constants.MCD_JOIN_ETH_A,
+            Constants.ETH_A_ILK,
+            csdp.flashloanAmountWETH,
+            csdp.mintAmountDAI
+        );
 
-        // // Step 2.
-        // // Converts USDC to DAI on CurveFi (To repay loan)
-        // // DAI = 0 index, USDC = 1 index
-        // ICurveFiCurve curve = ICurveFiCurve(csdp.curvePool);
+        // Step 2.
+        // Use flashloaned DAI to repay entire vault and withdraw USDC
+        _wipeAllAndFreeGem(
+            Constants.MCD_JOIN_USDC_A,
+            csdp.cdpId,
+            csdp.withdrawAmountUSDC
+        );
 
-        // // Calculate amount of USDC needed to exchange to repay flashloaned DAI
-        // // Allow max of 2.5% slippage (otherwise no profits lmao)
-        // uint256 repayAmount = csdp.flashloanAmount.mul(1025).div(1000);
-        // uint256 usdcSwapAmount = curve.get_dy_underlying(
-        //     int128(0),
-        //     int128(1),
-        //     repayAmount
-        // );
+        // Step 3.
+        // Converts USDC to DAI on CurveFi (To repay loan)
+        // DAI = 0 index, USDC = 1 index
+        ICurveFiCurve curve = ICurveFiCurve(csdp.curvePool);
+        // Calculate amount of USDC needed to exchange to repay flashloaned DAI
+        // Allow max of 5% slippage (otherwise no profits lmao)
+        uint256 usdcBal = IERC20(Constants.USDC).balanceOf(
+            address(this)
+        );
+        require(
+            IERC20(Constants.USDC).approve(address(curve), usdcBal),
+            "erc20-approve-curvepool-failed"
+        );
+        curve.exchange_underlying(int128(1), int128(0), usdcBal, 0);
 
-        // require(
-        //     IERC20(Constants.USDC).approve(address(curve), usdcSwapAmount),
-        //     "erc20-approve-curvepool-failed"
-        // );
-        // curve.exchange_underlying(int128(1), int128(0), usdcSwapAmount, 0);
+        // Step 4.
+        // Repay DAI loan back to WETH CDP and FREE WETH
+        _wipeAllAndFreeGem(
+            Constants.MCD_JOIN_ETH_A,
+            wethCdp,
+            csdp.flashloanAmountWETH
+        );
     }
 
-    // function flashloanAndClose(
-    //     address _sender,
-    //     address _solo,
-    //     address _curvePool,
-    //     uint256 _cdpId
-    // ) external {
-    //     ISoloMargin solo = ISoloMargin(_solo);
+    function flashloanAndClose(
+        address _sender,
+        address _solo,
+        address _curvePool,
+        uint256 _cdpId,
+        uint256 _ethUsdRatio18 // 1 ETH = <X> DAI?
+    ) external payable {
+        require(msg.value == 2, "!fee");
 
-    //     uint256 marketId = _getMarketIdFromTokenAddress(_solo, Constants.DAI);
+        ISoloMargin solo = ISoloMargin(_solo);
 
-    //     // Supplied = How much we want to withdraw
-    //     // Borrowed = How much we want to loan
-    //     (
-    //         uint256 withdrawAmount,
-    //         uint256 flashloanAmount
-    //     ) = _getSuppliedAndBorrow(_cdpId);
+        uint256 marketId = _getMarketIdFromTokenAddress(_solo, Constants.WETH);
 
-    //     uint256 repayAmount = flashloanAmount.add(_getRepaymentAmount());
-    //     IERC20(Constants.DAI).approve(_solo, repayAmount);
+        // Supplied = How much we want to withdraw
+        // Borrowed = How much we want to loan
+        (
+            uint256 withdrawAmountUSDC,
+            uint256 mintAmountDAI
+        ) = _getSuppliedAndBorrow(Constants.MCD_JOIN_USDC_A, _cdpId);
 
-    //     Actions.ActionArgs[] memory operations = new Actions.ActionArgs[](3);
+        // Given, ETH price, calculate how much WETH we need to flashloan
+        // Dividing by 2 to gives us 200% col ratio
+        uint256 flashloanAmountWETH = mintAmountDAI.mul(1 ether).div(
+            _ethUsdRatio18.div(2)
+        );
 
-    //     operations[0] = _getWithdrawAction(marketId, flashloanAmount);
-    //     operations[1] = _getCallAction(
-    //         abi.encode(
-    //             CSDParams({
-    //                 flashloanAmount: flashloanAmount,
-    //                 withdrawAmount: withdrawAmount,
-    //                 cdpId: _cdpId,
-    //                 curvePool: _curvePool
-    //             })
-    //         )
-    //     );
-    //     operations[2] = _getDepositAction(marketId, repayAmount);
+        // Wrap ETH into WETH
+        WETH(Constants.WETH).deposit{value: msg.value}();
+        WETH(Constants.WETH).approve(_solo, flashloanAmountWETH.add(msg.value));
 
-    //     Account.Info[] memory accountInfos = new Account.Info[](1);
-    //     accountInfos[0] = _getAccountInfo();
+        Actions.ActionArgs[] memory operations = new Actions.ActionArgs[](3);
 
-    //     solo.operate(accountInfos, operations);
+        operations[0] = _getWithdrawAction(marketId, flashloanAmountWETH);
+        operations[1] = _getCallAction(
+            abi.encode(
+                CSDParams({
+                    mintAmountDAI: mintAmountDAI,
+                    withdrawAmountUSDC: withdrawAmountUSDC,
+                    flashloanAmountWETH: flashloanAmountWETH,
+                    cdpId: _cdpId,
+                    curvePool: _curvePool
+                })
+            )
+        );
+        operations[2] = _getDepositAction(
+            marketId,
+            flashloanAmountWETH.add(msg.value)
+        );
 
-    //     // Convert DAI leftovers to USDC
-    //     uint256 daiLeftovers = IERC20(Constants.DAI).balanceOf(address(this));
-    //     require(
-    //         IERC20(Constants.DAI).approve(_curvePool, daiLeftovers),
-    //         "erc20-approve-curvepool-failed"
-    //     );
-    //     ICurveFiCurve(_curvePool).exchange_underlying(
-    //         int128(0),
-    //         int128(1),
-    //         daiLeftovers,
-    //         0
-    //     );
+        Account.Info[] memory accountInfos = new Account.Info[](1);
+        accountInfos[0] = _getAccountInfo();
 
-    //     // Refund leftovers
-    //     IERC20(Constants.USDC).transfer(
-    //         _sender,
-    //         IERC20(Constants.USDC).balanceOf(address(this))
-    //     );
-    // }
+        solo.operate(accountInfos, operations);
+
+        // Convert DAI leftovers to USDC
+        uint256 daiBal = IERC20(Constants.DAI).balanceOf(address(this));
+        require(
+            IERC20(Constants.DAI).approve(_curvePool, daiBal),
+            "erc20-approve-curvepool-failed"
+        );
+        ICurveFiCurve(_curvePool).exchange_underlying(
+            int128(0),
+            int128(1),
+            daiBal,
+            0
+        );
+
+        // Refund leftovers
+        IERC20(Constants.USDC).transfer(
+            _sender,
+            IERC20(Constants.USDC).balanceOf(address(this))
+        );
+    }
 }
