@@ -130,7 +130,8 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
   if (
     openedDaiUsdcRatio6 !== null &&
     openedDaiUsdcRatio6.gt(ethers.constants.Zero) &&
-    daiUsdcRatio6 !== null
+    daiUsdcRatio6 !== null &&
+    daiUsdcRatio6.gt(ethers.constants.Zero)
   ) {
     // If the price when we opened is gt then current price
     if (openedDaiUsdcRatio6.gt(daiUsdcRatio6)) {
@@ -162,9 +163,13 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
 
   // Profit/Loss in 18 decimals
   const pl18 =
-    supplied === null
+    supplied === null || leverage === null
       ? null
-      : supplied.mul(daiUsdcRatio6DeltaPercentage6).div(decimal6);
+      : supplied
+          .mul(daiUsdcRatio6DeltaPercentage6)
+          .div(decimal6)
+          .mul(leverage)
+          .div(ethers.utils.parseUnits("1", 18));
 
   // Collateralization Ratio 18 decimals
   const cr18 =
