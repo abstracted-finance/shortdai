@@ -119,25 +119,6 @@ const Main = () => {
             position="relative"
             zIndex={1}
           >
-            <Typography variant="h5">
-              <Box
-                p={1}
-                mb={isDesktop ? 4 : 2}
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-              >
-                1
-                <img src="/dai.png" className={classes.tokenIcon} />{" "}
-                <Box mx={1.5}>=</Box>
-                {daiUsdcRatio6 === null ||
-                daiUsdcRatio6.eq(ethers.constants.Zero)
-                  ? "..."
-                  : ethers.utils.formatUnits(daiUsdcRatio6, 6)}{" "}
-                <img src="/usdc.png" className={classes.tokenIcon} />
-              </Box>
-            </Typography>
-
             <Collapse in={selectedTab === Tabs.CREATE}>
               <TabCreate leverage={leverage} setLeverage={setLeverage} />
             </Collapse>

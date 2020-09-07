@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import useWeb3 from "./use-web3";
 import { EthersContracts, getEthersContracts } from "@shortdai/smart-contracts";
 
-const network = "localhost";
+const network = "mainnet";
 
 function useContracts() {
   const { signer } = useWeb3.useContainer();

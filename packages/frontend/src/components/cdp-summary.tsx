@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Paper, makeStyles, Box, Button } from "@material-ui/core";
 import ethers from "ethers";
-import { CONSTANTS } from "@shortdai/smart-contracts";
+import { CONSTANTS, EthersContracts } from "@shortdai/smart-contracts";
 
 import { prettyStringDecimals } from "./utils";
 import useCdps, { Cdp } from "../containers/use-cdps";
@@ -21,12 +21,15 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
   const classes = useStyles();
 
   const { setCdps, cdps } = useCdps.useContainer();
-  const { getUsdcBalances, daiUsdcRatio6 } = useUsdc.useContainer();
-  const { connected } = useWeb3.useContainer();
+  const { getUsdcBalances } = useUsdc.useContainer();
+  const { connected, signer } = useWeb3.useContainer();
   const { contracts } = useContracts.useContainer();
   const { proxy } = useProxy.useContainer();
   const { prices } = usePrices.useContainer();
 
+  const [daiUsdcRatio6, setDaiUsdcRatio6] = useState<null | ethers.BigNumber>(
+    null
+  );
   const [isClosingShort, setIsClosingShort] = useState<boolean>(false);
 
   // Decimals
@@ -64,9 +67,14 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
     setIsClosingShort(true);
 
     try {
-      const closeTx = await proxy[
-        "execute(address,bytes)"
-      ](ShortDAIActions.address, closeCalldata, { value: 2, gasLimit: 2000000 });
+      const closeTx = await proxy["execute(address,bytes)"](
+        ShortDAIActions.address,
+        closeCalldata,
+        {
+          value: 2,
+          gasLimit: 2000000,
+        }
+      );
       await closeTx.wait();
       await getUsdcBalances();
 
@@ -80,13 +88,24 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
   };
 
   const updateCdpStats = async () => {
-    const { VaultStats } = contracts;
+    const { VaultStats, ICurveFiCurve } = contracts;
+    const ICurveFiSUSDv2 = ICurveFiCurve.attach(
+      CONSTANTS.CONTRACT_ADDRESSES.CurveFiSUSDv2
+    );
 
     const [
       _supplied,
       _borrowed,
       _openedDaiUsdcRatio6,
     ] = await VaultStats.getCdpStats(cdp.cdpId);
+
+    if (_borrowed.gt(ethers.constants.Zero)) {
+      const usdcRet = await ICurveFiSUSDv2.get_dy_underlying(0, 1, _borrowed);
+      const daiUsdcRatio = usdcRet
+        .mul(ethers.utils.parseUnits("1", 18))
+        .div(_borrowed);
+      setDaiUsdcRatio6(daiUsdcRatio);
+    }
 
     setBorrowed(_borrowed);
     setSupplied(_supplied);
@@ -95,11 +114,12 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
 
   useEffect(() => {
     if (!connected) return;
+    if (!signer) return;
     if (!contracts) return;
     if (!cdp) return;
 
     updateCdpStats();
-  }, [connected, contracts, cdp]);
+  }, [connected, signer, contracts, cdp]);
 
   // Delta between opened and current
   let daiUsdcRatio6Delta = ethers.constants.Zero;
@@ -136,9 +156,9 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
   const leverage = initialCap && borrowedUsdc.mul(decimal18).div(initialCap);
 
   // Percentage difference in 6 decimal places
-  const daiUsdcRatio6DeltaPercentage6 = daiUsdcRatio6Delta
-    .mul(decimal6)
-    .div(daiUsdcRatio6);
+  const daiUsdcRatio6DeltaPercentage6 = daiUsdcRatio6
+    ? daiUsdcRatio6Delta.mul(decimal6).div(daiUsdcRatio6)
+    : ethers.constants.Zero;
 
   // Profit/Loss in 18 decimals
   const pl18 =
@@ -159,7 +179,7 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
   const openedRatioString = bigIntToString(openedDaiUsdcRatio6, 6, 6);
   const initialCapString = bigIntToString(initialCap);
   const borrowedDaiString = bigIntToString(borrowed);
-  const plString = (negative ? "-" : "+") + "$" + bigIntToString(pl18, 18);
+  const plString = (negative ? "-" : "+") + "USDC " + bigIntToString(pl18, 18);
   const crString = bigIntToString(cr18, 16) + "%";
   const leverageString = leverage && bigIntToString(leverage, 18, 1) + "x";
 

@@ -24,8 +24,10 @@ import useMakerStats from "../containers/use-maker-stats";
 import { prettyStringDecimals } from "./utils";
 import { theme } from "./theme";
 import LabelValue from "./label-value";
+import { useDesktop } from "./hooks";
 
 const TabCreate = ({ leverage, setLeverage }) => {
+  const isDesktop = useDesktop();
   const classes = useStyles();
 
   const { stabilityApy } = useMakerStats.useContainer();
@@ -119,6 +121,24 @@ const TabCreate = ({ leverage, setLeverage }) => {
 
   return (
     <>
+      <Typography variant="h5">
+        <Box
+          p={1}
+          mb={isDesktop ? 4 : 2}
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+        >
+          1
+          <img src="/dai.png" className={classes.tokenIcon} />{" "}
+          <Box mx={1.5}>=</Box>
+          {prices === null
+            ? "..."
+            : prettyStringDecimals(prices.daiUsdcRatio, 4)}{" "}
+          <img src="/usdc.png" className={classes.tokenIcon} />
+        </Box>
+      </Typography>
+
       <Collapse
         in={!isDaiCloseToUsdc && !daiUsdcRatio6.eq(ethers.constants.Zero)}
       >

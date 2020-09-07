@@ -19,9 +19,9 @@ function App({ Component, pageProps }: AppProps) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline>
-        <PricesContainer.Provider>
-          <Web3Container.Provider>
-            <ContractsContainer.Provider>
+        <Web3Container.Provider>
+          <ContractsContainer.Provider>
+            <PricesContainer.Provider>
               <MakerStatsContainer.Provider>
                 <ProxyContainer.Provider>
                   <UsdcContainer.Provider>
@@ -50,9 +50,9 @@ function App({ Component, pageProps }: AppProps) {
                   </UsdcContainer.Provider>
                 </ProxyContainer.Provider>
               </MakerStatsContainer.Provider>
-            </ContractsContainer.Provider>
-          </Web3Container.Provider>
-        </PricesContainer.Provider>
+            </PricesContainer.Provider>
+          </ContractsContainer.Provider>
+        </Web3Container.Provider>
       </CssBaseline>
     </ThemeProvider>
   );
