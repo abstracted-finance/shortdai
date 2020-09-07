@@ -100,9 +100,9 @@ test("open and close short (new) vault position", async function () {
   const initialCdpId = await IDssCdpManager.last(IDSProxy.address);
 
   // Open parameters
-  const mintAmountDai = ethers.utils.parseUnits("900000", ERC20_DECIMALS.DAI);
+  const mintAmountDai = ethers.utils.parseUnits("10000", ERC20_DECIMALS.DAI);
   const initialUsdcMargin = ethers.utils.parseUnits(
-    "100000",
+    "5000",
     ERC20_DECIMALS.USDC
   );
   const flashloanAmountWeth = mintAmountDai
