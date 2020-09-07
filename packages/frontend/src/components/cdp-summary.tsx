@@ -106,9 +106,6 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
         .parseUnits("1", 24)
         .div(daiRet.mul(ethers.utils.parseUnits("1", 18)).div(_supplied));
       setDaiUsdcRatio6(daiUsdcRatio);
-
-      console.log("daiUsdcRatio", daiUsdcRatio.toString());
-      console.log("_supplied", _supplied.toString());
     }
 
     setBorrowed(_borrowed);
