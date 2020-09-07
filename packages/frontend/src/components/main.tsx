@@ -106,8 +106,8 @@ const Main = () => {
       <Box className={classes.root} minHeight="100vh" py={isDesktop ? 20 : 16}>
         <Box
           mx="auto"
-          width={450}
-          maxWidth="90%"
+          width="90%"
+          maxWidth={450}
           position="relative"
           zIndex={1}
         >
@@ -133,8 +133,8 @@ const Main = () => {
             src="/pickle.png"
             alt="pickle"
             style={{
-              transform: `translate(${41 * ((leverage - 11) / 89)}%, -${
-                37 * ((leverage - 11) / 89)
+              transform: `translate(${43 * ((leverage - 11) / 89)}%, -${
+                39 * ((leverage - 11) / 89)
               }%)`,
             }}
           />

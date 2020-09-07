@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { Paper, makeStyles, Box, Button } from "@material-ui/core";
+import { Box, Button, makeStyles, Paper } from "@material-ui/core";
+import { CONSTANTS } from "@shortdai/smart-contracts";
 import ethers from "ethers";
-import { CONSTANTS, EthersContracts } from "@shortdai/smart-contracts";
-
-import { prettyStringDecimals } from "./utils";
+import React, { useEffect, useState } from "react";
 import useCdps, { Cdp } from "../containers/use-cdps";
-import useWeb3 from "../containers/use-web3";
 import useContracts from "../containers/use-contracts";
-import useUsdc from "../containers/use-usdc";
-import useProxy from "../containers/use-proxy";
 import usePrices from "../containers/use-prices";
-import { theme } from "./theme";
+import useProxy from "../containers/use-proxy";
+import useUsdc from "../containers/use-usdc";
+import useWeb3 from "../containers/use-web3";
+import { useDesktop } from "./hooks";
 import LabelValue, { LabelValueProps } from "./label-value";
+import { prettyStringDecimals } from "./utils";
+import { OutlinedPaper } from "./outlined-paper";
 
 interface CdpSummaryProps {
   cdp: Cdp;
@@ -19,6 +19,7 @@ interface CdpSummaryProps {
 
 export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
   const classes = useStyles();
+  const isDesktop = useDesktop();
 
   const { setCdps, cdps } = useCdps.useContainer();
   const { getUsdcBalances } = useUsdc.useContainer();
@@ -163,9 +164,7 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
   const pl18 =
     supplied === null || leverage === null || daiUsdcRatio6 === null
       ? null
-      : supplied
-          .mul(daiUsdcRatio6Delta)
-          .div(decimal6)
+      : supplied.mul(daiUsdcRatio6Delta).div(decimal6);
 
   // Collateralization Ratio 18 decimals
   const cr18 =
@@ -215,36 +214,34 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
   }
 
   return (
-    <Paper className={classes.root} variant="outlined">
-      <Box p={2.5}>
-        {renderRow(
-          { label: "CDP ID", children: cdp.cdpId },
-          { label: "Opened Ratio", children: openedRatioString },
-          { label: "Collat. Ratio", children: crString }
-        )}
+    <OutlinedPaper className={classes.root}>
+      {renderRow(
+        { label: "CDP ID", children: cdp.cdpId },
+        { label: "Opened Ratio", children: openedRatioString },
+        { label: "Collat. Ratio", children: crString }
+      )}
 
-        {renderRow(
-          {
-            label: "Initial Capital",
-            children: initialCapString,
-            icon: "usdc",
-          },
-          { label: "Leverage", children: leverageString },
-          { label: "Total Exposure", children: borrowedDaiString, icon: "dai" }
-        )}
+      {renderRow(
+        {
+          label: "Initial Capital",
+          children: initialCapString,
+          icon: "usdc",
+        },
+        { label: "Leverage", children: leverageString },
+        { label: "Total Exposure", children: borrowedDaiString, icon: "dai" }
+      )}
 
-        <Button
-          disabled={isClosingShort || prices === null}
-          onClick={() => closeShortDaiPosition()}
-          color={negative ? "secondary" : "primary"}
-          variant="contained"
-          fullWidth
-        >
-          close position:&nbsp;
-          <strong>{plString}</strong>
-        </Button>
-      </Box>
-    </Paper>
+      <Button
+        disabled={isClosingShort || prices === null}
+        onClick={() => closeShortDaiPosition()}
+        color={negative ? "secondary" : "primary"}
+        variant="contained"
+        fullWidth
+      >
+        close position:&nbsp;
+        <strong>{plString}</strong>
+      </Button>
+    </OutlinedPaper>
   );
 };
 

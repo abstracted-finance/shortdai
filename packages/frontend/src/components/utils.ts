@@ -1,4 +1,4 @@
-export const prettyStringDecimals = (s, n = 2) => {
+export const prettyStringDecimals = (s: string, n = 2) => {
   if (s.split(".").length < 2) {
     return `${s}.${"0".repeat(n)}`;
   }

@@ -2,29 +2,30 @@ import {
   Box,
   Button,
   Collapse,
+  createStyles,
   InputBase,
   makeStyles,
   Paper,
   Slider,
   Typography,
-  createStyles,
 } from "@material-ui/core";
 import { CONSTANTS } from "@shortdai/smart-contracts";
 import { ethers } from "ethers";
 import { ChangeEvent, useState } from "react";
+import useCdps from "../containers/use-cdps";
+import useMakerStats from "../containers/use-maker-stats";
 import useOpenShort from "../containers/use-open-short";
+import usePrices from "../containers/use-prices";
 import useProxy from "../containers/use-proxy";
 import useShortDaiState, {
   ShortDaiState,
 } from "../containers/use-shortdai-state";
-import usePrices from "../containers/use-prices";
 import useUsdc from "../containers/use-usdc";
-import useCdps from "../containers/use-cdps";
-import useMakerStats from "../containers/use-maker-stats";
-import { prettyStringDecimals } from "./utils";
-import { theme } from "./theme";
-import LabelValue from "./label-value";
 import { useDesktop } from "./hooks";
+import LabelValue from "./label-value";
+import { OutlinedPaper } from "./outlined-paper";
+import { theme } from "./theme";
+import { prettyStringDecimals } from "./utils";
 
 const TabCreate = ({ leverage, setLeverage }) => {
   const isDesktop = useDesktop();
@@ -71,7 +72,8 @@ const TabCreate = ({ leverage, setLeverage }) => {
     ethers.utils.formatUnits(toSupplyUsdcAmount, 6)
   );
 
-  const newCR = flashloanDaiAmount.eq(ethers.constants.Zero)
+  const zeroFlashloan = flashloanDaiAmount.eq(ethers.constants.Zero);
+  const newCR = zeroFlashloan
     ? 0.0
     : parseFloat(
         toSupplyUsdcAmount
@@ -81,6 +83,9 @@ const TabCreate = ({ leverage, setLeverage }) => {
           .toString()
       ) / 1000;
   const newCRStr = prettyStringDecimals(newCR.toString()) + "%";
+
+  const liqPrice = zeroFlashloan ? 0.0 : 110 / newCR;
+  const liqPriceStr = "$" + prettyStringDecimals(liqPrice.toString(), 4);
 
   const stabilityApyStr =
     stabilityApy === null ? "..." : (stabilityApy * 100).toFixed(2) + "%";
@@ -143,123 +148,117 @@ const TabCreate = ({ leverage, setLeverage }) => {
         in={!isDaiCloseToUsdc && !daiUsdcRatio6.eq(ethers.constants.Zero)}
       >
         <>
-          <Paper className={classes.successPaper} variant="outlined">
-            <Box p={2.5}>
-              <Typography variant="h6" component="p">
-                <Box color={theme.palette.success.main}>INFO</Box>
-                DAI is trading at a premium. We recommend opening a short
-                position.
-              </Typography>
-            </Box>
-          </Paper>
+          <OutlinedPaper color="success">
+            <Typography variant="h6" component="p">
+              DAI is trading at a premium, consider opening a short position.
+            </Typography>
+          </OutlinedPaper>
           <Box height={16} />
         </>
       </Collapse>
 
       <Collapse in={isDaiCloseToUsdc}>
         <>
-          <Paper className={classes.warningPaper} variant="outlined">
-            <Box p={2.5}>
-              <Typography variant="h6" component="p">
-                <Box color={theme.palette.warning.main}>WARNING</Box>
-                DAI is close to its peg. We recommend that you close any
-                existing positions and avoid opening new ones.
-              </Typography>
-            </Box>
-          </Paper>
+          <OutlinedPaper color="warning">
+            <Typography variant="h6" component="p">
+              DAI is close to its peg, consider closing your positions and hold
+              off on opening new ones.
+            </Typography>
+          </OutlinedPaper>
           <Box height={16} />
         </>
       </Collapse>
 
-      <Paper variant="outlined">
-        <Box p={2.5}>
-          <Box display="flex" justifyContent="space-between">
-            <Typography variant="h6" component="p">
-              Initial Capital
-            </Typography>
+      <OutlinedPaper>
+        <Box display="flex" justifyContent="space-between">
+          <Typography variant="h6" component="p">
+            Initial Capital
+          </Typography>
 
-            <Typography variant="h6" component="p">
-              Balance:{" "}
-              {usdcBal6 === null
-                ? "..."
-                : ethers.utils.formatUnits(usdcBal6, 6)}
-            </Typography>
+          <Typography variant="h6" component="p">
+            Balance:{" "}
+            {usdcBal6 === null ? "..." : ethers.utils.formatUnits(usdcBal6, 6)}
+          </Typography>
+        </Box>
+        <Box display="flex" alignItems="center">
+          <Box flex={1} pr={1}>
+            <InputBase
+              placeholder="0.0"
+              value={usdcPrincipal}
+              onChange={handleInputChange}
+            />
           </Box>
-          <Box display="flex" alignItems="center">
-            <Box flex={1} pr={1}>
-              <InputBase
-                placeholder="0.0"
-                value={usdcPrincipal}
-                onChange={handleInputChange}
-              />
-            </Box>
 
-            <Button
-              onClick={() => {
-                if (usdcBal6 === null) return;
-                setUsdcPrincipal(ethers.utils.formatUnits(usdcBal6, 6));
-              }}
-              variant="outlined"
-              size="small"
-              color="primary"
+          <Button
+            onClick={() => {
+              if (usdcBal6 === null) return;
+              setUsdcPrincipal(ethers.utils.formatUnits(usdcBal6, 6));
+            }}
+            variant="outlined"
+            size="small"
+            color="primary"
+          >
+            MAX
+          </Button>
+
+          <Box display="flex" alignItems="center" ml={2}>
+            <img src="/usdc.png" width={24} height={24} />
+            <Box flexShrink={0} width={8} />
+            <Typography>USDC</Typography>
+          </Box>
+        </Box>
+
+        <Box mt={4} textAlign="center">
+          <Typography variant="h6">Leverage</Typography>
+          <Typography
+            component="span"
+            variant="h3"
+            className={classes.leverage}
+          >
+            {(leverage / 10).toString()}
+          </Typography>
+
+          <Slider
+            value={leverage}
+            onChange={(_, newValue: number) => {
+              setLeverage(newValue);
+            }}
+            min={11}
+            max={100}
+          />
+        </Box>
+
+        <Collapse in={validUsdcPrincipal}>
+          <Box mt={2}>
+            <Box
+              display="flex"
+              justifyContent={isDesktop ? "space-around" : "space-between"}
             >
-              MAX
-            </Button>
-
-            <Box display="flex" alignItems="center" ml={2}>
-              <img src="/usdc.png" width={24} height={24} />
-              <Box flexShrink={0} width={8} />
-              <Typography>USDC</Typography>
+              <LabelValue label="Collat. Ratio">{newCRStr}</LabelValue>
+              <LabelValue label="USDC Liq. Price">{liqPriceStr}</LabelValue>
+              <LabelValue label="Stability Fee">{stabilityApyStr}</LabelValue>
             </Box>
-          </Box>
 
-          <Box mt={4} textAlign="center">
-            <Typography variant="h6">Leverage</Typography>
-            <Typography
-              component="span"
-              variant="h3"
-              className={classes.leverage}
+            <Box
+              mt={2}
+              display="flex"
+              justifyContent={isDesktop ? "space-around" : "space-between"}
+              alignItems="center"
             >
-              {(leverage / 10).toString()}
-            </Typography>
-
-            <Box px={2}>
-              <Slider
-                value={leverage}
-                onChange={(_, newValue: number) => {
-                  setLeverage(newValue);
-                }}
-                min={11}
-                max={100}
-              />
-            </Box>
-          </Box>
-
-          <Collapse in={validUsdcPrincipal}>
-            <Box display="flex" width="80%" mx="auto">
-              <LabelValue flex={1} label="Collat. Ratio">
-                {newCRStr}
-              </LabelValue>
-              <LabelValue flex={1} label="Stability Fee">
-                {stabilityApyStr}
-              </LabelValue>
-            </Box>
-
-            <Box mt={2} display="flex" alignItems="center">
-              <LabelValue flex={1} label="Collateral" icon="usdc">
+              <LabelValue label="Supplying" icon="usdc">
                 {supplyingStr}
               </LabelValue>
 
-              <Box px={2}>
+              <Box mt={1} px={2} textAlign="center">
                 <img src="/maker.png" width={48} />
               </Box>
 
-              <LabelValue flex={1} label="Total Exposure" icon="dai">
+              <LabelValue label="Borrowing" icon="dai">
                 {borrowingStr}
               </LabelValue>
             </Box>
 
-            <Box mt={3}>
+            <Box mt={2}>
               <LabelValue
                 color={theme.palette.primary.main}
                 label="Estimated returns, if 1:1"
@@ -270,9 +269,9 @@ const TabCreate = ({ leverage, setLeverage }) => {
                 </Box>
               </LabelValue>
             </Box>
-          </Collapse>
-        </Box>
-      </Paper>
+          </Box>
+        </Collapse>
+      </OutlinedPaper>
 
       <Collapse in={leverage > 80 && stabilityApy > 0}>
         <Box mt={2}>
