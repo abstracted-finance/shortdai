@@ -62,10 +62,10 @@ contract ShortDAIActions {
         // Allows LSD contract to manage vault on behalf of user
         IDssCdpManager(Constants.CDP_MANAGER).cdpAllow(cdpId, _osd, 1);
 
-        // Transfers the initial margin (in USDC) to lsd contract
+        // Approve OpenShortDAI Contract to use USDC funds
         require(
-            IERC20(Constants.USDC).transfer(_osd, _initialMarginUSDC),
-            "initial-margin-transfer-failed"
+            IERC20(Constants.USDC).approve(_osd, _initialMarginUSDC),
+            "initial-margin-approve-failed"
         );
         // Flashloan and shorts DAI
         OpenShortDAI(_osd).flashloanAndOpen{value: msg.value}(
@@ -73,6 +73,7 @@ contract ShortDAIActions {
             _solo,
             _curvePool,
             cdpId,
+            _initialMarginUSDC,
             _mintAmountDAI,
             _flashloanAmountWETH
         );

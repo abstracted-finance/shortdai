@@ -80,10 +80,21 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
         address _solo,
         address _curvePool,
         uint256 _cdpId,
+        uint256 _initialMarginUSDC,
         uint256 _mintAmountDAI,
         uint256 _flashloanAmountWETH
     ) external payable {
         require(msg.value == 2, "!fee");
+
+        // Gets USDC
+        require(
+            IERC20(Constants.USDC).transferFrom(
+                msg.sender,
+                address(this),
+                _initialMarginUSDC
+            ),
+            "initial-margin-transferFrom-failed"
+        );
 
         ISoloMargin solo = ISoloMargin(_solo);
 
@@ -92,7 +103,10 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
 
         // Wrap ETH into WETH
         WETH(Constants.WETH).deposit{value: msg.value}();
-        WETH(Constants.WETH).approve(_solo, _flashloanAmountWETH.add(msg.value));
+        WETH(Constants.WETH).approve(
+            _solo,
+            _flashloanAmountWETH.add(msg.value)
+        );
 
         // 1. Withdraw $
         // 2. Call callFunction(...)
