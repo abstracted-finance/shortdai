@@ -179,7 +179,7 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
   const openedRatioString = bigIntToString(openedDaiUsdcRatio6, 6, 6);
   const initialCapString = bigIntToString(initialCap);
   const borrowedDaiString = bigIntToString(borrowed);
-  const plString = (negative ? "-" : "+") + "USDC " + bigIntToString(pl18, 18);
+  const plString = "USDC " + (negative ? "-" : "+") + bigIntToString(pl18, 18);
   const crString = bigIntToString(cr18, 16) + "%";
   const leverageString = leverage && bigIntToString(leverage, 18, 1) + "x";
 
