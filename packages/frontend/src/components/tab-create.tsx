@@ -11,7 +11,7 @@ import {
 } from "@material-ui/core";
 import { CONSTANTS } from "@shortdai/smart-contracts";
 import { ethers } from "ethers";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useState, useEffect } from "react";
 import useCdps from "../containers/use-cdps";
 import useMakerStats from "../containers/use-maker-stats";
 import useOpenShort from "../containers/use-open-short";
@@ -39,7 +39,6 @@ const TabCreate = ({ leverage, setLeverage }) => {
   } = useOpenShort.useContainer();
   const { isCreatingProxy, createProxy } = useProxy.useContainer();
   const {
-    daiUsdcRatio6,
     usdcBal6,
     isApprovingUsdc,
     approveUsdc,
@@ -48,7 +47,26 @@ const TabCreate = ({ leverage, setLeverage }) => {
   } = useUsdc.useContainer();
   const { getShortDaiState, shortDaiState } = useShortDaiState.useContainer();
   const { getCdps } = useCdps.useContainer();
-  const { prices } = usePrices.useContainer();
+  const { prices, getDaiUsdcRatio } = usePrices.useContainer();
+
+  // Just so the collapse thing doesn't constantly collapse
+  const [lastPrices, setLastPrices] = useState(prices);
+  useEffect(() => {
+    if (!prices) return;
+
+    setLastPrices({ ...prices });
+  }, [prices]);
+
+  let daiUsdcRatio6 = ethers.constants.Zero;
+  if (lastPrices) {
+    daiUsdcRatio6 = ethers.utils.parseUnits(
+      prettyStringDecimals(
+        lastPrices.daiUsdcRatio,
+        CONSTANTS.ERC20_DECIMALS.USDC
+      ),
+      CONSTANTS.ERC20_DECIMALS.USDC
+    );
+  }
 
   const [usdcPrincipal, setUsdcPrincipal] = useState("");
 
@@ -57,7 +75,11 @@ const TabCreate = ({ leverage, setLeverage }) => {
     CONSTANTS.ERC20_DECIMALS.USDC
   );
 
-  const flashloanDaiAmount = getMintAmountDai(usdcPrincipalBN, leverage);
+  const flashloanDaiAmount = getMintAmountDai(
+    usdcPrincipalBN,
+    leverage,
+    daiUsdcRatio6
+  );
   const borrowingStr = prettyStringDecimals(
     ethers.utils.formatUnits(flashloanDaiAmount, 18)
   );
@@ -121,6 +143,10 @@ const TabCreate = ({ leverage, setLeverage }) => {
     } = event;
     if (/^[0-9]*[.,]?[0-9]*$/.test(value)) {
       setUsdcPrincipal(value);
+
+      if (flashloanDaiAmount.gt(ethers.constants.Zero)) {
+        getDaiUsdcRatio(flashloanDaiAmount);
+      }
     }
   }
 
@@ -145,7 +171,13 @@ const TabCreate = ({ leverage, setLeverage }) => {
       </Typography>
 
       <Collapse
-        in={!isDaiCloseToUsdc && !daiUsdcRatio6.eq(ethers.constants.Zero)}
+        in={
+          !isDaiCloseToUsdc &&
+          !daiUsdcRatio6.eq(ethers.constants.Zero) &&
+          daiUsdcRatio6.gt(
+            ethers.utils.parseUnits("1", CONSTANTS.ERC20_DECIMALS.USDC)
+          )
+        }
       >
         <>
           <OutlinedPaper color="success">
@@ -192,7 +224,11 @@ const TabCreate = ({ leverage, setLeverage }) => {
           <Button
             onClick={() => {
               if (usdcBal6 === null) return;
+
+              // Approx, should be fine
               setUsdcPrincipal(ethers.utils.formatUnits(usdcBal6, 6));
+              const dai = getMintAmountDai(usdcBal6, leverage, daiUsdcRatio6);
+              getDaiUsdcRatio(dai);
             }}
             variant="outlined"
             size="small"
@@ -222,6 +258,19 @@ const TabCreate = ({ leverage, setLeverage }) => {
             value={leverage}
             onChange={(_, newValue: number) => {
               setLeverage(newValue);
+              // Aprox, should be alright
+              try {
+                const usdcPrincipal6 = ethers.utils.parseUnits(
+                  usdcPrincipal,
+                  6
+                );
+                const dai = getMintAmountDai(
+                  usdcPrincipal6,
+                  newValue,
+                  daiUsdcRatio6
+                );
+                getDaiUsdcRatio(dai);
+              } catch (e) {}
             }}
             min={11}
             max={100}
@@ -326,7 +375,12 @@ const TabCreate = ({ leverage, setLeverage }) => {
 
               // i.e. leverage 15 = x1.5
               // And because we wanna minus initial usdcPrincipal6
-              await openShortDaiPosition(0, usdcPrincipal6, leverage);
+              await openShortDaiPosition(
+                0,
+                usdcPrincipal6,
+                leverage,
+                daiUsdcRatio6
+              );
               await Promise.all([
                 getShortDaiState(),
                 getUsdcBalances(),
