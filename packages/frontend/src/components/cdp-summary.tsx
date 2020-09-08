@@ -73,7 +73,7 @@ export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
         closeCalldata,
         {
           value: 2,
-          gasLimit: 2000000,
+          gasLimit: 4000000,
         }
       );
       await closeTx.wait();

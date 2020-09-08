@@ -18,4 +18,8 @@ library Constants {
 
     bytes32 constant USDC_A_ILK = bytes32("USDC-A");
     bytes32 constant ETH_A_ILK = bytes32("ETH-A");
+
+    // OneSplit Flags
+    uint256 constant ONE_SPLIT_CURVE_ONLY_FLAGS = 3758411776;
+    uint256 constant ONE_SPLIT_PARTS = 10;
 }

@@ -137,8 +137,10 @@ test("open and close short (new) vault position", async function () {
 
   const openTx = await IDSProxy[
     "execute(address,bytes)"
-  ](ShortDAIActions.address, openCalldata, { value: 2, gasLimit: 1500000 });
+  ](ShortDAIActions.address, openCalldata, { value: 2, gasLimit: 6000000 });
   await openTx.wait();
+
+  console.log('opened!')
 
   // Gets cdpId
   const newCdpId = await IDssCdpManager.last(IDSProxy.address);

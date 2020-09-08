@@ -4,6 +4,8 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
+import "./onesplit/IOneSplit.sol";
+
 import "./weth/WETH.sol";
 
 import "./dydx/DydxFlashloanBase.sol";
@@ -45,15 +47,34 @@ contract OpenShortDAI is ICallee, DydxFlashloanBase, DssActionsBase {
         // Step 2.
         // Converts Flashloaned DAI to USDC on CurveFi
         // DAI = 0 index, USDC = 1 index
-        require(
-            IERC20(Constants.DAI).approve(osdp.curvePool, osdp.mintAmountDAI),
-            "!curvepool-approved"
+        // require(
+        //     IERC20(Constants.DAI).approve(osdp.curvePool, osdp.mintAmountDAI),
+        //     "!curvepool-approved"
+        // );
+        // ICurveFiCurve(osdp.curvePool).exchange_underlying(
+        //     int128(0),
+        //     int128(1),
+        //     osdp.mintAmountDAI,
+        //     0
+        // );
+        IOneSplit oneSplit = IOneSplit(
+            0xC586BeF4a0992C495Cf22e1aeEE4E446CECDee0E
         );
-        ICurveFiCurve(osdp.curvePool).exchange_underlying(
-            int128(0),
-            int128(1),
+        (uint256 returnAmount, uint256[] memory distribution) = oneSplit
+            .getExpectedReturn(
+            Constants.DAI,
+            Constants.USDC,
             osdp.mintAmountDAI,
-            0
+            Constants.ONE_SPLIT_PARTS,
+            Constants.ONE_SPLIT_CURVE_ONLY_FLAGS
+        );
+        oneSplit.swap(
+            Constants.DAI,
+            Constants.USDC,
+            osdp.mintAmountDAI,
+            0,
+            distribution,
+            Constants.ONE_SPLIT_CURVE_ONLY_FLAGS
         );
 
         // Step 3.

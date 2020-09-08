@@ -85,7 +85,7 @@ function useOpenShort() {
     try {
       const openTx = await proxy[
         "execute(address,bytes)"
-      ](ShortDAIActions.address, openCalldata, { value: 2, gasLimit: 2000000 });
+      ](ShortDAIActions.address, openCalldata, { value: 2, gasLimit: 4000000 });
       await openTx.wait();
     } catch (e) {
       // TODO: Toast
