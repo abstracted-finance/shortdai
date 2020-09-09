@@ -14,6 +14,19 @@ const TabManage = () => {
   const { cdps, isGettingCdps } = useCdps.useContainer();
   const { prices } = usePrices.useContainer();
 
+  let usdcDaiPrice = "...";
+  try {
+    usdcDaiPrice = prettyStringDecimals(
+      ethers.utils.formatUnits(
+        ethers.utils
+          .parseUnits("1", 36)
+          .div(ethers.utils.parseUnits(prices.usdcDaiRatio, 18)),
+        18
+      ),
+      4
+    );
+  } catch (e) {}
+
   return (
     <>
       <Typography variant="h5">
@@ -24,23 +37,7 @@ const TabManage = () => {
           justifyContent="center"
           alignItems="center"
         >
-          {prices === null
-            ? "..."
-            : prettyStringDecimals(
-                ethers.utils.formatUnits(
-                  ethers.utils
-                    .parseUnits("1", 36)
-                    .div(
-                      ethers.utils.parseUnits(
-                        prettyStringDecimals(prices.usdcDaiRatio, 8),
-                        18
-                      )
-                    ),
-                  18
-                ),
-                4
-              )}{" "}
-          <img src="/usdc.png" className={classes.tokenIcon} />
+          {usdcDaiPrice} <img src="/usdc.png" className={classes.tokenIcon} />
           <Box mx={1.5}>=</Box>
           1
           <img src="/dai.png" className={classes.tokenIcon} />{" "}

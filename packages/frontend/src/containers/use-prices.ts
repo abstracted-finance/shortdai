@@ -18,6 +18,10 @@ function usePrices() {
   const { signer, connected } = useWeb3.useContainer();
   const { contracts } = useContracts.useContainer();
 
+  const [daiAmount, setDaiAmount] = useState(
+    ethers.utils.parseUnits("1", CONSTANTS.ERC20_DECIMALS.DAI)
+  );
+  const [timeoutIds, setTimeoutIds] = useState({});
   const [prices, setPrices] = useState<null | Prices>(null);
 
   const getPrices = async () => {
@@ -31,15 +35,11 @@ function usePrices() {
       // index 0 = DAI
       // index 1 = USDC
       const [daiUsdc, usdcDai, gecko] = await Promise.all([
-        ICurveFiSUSDv2.get_dy_underlying(
-          0,
-          1,
-          ethers.utils.parseUnits("1000000", CONSTANTS.ERC20_DECIMALS.DAI)
-        ),
+        ICurveFiSUSDv2.get_dy_underlying(0, 1, daiAmount),
         ICurveFiSUSDv2.get_dy_underlying(
           1,
           0,
-          ethers.utils.parseUnits("1000000", CONSTANTS.ERC20_DECIMALS.USDC)
+          ethers.utils.parseUnits("1", CONSTANTS.ERC20_DECIMALS.USDC)
         ),
         fetch(
           "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd",
@@ -59,12 +59,62 @@ function usePrices() {
         ethereum: {
           usd: geckoData.ethereum.usd,
         },
-        daiUsdcRatio: ethers.utils.formatUnits(daiUsdc, 6 + 6), // 1 milllion + 6 decimals
-        usdcDaiRatio: ethers.utils.formatUnits(usdcDai, 24), // 1 million + 18 decimals
+        daiUsdcRatio: ethers.utils.formatUnits(
+          daiUsdc
+            .mul(ethers.utils.parseUnits("1", CONSTANTS.ERC20_DECIMALS.DAI))
+            .div(daiAmount),
+          CONSTANTS.ERC20_DECIMALS.USDC
+        ), // 1 milllion + 6 decimals
+        usdcDaiRatio: ethers.utils.formatUnits(usdcDai, CONSTANTS.ERC20_DECIMALS.DAI)
       });
     } catch (e) {
       console.log("Failed to connect to coingecko API");
     }
+  };
+
+  const updateDaiUsdcRatio = async (daiAmountWei: ethers.BigNumber) => {
+    const { ICurveFiCurve } = contracts;
+    const ICurveFiSUSDv2 = ICurveFiCurve.attach(
+      CONSTANTS.CONTRACT_ADDRESSES.CurveFiSUSDv2
+    );
+
+    const temp = { ...prices };
+
+    setPrices(null);
+
+    const one = ethers.utils.parseUnits("1", CONSTANTS.ERC20_DECIMALS.DAI);
+    const daiAmountWeiFixed = daiAmountWei.lt(one) ? one : daiAmountWei;
+
+    setDaiAmount(daiAmountWeiFixed);
+
+    const daiUsdc = await ICurveFiSUSDv2.get_dy_underlying(
+      0,
+      1,
+      daiAmountWeiFixed
+    );
+
+    const daiUsdcFixed = daiUsdc
+      .mul(ethers.utils.parseUnits("1", 18))
+      .div(daiAmountWeiFixed);
+
+    const daiUsdcStr = ethers.utils.formatUnits(
+      daiUsdcFixed,
+      CONSTANTS.ERC20_DECIMALS.USDC
+    );
+
+    setPrices({ ...temp, daiUsdcRatio: daiUsdcStr });
+  };
+
+  const getDaiUsdcRatio = (daiAmountWei: ethers.BigNumber) => {
+    const key = "daiUsdcRatio";
+
+    if (timeoutIds[key]) {
+      clearTimeout(timeoutIds[key]);
+    }
+
+    const id = setTimeout(() => updateDaiUsdcRatio(daiAmountWei), 500);
+
+    setTimeoutIds({ ...timeoutIds, [key]: id });
   };
 
   useEffect(() => {
@@ -78,6 +128,8 @@ function usePrices() {
 
   return {
     prices,
+    getDaiUsdcRatio,
+    updateDaiUsdcRatio,
   };
 }
 

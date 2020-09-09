@@ -13,7 +13,6 @@ function useOpenShort() {
   const { prices } = usePrices.useContainer();
   const { proxy } = useProxy.useContainer();
   const { contracts } = useContracts.useContainer();
-  const { daiUsdcRatio6 } = useUsdc.useContainer();
 
   const [isOpeningShort, setIsOpeningShort] = useState<boolean>(false);
 
@@ -21,7 +20,8 @@ function useOpenShort() {
   // leverage: number between 11-109 as we're using BigInt
   const getMintAmountDai = (
     initialUsdcMargin6: ethers.BigNumber,
-    leverage: number
+    leverage: number,
+    daiUsdcRatio6: ethers.BigNumber
   ) => {
     const tenBN = ethers.BigNumber.from("10");
     const leverageBN = ethers.BigNumber.from(leverage.toString());
@@ -50,11 +50,16 @@ function useOpenShort() {
   const openShortDaiPosition = async (
     cdpId: number,
     initialUsdcMargin6: ethers.BigNumber,
-    leverage: number
+    leverage: number,
+    daiUsdcRatio6: ethers.BigNumber
   ) => {
     const { VaultStats, ShortDAIActions, OpenShortDAI } = contracts;
 
-    const mintAmountDai = getMintAmountDai(initialUsdcMargin6, leverage);
+    const mintAmountDai = getMintAmountDai(
+      initialUsdcMargin6,
+      leverage,
+      daiUsdcRatio6
+    );
 
     const ethDaiRatio18 = ethers.utils.parseUnits(
       prices.ethereum.usd.toString(),
@@ -85,7 +90,7 @@ function useOpenShort() {
     try {
       const openTx = await proxy[
         "execute(address,bytes)"
-      ](ShortDAIActions.address, openCalldata, { value: 2, gasLimit: 2000000 });
+      ](ShortDAIActions.address, openCalldata, { value: 2, gasLimit: 4000000 });
       await openTx.wait();
     } catch (e) {
       // TODO: Toast
