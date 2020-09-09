@@ -3,14 +3,14 @@ import { Box, Typography, makeStyles, createStyles } from "@material-ui/core";
 import useCdps from "../containers/use-cdps";
 import { CdpSummary } from "./cdp-summary";
 
-import { useDesktop } from "./hooks";
+import { useMobile } from "./hooks";
 import usePrices from "../containers/use-prices";
 import { useState } from "react";
 import { prettyStringDecimals } from "./utils";
 
 const TabManage = () => {
   const classes = useStyles();
-  const isDesktop = useDesktop();
+  const isMobile = useMobile();
   const { cdps, isGettingCdps } = useCdps.useContainer();
   const { prices } = usePrices.useContainer();
 
@@ -19,7 +19,7 @@ const TabManage = () => {
       <Typography variant="h5">
         <Box
           p={1}
-          mb={isDesktop ? 4 : 2}
+          mb={isMobile ? 2 : 4}
           display="flex"
           justifyContent="center"
           alignItems="center"

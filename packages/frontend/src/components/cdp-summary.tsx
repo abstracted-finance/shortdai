@@ -1,4 +1,4 @@
-import { Box, Button, makeStyles, Paper } from "@material-ui/core";
+import { Box, Button, makeStyles } from "@material-ui/core";
 import { CONSTANTS } from "@shortdai/smart-contracts";
 import ethers from "ethers";
 import React, { useEffect, useState } from "react";
@@ -8,10 +8,9 @@ import usePrices from "../containers/use-prices";
 import useProxy from "../containers/use-proxy";
 import useUsdc from "../containers/use-usdc";
 import useWeb3 from "../containers/use-web3";
-import { useDesktop } from "./hooks";
 import LabelValue, { LabelValueProps } from "./label-value";
-import { prettyStringDecimals } from "./utils";
 import { OutlinedPaper } from "./outlined-paper";
+import { prettyStringDecimals } from "./utils";
 
 interface CdpSummaryProps {
   cdp: Cdp;
@@ -19,7 +18,6 @@ interface CdpSummaryProps {
 
 export const CdpSummary: React.FC<CdpSummaryProps> = ({ cdp }) => {
   const classes = useStyles();
-  const isDesktop = useDesktop();
 
   const { setCdps, cdps } = useCdps.useContainer();
   const { getUsdcBalances } = useUsdc.useContainer();

@@ -20,7 +20,7 @@ import useCdps from "../containers/use-cdps";
 import useUsdc from "../containers/use-usdc";
 import useWeb3 from "../containers/use-web3";
 import { ConnectButton } from "./connect-button";
-import { useDesktop } from "./hooks";
+import { useMobile } from "./hooks";
 import TabCreate from "./tab-create";
 import TabManage from "./tab-manage";
 
@@ -32,7 +32,7 @@ enum Tabs {
 const Main = () => {
   const classes = useStyles();
   const theme = useTheme();
-  const isDesktop = useDesktop();
+  const isMobile = useMobile();
 
   const { cdps } = useCdps.useContainer();
   const { connected, isConnecting, connect } = useWeb3.useContainer();
@@ -103,7 +103,7 @@ const Main = () => {
         </Button>
       </Box>
 
-      <Box className={classes.root} minHeight="100vh" py={isDesktop ? 20 : 16}>
+      <Box className={classes.root} minHeight="100vh" py={isMobile ? 16 : 20}>
         <Box
           mx="auto"
           width="90%"
@@ -115,7 +115,7 @@ const Main = () => {
             width="100%"
             bgcolor={theme.palette.background.paper}
             borderRadius={30}
-            p={isDesktop ? 4 : 2}
+            p={isMobile ? 2 : 4}
             position="relative"
             zIndex={1}
           >

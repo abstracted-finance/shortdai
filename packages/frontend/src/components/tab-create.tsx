@@ -21,14 +21,14 @@ import useShortDaiState, {
   ShortDaiState,
 } from "../containers/use-shortdai-state";
 import useUsdc from "../containers/use-usdc";
-import { useDesktop } from "./hooks";
+import { useMobile } from "./hooks";
 import LabelValue from "./label-value";
 import { OutlinedPaper } from "./outlined-paper";
 import { theme } from "./theme";
 import { prettyStringDecimals } from "./utils";
 
 const TabCreate = ({ leverage, setLeverage }) => {
-  const isDesktop = useDesktop();
+  const isMobile = useMobile();
   const classes = useStyles();
 
   const { stabilityApy } = useMakerStats.useContainer();
@@ -129,7 +129,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
       <Typography variant="h5">
         <Box
           p={1}
-          mb={isDesktop ? 4 : 2}
+          mb={isMobile ? 2 : 4}
           display="flex"
           justifyContent="center"
           alignItems="center"
@@ -224,7 +224,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
               setLeverage(newValue);
             }}
             min={11}
-            max={117}
+            max={100}
           />
         </Box>
 
@@ -232,7 +232,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
           <Box mt={2}>
             <Box
               display="flex"
-              justifyContent={isDesktop ? "space-around" : "space-between"}
+              justifyContent={isMobile ? "space-between" : "space-around"}
             >
               <LabelValue label="Collat. Ratio">{newCRStr}</LabelValue>
               <LabelValue label="USDC Liq. Price">{liqPriceStr}</LabelValue>
@@ -242,7 +242,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
             <Box
               mt={2}
               display="flex"
-              justifyContent={isDesktop ? "space-around" : "space-between"}
+              justifyContent={isMobile ? "space-between" : "space-around"}
               alignItems="center"
             >
               <LabelValue label="Supplying" icon="usdc">
