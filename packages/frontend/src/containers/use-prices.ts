@@ -123,7 +123,7 @@ function usePrices() {
     if (contracts === null) return;
 
     getPrices();
-    setInterval(getPrices, 300000);
+    setInterval(getPrices, 5000);
   }, [connected, signer, contracts]);
 
   return {
