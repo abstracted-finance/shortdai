@@ -204,7 +204,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
       <OutlinedPaper>
         <Box display="flex" justifyContent="space-between">
           <Typography variant="h6" component="p">
-            Initial Capital
+            Deposit
           </Typography>
 
           <Typography variant="h6" component="p">
@@ -277,7 +277,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
           />
         </Box>
 
-        <Collapse in={validUsdcPrincipal}>
+        <Collapse in={shortDaiState === ShortDaiState.READY && hasMinDaiAmount}>
           <Box mt={2}>
             <Box
               display="flex"
@@ -396,19 +396,15 @@ const TabCreate = ({ leverage, setLeverage }) => {
             "Connect wallet to continue"}
           {shortDaiState === ShortDaiState.SETUP_PROXY && "Setup Vault"}
           {shortDaiState === ShortDaiState.APPROVE_USDC && "Approve USDC"}
-          {shortDaiState === ShortDaiState.READY && !validUsdcPrincipal
-            ? usdcPrincipal === ""
-              ? "Enter initial capital"
-              : "Invalid initial capital"
-            : null}
+
           {shortDaiState === ShortDaiState.READY &&
-            validUsdcPrincipal &&
-            !hasMinDaiAmount &&
-            "Min. burrow is 100 DAI"}
-          {shortDaiState === ShortDaiState.READY &&
-            validUsdcPrincipal &&
-            hasMinDaiAmount &&
-            "Open short position"}
+            (usdcPrincipal === ""
+              ? "Enter deposit"
+              : hasMinDaiAmount
+              ? validUsdcPrincipal
+                ? "Open short position"
+                : "Invalid deposit"
+              : "Min. borrow is 100 DAI")}
         </Button>
       </Box>
     </>
