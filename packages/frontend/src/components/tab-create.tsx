@@ -27,6 +27,9 @@ import { OutlinedPaper } from "./outlined-paper";
 import { theme } from "./theme";
 import { prettyStringDecimals } from "./utils";
 
+export const LEVERAGE_MIN = 11;
+export const LEVERAGE_MAX = 160;
+
 const TabCreate = ({ leverage, setLeverage }) => {
   const isMobile = useMobile();
   const classes = useStyles();
@@ -170,7 +173,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
         </Box>
       </Typography>
 
-      <Collapse
+      {/* <Collapse
         in={
           !isDaiCloseToUsdc &&
           !daiUsdcRatio6.eq(ethers.constants.Zero) &&
@@ -199,7 +202,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
           </OutlinedPaper>
           <Box height={16} />
         </>
-      </Collapse>
+      </Collapse> */}
 
       <OutlinedPaper>
         <Box display="flex" justifyContent="space-between">
@@ -272,8 +275,8 @@ const TabCreate = ({ leverage, setLeverage }) => {
                 getDaiUsdcRatio(dai);
               } catch (e) {}
             }}
-            min={11}
-            max={100}
+            min={LEVERAGE_MIN}
+            max={LEVERAGE_MAX}
           />
         </Box>
 
@@ -322,7 +325,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
         </Collapse>
       </OutlinedPaper>
 
-      <Collapse in={leverage > 80 && stabilityApy > 0}>
+      {/* <Collapse in={leverage > 80 && stabilityApy > 0}>
         <Box mt={2}>
           <Paper className={classes.errorPaper} variant="outlined">
             <Box p={2.5}>
@@ -334,7 +337,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
             </Box>
           </Paper>
         </Box>
-      </Collapse>
+      </Collapse> */}
 
       <Box mt={2}>
         <Button
@@ -348,7 +351,8 @@ const TabCreate = ({ leverage, setLeverage }) => {
             isCreatingProxy ||
             isOpeningShort ||
             (shortDaiState === ShortDaiState.READY &&
-              (!validUsdcPrincipal || !hasMinDaiAmount))
+              (!validUsdcPrincipal || !hasMinDaiAmount)) ||
+            (validUsdcPrincipal && newCR < 110)
           }
           startIcon={
             shortDaiState === ShortDaiState.SETUP_PROXY && (
@@ -402,7 +406,9 @@ const TabCreate = ({ leverage, setLeverage }) => {
               ? "Enter deposit"
               : hasMinDaiAmount
               ? validUsdcPrincipal
-                ? "Open short position"
+                ? newCR < 110
+                  ? "Collat. Ratio must be > 110%"
+                  : "Open short position"
                 : "Invalid deposit"
               : "Min. borrow is 100 DAI")}
         </Button>

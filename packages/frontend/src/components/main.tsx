@@ -21,7 +21,7 @@ import useUsdc from "../containers/use-usdc";
 import useWeb3 from "../containers/use-web3";
 import { ConnectButton } from "./connect-button";
 import { useMobile } from "./hooks";
-import TabCreate from "./tab-create";
+import TabCreate, { LEVERAGE_MAX, LEVERAGE_MIN } from "./tab-create";
 import TabManage from "./tab-manage";
 
 enum Tabs {
@@ -42,7 +42,7 @@ const Main = () => {
     contractsMenuAnchor,
     setContractsMenuAnchor,
   ] = useState<HTMLButtonElement | null>(null);
-  const [leverage, setLeverage] = useState<number>(69);
+  const [leverage, setLeverage] = useState<number>(100);
   const [selectedTab, setSelectedTab] = useState<Tabs>(Tabs.CREATE);
 
   function handleContractsMenuClick(
@@ -133,8 +133,8 @@ const Main = () => {
             src="/pickle.png"
             alt="pickle"
             style={{
-              transform: `translate(${43 * ((leverage - 11) / 89)}%, -${
-                39 * ((leverage - 11) / 89)
+              transform: `translate(${50 * ((leverage - LEVERAGE_MIN) / LEVERAGE_MAX)}%, -${
+                46 * ((leverage - LEVERAGE_MIN) / LEVERAGE_MAX)
               }%)`,
             }}
           />
