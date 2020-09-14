@@ -173,7 +173,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
         </Box>
       </Typography>
 
-      {/* <Collapse
+      <Collapse
         in={
           !isDaiCloseToUsdc &&
           !daiUsdcRatio6.eq(ethers.constants.Zero) &&
@@ -202,7 +202,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
           </OutlinedPaper>
           <Box height={16} />
         </>
-      </Collapse> */}
+      </Collapse>
 
       <OutlinedPaper>
         <Box display="flex" justifyContent="space-between">
@@ -325,19 +325,18 @@ const TabCreate = ({ leverage, setLeverage }) => {
         </Collapse>
       </OutlinedPaper>
 
-      {/* <Collapse in={leverage > 80 && stabilityApy > 0}>
+      <Collapse in={leverage > 80 && stabilityApy > 0}>
         <Box mt={2}>
           <Paper className={classes.errorPaper} variant="outlined">
             <Box p={2.5}>
               <Typography variant="h6" component="p">
-                <Box color={theme.palette.error.main}>DANGER</Box>
                 Stability fees are non-zero. Potential liquidation penalties
                 might apply if position is left opened for too long.
               </Typography>
             </Box>
           </Paper>
         </Box>
-      </Collapse> */}
+      </Collapse>
 
       <Box mt={2}>
         <Button
