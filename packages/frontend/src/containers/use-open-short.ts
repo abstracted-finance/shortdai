@@ -23,6 +23,10 @@ function useOpenShort() {
     leverage: number,
     daiUsdcRatio6: ethers.BigNumber
   ) => {
+    if (daiUsdcRatio6.eq(ethers.constants.Zero)) {
+      return ethers.constants.Zero;
+    }
+
     const tenBN = ethers.BigNumber.from("10");
     const leverageBN = ethers.BigNumber.from(leverage.toString());
 
@@ -39,8 +43,8 @@ function useOpenShort() {
       )
       .mul(leverageBN)
       .div(tenBN)
-      .mul(daiUsdcRatio6)
-      .div(bn6);
+      .mul(bn6)
+      .div(daiUsdcRatio6);
 
     return flashloanDaiAmount;
   };
