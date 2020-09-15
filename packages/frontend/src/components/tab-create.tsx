@@ -173,37 +173,6 @@ const TabCreate = ({ leverage, setLeverage }) => {
         </Box>
       </Typography>
 
-      <Collapse
-        in={
-          !isDaiCloseToUsdc &&
-          !daiUsdcRatio6.eq(ethers.constants.Zero) &&
-          daiUsdcRatio6.gt(
-            ethers.utils.parseUnits("1", CONSTANTS.ERC20_DECIMALS.USDC)
-          )
-        }
-      >
-        <>
-          <OutlinedPaper color="success">
-            <Typography variant="h6" component="p">
-              DAI is trading at a premium, consider opening a short position.
-            </Typography>
-          </OutlinedPaper>
-          <Box height={16} />
-        </>
-      </Collapse>
-
-      <Collapse in={isDaiCloseToUsdc}>
-        <>
-          <OutlinedPaper color="warning">
-            <Typography variant="h6" component="p">
-              DAI is close to its peg, consider closing your positions and hold
-              off on opening new ones.
-            </Typography>
-          </OutlinedPaper>
-          <Box height={16} />
-        </>
-      </Collapse>
-
       <OutlinedPaper>
         <Box display="flex" justifyContent="space-between">
           <Typography variant="h6" component="p">
@@ -324,19 +293,6 @@ const TabCreate = ({ leverage, setLeverage }) => {
           </Box>
         </Collapse>
       </OutlinedPaper>
-
-      <Collapse in={leverage > 80 && stabilityApy > 0}>
-        <Box mt={2}>
-          <Paper className={classes.errorPaper} variant="outlined">
-            <Box p={2.5}>
-              <Typography variant="h6" component="p">
-                Stability fees are non-zero. Potential liquidation penalties
-                might apply if position is left opened for too long.
-              </Typography>
-            </Box>
-          </Paper>
-        </Box>
-      </Collapse>
 
       <Box mt={2}>
         <Button
