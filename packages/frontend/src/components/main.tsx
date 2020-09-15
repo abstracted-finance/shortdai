@@ -42,7 +42,7 @@ const Main = () => {
     contractsMenuAnchor,
     setContractsMenuAnchor,
   ] = useState<HTMLButtonElement | null>(null);
-  const [leverage, setLeverage] = useState<number>(100);
+  const [leverage, setLeverage] = useState<number>(400);
   const [selectedTab, setSelectedTab] = useState<Tabs>(Tabs.CREATE);
 
   function handleContractsMenuClick(

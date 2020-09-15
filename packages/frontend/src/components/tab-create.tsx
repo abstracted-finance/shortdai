@@ -28,7 +28,7 @@ import { theme } from "./theme";
 import { prettyStringDecimals } from "./utils";
 
 export const LEVERAGE_MIN = 11;
-export const LEVERAGE_MAX = 160;
+export const LEVERAGE_MAX = 1200;
 
 const TabCreate = ({ leverage, setLeverage }) => {
   const isMobile = useMobile();
@@ -351,7 +351,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
             isOpeningShort ||
             (shortDaiState === ShortDaiState.READY &&
               (!validUsdcPrincipal || !hasMinDaiAmount)) ||
-            (validUsdcPrincipal && newCR < 110)
+            (validUsdcPrincipal && newCR < 103)
           }
           startIcon={
             shortDaiState === ShortDaiState.SETUP_PROXY && (
@@ -405,8 +405,8 @@ const TabCreate = ({ leverage, setLeverage }) => {
               ? "Enter deposit"
               : hasMinDaiAmount
               ? validUsdcPrincipal
-                ? newCR < 110
-                  ? "Collat. Ratio must be > 110%"
+                ? newCR < 103
+                  ? "Collat. Ratio must be > 103%"
                   : "Open short position"
                 : "Invalid deposit"
               : "Min. borrow is 100 DAI")}
