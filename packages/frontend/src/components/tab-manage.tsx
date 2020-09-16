@@ -44,11 +44,11 @@ const TabManage = () => {
         </Box>
       </Typography>
 
-      <Box minHeight={160}>
+      <Box minHeight={210}>
         {!isGettingCdps && !cdps.length && (
           <Box
             display="flex"
-            height={160}
+            height={210}
             justifyContent="center"
             alignItems="center"
           >
