@@ -28,7 +28,9 @@ import { theme } from "./theme";
 import { prettyStringDecimals } from "./utils";
 
 export const LEVERAGE_MIN = 11;
-export const LEVERAGE_MAX = 1200;
+export const LEVERAGE_MAX = 4000;
+export const LEVERAGE_DEFAULT = 3690;
+const MIN_CR = 101;
 
 const TabCreate = ({ leverage, setLeverage }) => {
   const isMobile = useMobile();
@@ -60,16 +62,15 @@ const TabCreate = ({ leverage, setLeverage }) => {
     setLastPrices({ ...prices });
   }, [prices]);
 
-  let daiUsdcRatio6 = ethers.constants.Zero;
-  if (lastPrices) {
-    daiUsdcRatio6 = ethers.utils.parseUnits(
-      prettyStringDecimals(
-        lastPrices.daiUsdcRatio,
+  const daiUsdcRatio6 = lastPrices
+    ? ethers.utils.parseUnits(
+        prettyStringDecimals(
+          lastPrices.daiUsdcRatio,
+          CONSTANTS.ERC20_DECIMALS.USDC
+        ),
         CONSTANTS.ERC20_DECIMALS.USDC
-      ),
-      CONSTANTS.ERC20_DECIMALS.USDC
-    );
-  }
+      )
+    : ethers.constants.Zero;
 
   const [usdcPrincipal, setUsdcPrincipal] = useState("");
 
@@ -109,7 +110,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
       ) / 1000;
   const newCRStr = prettyStringDecimals(newCR.toString()) + "%";
 
-  const liqPrice = zeroFlashloan ? 0.0 : 110 / newCR;
+  const liqPrice = zeroFlashloan ? 0.0 : MIN_CR / newCR;
   const liqPriceStr = "$" + prettyStringDecimals(liqPrice.toString(), 4);
 
   const stabilityApyStr =
@@ -307,7 +308,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
             isOpeningShort ||
             (shortDaiState === ShortDaiState.READY &&
               (!validUsdcPrincipal || !hasMinDaiAmount)) ||
-            (validUsdcPrincipal && newCR < 103)
+            (validUsdcPrincipal && newCR < MIN_CR)
           }
           startIcon={
             shortDaiState === ShortDaiState.SETUP_PROXY && (
@@ -361,8 +362,8 @@ const TabCreate = ({ leverage, setLeverage }) => {
               ? "Enter deposit"
               : hasMinDaiAmount
               ? validUsdcPrincipal
-                ? newCR < 103
-                  ? "Collat. Ratio must be > 103%"
+                ? newCR < MIN_CR
+                  ? `Collat. Ratio must be > ${MIN_CR}%`
                   : "Open short position"
                 : "Invalid deposit"
               : "Min. borrow is 100 DAI")}
