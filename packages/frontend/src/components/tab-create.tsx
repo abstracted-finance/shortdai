@@ -300,6 +300,8 @@ const TabCreate = ({ leverage, setLeverage }) => {
           variant="contained"
           color="primary"
           disabled={
+            // manual disable
+            true ||
             prices === null ||
             shortDaiState === ShortDaiState.PENDING ||
             shortDaiState === ShortDaiState.NOT_CONNECTED ||
@@ -351,7 +353,8 @@ const TabCreate = ({ leverage, setLeverage }) => {
             }
           }}
         >
-          {shortDaiState === ShortDaiState.PENDING && "Initializing..."}
+          Manually disabled, dev in progress..
+          {/* {shortDaiState === ShortDaiState.PENDING && "Initializing..."}
           {shortDaiState === ShortDaiState.NOT_CONNECTED &&
             "Connect wallet to continue"}
           {shortDaiState === ShortDaiState.SETUP_PROXY && "Setup Vault"}
@@ -366,7 +369,7 @@ const TabCreate = ({ leverage, setLeverage }) => {
                   ? `Collat. Ratio must be > ${MIN_CR}%`
                   : "Open short position"
                 : "Invalid deposit"
-              : "Min. borrow is 100 DAI")}
+              : "Min. borrow is 100 DAI")} */}
         </Button>
       </Box>
     </>
