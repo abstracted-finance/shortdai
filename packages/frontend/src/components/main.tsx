@@ -91,7 +91,10 @@ const Main = () => {
             </MenuItem>
           ))}
 
-          <Divider />
+          <Box py={1}>
+            <Divider />
+          </Box>
+
           <MenuItem
             onClick={handleExternalLink(
               "0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e",
