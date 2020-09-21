@@ -3,18 +3,17 @@ import {
   Button,
   Collapse,
   createStyles,
+  Divider,
   Fade,
   ListItemIcon,
   makeStyles,
   Menu,
   MenuItem,
   Paper,
-  Typography,
   useTheme,
 } from "@material-ui/core";
 import Contracts from "@shortdai/smart-contracts/deployed/mainnet/deployed.json";
 import cn from "classnames";
-import { ethers } from "ethers";
 import { useState } from "react";
 import useCdps from "../containers/use-cdps";
 import useUsdc from "../containers/use-usdc";
@@ -22,9 +21,9 @@ import useWeb3 from "../containers/use-web3";
 import { ConnectButton } from "./connect-button";
 import { useMobile } from "./hooks";
 import TabCreate, {
+  LEVERAGE_DEFAULT,
   LEVERAGE_MAX,
   LEVERAGE_MIN,
-  LEVERAGE_DEFAULT,
 } from "./tab-create";
 import TabManage from "./tab-manage";
 
@@ -91,6 +90,20 @@ const Main = () => {
               <Box ml={-3}>{key}</Box>
             </MenuItem>
           ))}
+
+          <Divider />
+          <MenuItem
+            onClick={handleExternalLink(
+              "0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e",
+              true
+            )}
+          >
+            <ListItemIcon>
+              <img src="/open-in-new.png" />
+            </ListItemIcon>
+
+            <Box ml={-3}>dYdX solo margin</Box>
+          </MenuItem>
         </Menu>
 
         <Box width={16} />
