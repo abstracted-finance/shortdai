@@ -148,17 +148,6 @@ const Main = () => {
             </Collapse>
           </Box>
 
-          <img
-            className={classes.pickle}
-            src="/pickle.png"
-            alt="pickle"
-            style={{
-              transform: `translate(${
-                50 * ((leverage - LEVERAGE_MIN) / LEVERAGE_MAX)
-              }%, -${46 * ((leverage - LEVERAGE_MIN) / LEVERAGE_MAX)}%)`,
-            }}
-          />
-
           <Box className={cn(classes.drawer, classes.topDrawer)} display="flex">
             <Box display="flex">
               <Button
@@ -228,14 +217,6 @@ export const useStyles = makeStyles((theme) =>
     },
     root: {
       overflowX: "hidden",
-    },
-    pickle: {
-      position: "absolute",
-      maxWidth: 300,
-      width: "50%",
-      top: 0,
-      left: "50%",
-      zIndex: -1,
     },
     drawer: {
       position: "absolute",
